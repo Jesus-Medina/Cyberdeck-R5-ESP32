@@ -1,150 +1,193 @@
-# 10 — Mapa de ensamblaje
+# 10 — Mapa de ensamblaje v3
 
-Este documento define cómo se conecta físicamente el cyberdeck.
+## Controles de energía del panel
+
+```text
+[SW0 MASTER AUX]   [SW1 SUPERVISOR]   [DELL POWER]
+
+SW0 OFF -> todo AUX muerto
+SW1 OFF -> sólo supervisor/smart control muerto
+DELL POWER -> botón Dell original
+```
+
+El Dell no depende de SW0 ni SW1.
 
 ## Capas
 
-### Nivel 1 — Tapa
+### Tapa
 
 - LCD Dell;
-- webcam/mic si se reutilizan;
-- OLED de estado opcional;
-- parlantes auxiliares opcionales.
+- webcam/mic opcional;
+- parlantes/estado opcional.
 
-### Nivel 2 — Panel superior
+### Panel superior
 
-- teclado/touchpad Dell;
+- teclado/touchpad;
 - FNIRSI;
 - GM328A;
-- ESP32 CYD;
+- CYD;
 - GPIO;
+- OLED;
 - encoder;
-- switches;
-- medidor V/A;
+- SW0;
+- SW1;
+- banco de switches de módulos;
+- PSU V/A + OUTPUT;
 - bananas.
 
-### Nivel 3 — Bandeja técnica
+### Bandeja técnica
 
-- hub USB;
+- Smart Backplane;
 - ESP32-S3;
+- hub;
 - Arduino;
-- backplane;
 - UE306;
-- USB-UART;
+- USB-UART/aislador;
 - logic analyzer;
-- RF modules;
-- distribución AUX.
+- LoRa/GNSS/NFC carriers;
+- RTL-SDR;
+- Wi‑Fi LAB;
+- power AUX.
 
-## Topología USB
+## Cableado de power
 
 ```mermaid
 flowchart TB
-    D["Dell"] --> HUB["Hub USB 3 powered"]
+    AUX["AUX source"] --> F["FUSE"]
+    F --> SW0["SW0 MASTER AUX"]
+    SW0 --> BUS["AUX BUS"]
 
-    HUB --> ESP["ESP32-S3"]
-    HUB --> ARD["Arduino"]
-    HUB --> CYD["ESP32 CYD"]
-    HUB --> ETH["UE306"]
-    HUB --> SDR["RTL-SDR"]
-    HUB --> WIFI["Wi-Fi LAB"]
-    HUB --> GPS["GNSS"]
-    HUB --> LOGIC["Logic analyzer"]
-    HUB --> UART["USB-UART"]
-    HUB --> EXT["USB panel"]
+    BUS --> SW1["SW1 SUPERVISOR"]
+    SW1 --> SUP["ESP32 + OLED + ID rail"]
+
+    BUS --> BP["Smart switched branches"]
+    BUS --> LAB["Manual instruments"]
+
+    SUP --> EN["Enable control"]
+    EN --> BP
+
+    BP --> LORA["LoRa"]
+    BP --> GPS["GNSS"]
+    BP --> NFC["NFC"]
+    BP --> CYD["CYD"]
+    BP --> SDR["SDR power"]
+    BP --> WIFI["Wi-Fi LAB power"]
 ```
 
-No todos los dispositivos necesitan estar energizados a la vez. Las ramas de consumo se controlan cuando sea práctico.
+## Comportamiento cuando SW1 está OFF
 
-## Topología de control
+Todos los `ENABLE` del backplane llevan pull-down físico.
 
-```mermaid
-flowchart LR
-    SW["Switch panel"] --> ESP["ESP32-S3"]
-    BTN["Buttons"] --> ESP
-    ENC["Encoder"] --> ESP
+Resultado:
 
-    ESP --> LS["Load switch bank"]
-    LS --> SDR["SDR"]
-    LS --> GPS["GPS"]
-    LS --> LORA["LoRa"]
-    LS --> NFC["NFC"]
-    LS --> CYD["CYD"]
-    LS --> FAN["Fans"]
-
-    ESP --> OLED["OLED"]
-    ESP --> INA["INA219/226"]
-    ESP --> RTC["DS3231"]
+```text
+ESP32 = OFF
+SMART MODULES = OFF
+DELL = independiente
+MANUAL INSTRUMENTS = sólo si sus propios switches están ON
 ```
+
+## Comunicación Host
+
+Producción:
+
+```text
+Dell USB
+ -> USB-UART (lado Dell)
+ -> digital isolator
+ -> ESP32 UART
+```
+
+No conectar VBUS del Dell al rail del ESP32.
+
+## Smart carriers
+
+Módulos LoRa/GNSS/NFC y futuras expansiones se montan en carriers atornillados.
+
+Cada carrier puede tener:
+
+- EEPROM Module ID;
+- connector Smart Port;
+- puntos de test;
+- protección local;
+- conector RF cuando aplique.
+
+USB/RF principal sigue usando cables dedicados.
 
 ## Arneses
 
-Propuesta de nombres:
-
 | Arnés | Uso |
 |---|---|
-| H-PWR-01 | AUX IN -> backplane |
-| H-PWR-02 | backplane -> hub |
-| H-PWR-03 | backplane -> instrumentación |
-| H-CTRL-01 | switch panel -> ESP32 |
-| H-I2C-01 | ESP32 -> OLED/RTC/INA |
-| H-FAN-01 | fan intake |
-| H-FAN-02 | fan exhaust |
-| H-RF-01 | Wi-Fi coax |
-| H-RF-02 | SDR coax |
-| H-RF-03 | LoRa coax |
-| H-USB-01 | Dell -> hub |
-| H-USB-02 | hub -> panel |
-| H-GPIO-01 | Arduino -> terminal block |
+| H-PWR-00 | AUX -> fuse -> SW0 |
+| H-PWR-01 | SW0 -> AUX BUS |
+| H-PWR-02 | AUX BUS -> SW1 -> supervisor |
+| H-PWR-03 | AUX BUS -> smart backplane |
+| H-PWR-04 | AUX BUS -> manual instruments |
+| H-HOST-01 | Dell USB-UART -> isolator |
+| H-HOST-02 | isolator -> ESP32 |
+| H-CTRL-01 | switches -> supervisor |
+| H-I2C-01 | supervisor system I²C |
+| H-FAN-01/02 | fans |
+| H-RF-01 | Wi-Fi |
+| H-RF-02 | SDR |
+| H-RF-03 | LoRa |
+| H-GPIO-01 | Arduino -> panel |
+
+## Modularidad mecánica
+
+Cada módulo debe retirarse con:
+
+- tornillos;
+- conector de power/control;
+- cable data si aplica;
+- coaxial si aplica.
+
+No soldarlo permanentemente a la maleta.
 
 ## Qué se suelda
 
 Sí:
 
-- wires a switches;
-- LEDs + resistencias;
-- JST;
 - backplane;
-- load switches;
-- fan headers;
+- carriers;
+- JST/terminales;
+- switches;
+- LEDs;
+- resistencias;
 - sensores;
-- bananas de fuente LAB;
-- cables de baja velocidad.
+- baja velocidad.
 
 No:
 
 - motherboard Dell;
-- batería/celdas Dell;
+- batería Dell;
 - USB 3;
 - HDMI;
 - RJ45;
-- coax RF;
-- lectores microSD si una extensión sirve.
+- coaxial RF.
 
-## Secuencia física de montaje
+## Orden de montaje
 
-1. plantilla de cartón;
-2. bandeja técnica;
-3. montar módulos con standoffs;
-4. arneses;
-5. probar continuidad;
-6. energizar AUX con fusible;
-7. probar USB;
-8. probar RF;
-9. montar panel temporal;
-10. integrar Dell;
-11. pruebas térmicas;
-12. recién entonces cortar panel definitivo.
+1. SW0 + fusible + AUX bus.
+2. SW1 + supervisor aislado.
+3. probar que SW1 OFF da 0 V en 5V_SUP.
+4. comprobar que Dell no puede back-power el ESP32.
+5. backplane con un solo canal.
+6. Module ID.
+7. current sense.
+8. expandir a slots.
+9. USB backbone.
+10. RF.
+11. instrumentos.
+12. panel definitivo.
 
-## Checklist antes de cerrar
+## Pruebas críticas
 
-- ningún cable toca ventiladores;
-- ningún coaxial pasa sobre DC/DC;
-- no hay PCBs sueltas;
-- fusibles identificados;
-- conectores polarizados;
-- cada USB está etiquetado;
-- accesibles RAM/SSD;
-- accesible botón power;
-- ventilación libre;
-- multímetro confirma tensiones;
-- sin backfeed desde el hub hacia el Dell.
+- SW0 OFF: ninguna rama AUX energizada.
+- SW1 OFF: ESP32 completamente sin tensión.
+- Dell ON + SW1 OFF: ESP32 sigue sin alimentación.
+- SW1 ON + Dell OFF: supervisor arranca y marca PC OFF.
+- SW1 ON + Dell ON sin daemon: PC POWERED.
+- heartbeat activo: PC ONLINE.
+- reset ESP32: enables vuelven OFF.
+- módulo en fault: sólo su rama se corta.
