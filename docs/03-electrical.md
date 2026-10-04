@@ -1,164 +1,214 @@
-# 03 — Alimentación, protección y distribución
+# 03 — Alimentación, protección y distribución v3
 
-## Regla 1
+## Dos dominios independientes
 
-El sistema Dell permanece intacto:
+### PC
 
 ```text
-Cargador Dell -> motherboard/BMS Dell <-> batería Dell -> computador
+Cargador Dell -> motherboard/BMS Dell <-> batería Dell -> Dell
 ```
 
-No abrir celdas, no puentear el BMS y no alimentar la motherboard desde una fuente DIY.
+No se modifica.
 
-## Dos dominios de energía
+### AUX
 
-### Dominio PC
+Alimenta todo lo añadido al cyberdeck.
 
-Alimenta exclusivamente el Dell y sus componentes originales.
-
-### Dominio AUX
-
-Alimenta:
-
-- ESP32-S3;
-- ESP32 CYD;
-- Arduino;
-- hub USB alimentado;
-- sensores;
-- OLED;
-- ventiladores auxiliares;
-- audio/radio auxiliar;
-- módulos de instrumentación cuando corresponda;
-- fuente de laboratorio;
-- iluminación.
-
-Se recomienda una batería/powerbank USB-C PD protegida o una fuente auxiliar certificada, no un pack casero multicelda durante la primera versión.
-
-## Árbol AUX
+## Dos cortes físicos
 
 ```mermaid
-flowchart TB
-    IN["Entrada AUX / powerbank PD"]
-    FUSE["Fusible principal"]
-    REV["Protección polaridad / eFuse"]
-    BUS["BUS AUX"]
-    V5["5 V regulados"]
-    V12["12 V si un módulo lo requiere"]
-    LAB["Buck-Boost variable"]
-    PD["USB-C PD/QC"]
+flowchart LR
+    SRC["AUX source"] --> F["Main fuse"]
+    F --> SW0["SW0 MASTER AUX"]
+    SW0 --> BUS["AUX BUS"]
 
-    IN --> FUSE --> REV --> BUS
-    BUS --> V5
-    BUS --> V12
-    BUS --> LAB
-    BUS --> PD
+    BUS --> SW1["SW1 SUPERVISOR ENABLE"]
+    SW1 --> EF["Supervisor eFuse"]
+    EF --> SUP["5V_SUP / ESP32"]
 
-    V5 --> ESP["ESP32"]
-    V5 --> HUB["Hub"]
-    V5 --> ARD["Arduino"]
-    V5 --> OLED["Displays/sensores"]
+    BUS --> MAN["Manual instrument branches"]
+    BUS --> SMART["Smart switched branches"]
 ```
 
-## Protección mínima
+### SW0 MASTER AUX
 
-- fusible principal;
-- fusibles/polyfuse por grupos;
-- eFuse o protección contra inversión si la entrada no es USB-C;
-- supresión transitoria apropiada;
-- conectores polarizados;
-- cables dimensionados por corriente;
-- termorretráctil;
-- masas claramente distribuidas;
-- switch físico MASTER AUX;
-- ventilación para DC/DC.
+Hard-off de todo el dominio auxiliar.
 
-## Anti-backfeed USB
+Debe ser un interruptor DC correctamente dimensionado para la corriente real.
 
-El hub interno debe aceptar alimentación externa correctamente y **no devolver 5 V al puerto USB del Dell**. Si el modelo elegido no garantiza aislamiento de VBUS, debe interponerse un aislador de VBUS/data cable adecuado o elegirse otro hub.
+### SW1 SUPERVISOR ENABLE
 
-## Control de módulos
+Hard-off dedicado al ESP32-S3 y su UI mínima.
 
-Los switches de panel son entradas lógicas:
+Cuando está OFF:
+
+- `5V_SUP = 0`;
+- ESP32 realmente apagado;
+- OLED del supervisor apagado;
+- no hay firmware corriendo;
+- smart branch enables permanecen en OFF mediante resistencias pull-down físicas.
+
+Esto evita mantener el supervisor consumiendo energía cuando no se necesita.
+
+> Si la fuente AUX es un powerbank, el supervisor consume prácticamente cero al estar desconectado, pero el propio powerbank puede tener un consumo de reposo interno. Para un “cero real” de todo el AUX se usa SW0 o una fuente con desconexión física compatible.
+
+## Evitar phantom power desde el Dell
+
+No conectar el USB del Dell de forma que pueda alimentar el ESP32 por VBUS o por pines de datos cuando SW1 está OFF.
+
+Arquitectura de producción recomendada:
 
 ```text
-switch -> ESP32 -> driver/load switch -> módulo
+Dell USB
+   |
+USB-UART alimentado por Dell
+   |
+digital isolator
+   |
+UART ESP32
 ```
 
-No se usará un pequeño switch de panel para cortar directamente corrientes importantes.
+El aislador debe separar ambos dominios eléctricos.
 
-Ramas previstas:
+El USB-C directo del ESP32 se usa como SERVICE/FLASH y sólo se conecta cuando se trabaja sobre el supervisor.
 
-- WIFI_LAB;
+## PC power sense
+
+La detección del Dell debe consumir una corriente despreciable y no alimentar el supervisor.
+
+Opciones a prototipar:
+
+- detector de VBUS con entrada de alta impedancia;
+- optoacoplador correctamente dimensionado;
+- aislador/comparador dedicado.
+
+Se seleccionará después de medir el comportamiento real de los USB del Vostro apagado, suspendido y encendido.
+
+## Smart Power Backplane
+
+Funciones:
+
+- distribución AUX;
+- load switches/eFuses;
+- EN con pull-down;
+- POWER_GOOD;
+- medición de corriente;
+- identificación de slots;
+- fan control;
+- I²C mux;
+- conectores.
+
+### Canal de módulo
+
+```text
+AUX BUS
+  |
+[eFuse / load switch]
+  |---- PGOOD -> ESP32
+  |
+[current sense]
+  |
+5V_SW -> MODULE
+```
+
+El ESP32 sólo controla `ENABLE`; la protección contra sobrecorriente es hardware.
+
+## Identificación con módulo apagado
+
+Cada Smart Module Carrier puede recibir una pequeña línea `3V3_ID` desde el supervisor.
+
+```text
+3V3_ID -> EEPROM ID
+5V_SW  -> electrónica principal
+```
+
+Así el EEPROM puede leerse mientras el módulo principal sigue apagado.
+
+El consumo del ID sólo existe cuando SW1/Supervisor está ON.
+
+## I²C
+
+Para una versión pro:
+
+- TCA9548A o equivalente para aislar canales;
+- EEPROM 24C02/24C04 por carrier;
+- OLED/RTC/INA en canal de sistema;
+- módulos en canales separados.
+
+## Monitoreo de corriente
+
+Opciones:
+
+- INA219/INA226 para rails importantes;
+- INA3221 o equivalente para varios canales;
+- load switch con fault/PGOOD.
+
+No necesitamos medir cada LED; sí los grupos y módulos relevantes.
+
+## Ramas smart
+
+Planeadas:
+
 - SDR;
+- WIFI_LAB;
 - LORA;
-- GPS;
+- GNSS;
 - NFC;
 - CYD;
-- AUDIO;
-- GPIO_LAB;
+- AUDIO_AUX;
 - FAN_AUX;
-- LIGHTS.
+- LIGHTS;
+- AUX_SLOT_1/AUX_SLOT_2.
 
-## Fuente de laboratorio
+## Ramas manuales
 
-Debe estar eléctricamente separada del control lógico:
+Algunos instrumentos deben poder usarse aunque el ESP32 esté apagado:
+
+- fuente LAB;
+- FNIRSI si su alimentación lo permite;
+- tester de componentes;
+- radio/audio auxiliar.
+
+Cada una tendrá su propio switch físico y protección.
+
+## Fuente LAB
 
 ```text
-BUS AUX -> buck/boost regulable -> medidor V/A -> fusible de salida -> bananas +/-
+AUX BUS
+  -> fuse
+  -> buck/boost CC/CV
+  -> V/A meter
+  -> OUTPUT switch
+  -> bananas
 ```
 
-Recomendado:
+No depende del ESP32 para apagar su salida.
 
-- límite de corriente si el convertidor lo soporta;
-- interruptor OUTPUT;
-- display V/A;
-- bornes banana de 4 mm;
-- fusible de salida;
-- etiqueta clara del rango permitido.
+## USB
 
-## Sensado
+Criterio de selección del hub:
 
-El ESP32 puede leer:
+- alimentación externa real;
+- no backfeed;
+- idealmente control individual de alimentación por puerto;
+- documentación suficiente.
 
-- tensión/corriente del AUX con INA219/INA226;
-- temperatura interna;
-- temperatura de zona DC/DC;
-- estado de ventiladores;
-- presencia de alimentación;
-- nivel de batería auxiliar si el sistema lo expone de forma segura.
+No diseñaremos un PCB USB 3 improvisado.
 
-## Refrigeración
+Para módulos USB que necesiten power switching, preferiremos:
 
-El ventilador Dell sigue gestionado por el propio notebook.
+1. hub con per-port power control;
+2. módulo comercial USB power switch;
+3. sólo si es necesario, control de VBUS compatible con la velocidad del enlace.
 
-Los ventiladores auxiliares son controlados por ESP32 mediante MOSFET/driver. Nunca bloquear rejillas inferiores del Vostro.
+## Estado seguro al reset
 
-## Backplane v1
+Toda señal `ENABLE` lleva pull-down hardware.
 
-La PCB/backplane no transportará HDMI, USB 3 ni RF. Sólo:
+Por lo tanto:
 
-- alimentación de baja tensión;
-- señales GPIO;
-- I²C;
-- UART;
-- control de ventiladores;
-- entradas de switches;
-- LEDs;
-- salidas hacia load switches.
+```text
+ESP32 apagado/reset -> módulos smart OFF
+```
 
-Conectores tentativos:
-
-| ID | Función |
-|---|---|
-| J1 | AUX IN |
-| J2 | 5 V BUS |
-| J3 | ESP32-S3 |
-| J4 | OLED |
-| J5 | Switch panel |
-| J6 | Fan 1 |
-| J7 | Fan 2 |
-| J8 | I²C expansion |
-| J9 | LoRa |
-| J10 | NFC |
-| J11 | sensores |
-| J12 | load-switch outputs |
+La alimentación del Dell no pasa por el supervisor.
