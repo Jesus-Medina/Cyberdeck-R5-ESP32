@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2 — Display Control / IR Lab
+
+- añadido módulo IR 38 kHz + emisor 940 nm;
+- añadida arquitectura HDMI switch para sustituir contenido en TV/signage propio;
+- contemplada capturadora HDMI opcional;
+- añadido CC1101 opcional para laboratorio sub-GHz autorizado;
+- documentado uso del kit existente 2N2222/2N3904 como driver IR.
+
+
 ## 0.1.1 — BOM V0.1 cerrada
 
 - reconciliadas compras reales de Smart Power + Supervisor;
