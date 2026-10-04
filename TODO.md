@@ -1,110 +1,137 @@
-# TODO
+# TODO — v3 Smart Modular
 
 ## Confirmado
 
-- [x] Notebook: Dell Vostro 3405.
-- [x] CPU: Ryzen 5 3450U.
-- [x] RAM: 12 GB.
-- [x] SSD: 256 GB.
-- [x] Caja objetivo definida: Robust MJ-5018 / Easy 16".
-- [x] Arquitectura Ryzen + ESP32 supervisor + Arduino + CYD.
+- [x] Dell Vostro 3405.
+- [x] Ryzen 5 3450U.
+- [x] 12 GB RAM.
+- [x] SSD 256 GB.
+- [x] Caja objetivo Robust MJ-5018 / Easy 16".
+- [x] ESP32-S3 como supervisor.
+- [x] ESP32 CYD independiente.
+- [x] Arduino LAB.
+- [x] LoRa / SDR / GNSS / NFC considerados.
+- [x] Arquitectura Smart Module Manager.
+- [x] Supervisor con hard-off físico.
+- [x] MASTER AUX separado.
 
-## Medir / identificar
+## Medición física
 
-- [ ] Medir interior real de la caja.
-- [ ] Medir altura disponible con Dell dentro.
-- [ ] Identificar modelo exacto del Arduino.
-- [ ] Fotografiar interior Dell antes de desmontar.
-- [ ] Confirmar batería y salud.
-- [ ] Confirmar resolución/modelo del LCD.
-- [ ] Medir temperatura del Dell en carga.
-- [ ] Medir consumo del rail AUX estimado.
+- [ ] medir interior real caja.
+- [ ] identificar Arduino.
+- [ ] abrir/fotografiar Dell.
+- [ ] salud batería.
+- [ ] modelo LCD.
+- [ ] temperaturas.
+- [ ] comportamiento USB Dell apagado/suspendido/encendido.
 
-## Comprar P0
+## Power v3
 
-- [ ] ABS 3 mm para prototipo.
-- [ ] separadores/tornillería M3.
-- [ ] JST + crimpadora.
-- [ ] hub USB 3 alimentado anti-backfeed.
-- [ ] fusibles/polyfuse.
-- [ ] powerbank/fuente AUX protegida.
-- [ ] extensiones panel USB/RJ45/HDMI/audio.
+- [ ] elegir SW0 MASTER AUX.
+- [ ] elegir SW1 SUPERVISOR ENABLE.
+- [ ] elegir eFuse entrada.
+- [ ] elegir load switch/eFuse por canal.
+- [ ] diseñar EN pull-down.
+- [ ] elegir current monitor multicanal.
+- [ ] probar 5V_SUP=0 con SW1 OFF.
+- [ ] verificar ausencia de phantom power desde Dell.
+- [ ] elegir batería/fuente AUX.
 
-## Control P1
+## Host isolation
+
+- [ ] elegir USB-UART lado Dell.
+- [ ] elegir aislador UART.
+- [ ] prototipar heartbeat aislado.
+- [ ] prototipar PC_PWR_SENSE alta impedancia.
+- [ ] probar OFF / BOOT / ONLINE / HOST_LOST.
+
+## Smart Backplane
+
+- [ ] definir número de slots.
+- [ ] definir conector Smart Module Port.
+- [ ] TCA9548A.
+- [ ] EEPROM ID por carrier.
+- [ ] formato descriptor.
+- [ ] carrier LoRa.
+- [ ] carrier GNSS.
+- [ ] carrier NFC.
+- [ ] slot AUX futuro.
+- [ ] PGOOD/FAULT por canal.
+- [ ] current sense por canal/grupo.
+- [ ] PCB v0 en perfboard.
+- [ ] PCB v1 KiCad.
+
+## Module Manager firmware
+
+- [ ] enum ABSENT/PRESENT_OFF/STARTING/POWERED/ONLINE/ACTIVE/FAULT/DISABLED.
+- [ ] boot inventory.
+- [ ] rescan.
+- [ ] power sequence.
+- [ ] startup timeout.
+- [ ] overcurrent fault.
+- [ ] retry policy.
+- [ ] host-assisted USB health.
+- [ ] module event log.
+- [ ] profiles.
+- [ ] watchdog.
+- [ ] safe defaults after reset.
+
+## Hardware principal
 
 - [ ] ESP32-S3.
-- [ ] OLED 1.3".
-- [ ] ESP32 CYD 2.8".
-- [ ] extensión microSD.
-- [ ] DS3231.
-- [ ] INA219/INA226.
-- [ ] switches/pulsadores/encoder.
-- [ ] load switches/eFuse.
-- [ ] sensores ambientales.
-- [ ] fan controller.
+- [ ] OLED.
+- [ ] CYD.
+- [ ] microSD extension.
+- [ ] RTC.
+- [ ] BME280.
+- [ ] INA monitors.
+- [ ] switches/buttons/encoder.
+- [ ] fans PWM/tach.
 
-## Redes / comunicaciones P2
+## Redes/RF
 
-- [ ] integrar UE306.
-- [ ] seleccionar Wi‑Fi USB Linux-friendly.
-- [ ] RP-SMA externos.
+- [ ] UE306.
+- [ ] Wi-Fi USB Linux-friendly.
+- [ ] RP-SMA.
 - [ ] RTL-SDR.
-- [ ] SMA SDR.
-- [ ] LoRa SX1262/SX127x.
-- [ ] antena/banda LoRa adecuada.
-- [ ] GNSS/GPS.
+- [ ] LoRa + banda/antena.
+- [ ] GNSS.
 - [ ] PN532.
 - [ ] radio FM/Bluetooth opcional.
+- [ ] comprobar ruido RF con DC/DC encendidos.
 
-## Laboratorio P2
+## Laboratorio
 
-- [ ] panel Arduino GPIO.
-- [ ] bornes verdes enchufables.
-- [ ] level shifter 3.3/5 V.
+- [ ] Arduino terminal panel.
+- [ ] level shifting.
 - [ ] USB-UART.
 - [ ] logic analyzer.
-- [ ] FNIRSI-138 Pro/equivalente.
-- [ ] GM328A/equivalente.
-- [ ] buck-boost fuente LAB.
+- [ ] FNIRSI.
+- [ ] GM328A.
+- [ ] PSU CC/CV.
 - [ ] V/A meter.
-- [ ] bananas.
-- [ ] fusible OUTPUT.
+- [ ] bananas + OUTPUT switch.
 
-## Firmware ESP32
+## Host daemon
 
-- [ ] OLED driver.
-- [ ] debounce.
-- [ ] fan curves.
-- [ ] INA219/INA226.
-- [ ] watchdog.
-- [ ] profiles.
-- [ ] power branches.
-- [ ] LoRa service.
-- [ ] NFC service.
-- [ ] RTC.
-- [ ] alarm/buzzer.
-
-## Host Linux
-
-- [ ] daemon systemd.
-- [ ] USB serial autodetect.
-- [ ] CPU/RAM/temp/battery telemetry.
-- [ ] network status.
-- [ ] SDR launcher.
-- [ ] module control CLI.
+- [ ] systemd service.
+- [ ] serial protocol.
+- [ ] heartbeat.
+- [ ] USB device health.
+- [ ] CPU/RAM/temp/battery.
+- [ ] network states.
+- [ ] CLI module on/off/rescan.
 - [ ] dashboard.
-- [ ] logging.
+- [ ] event/fault logs.
 
 ## Mecánica
 
-- [ ] mockup cartón.
-- [ ] bandeja técnica.
-- [ ] soporte Dell.
-- [ ] soporte LCD.
-- [ ] panel instrumentos.
-- [ ] panel comunicaciones.
-- [ ] ventilación.
+- [ ] cardboard mockup.
+- [ ] technical tray.
+- [ ] smart backplane position.
 - [ ] RF/power separation.
-- [ ] acceso RAM/SSD.
-- [ ] etiquetas.
-- [ ] PCB/backplane v1 después del prototipo.
+- [ ] supervisor switch accessible.
+- [ ] master AUX switch protected against accidental toggle.
+- [ ] service access.
+- [ ] labels.
+- [ ] final panel only after real components.
