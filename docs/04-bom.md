@@ -213,3 +213,19 @@ Decisiones específicas de V0.1:
 - entrada física: Mean Well GST60A12-P1J -> jack 5.5x2.1 mm centro positivo.
 
 No se energizan módulos caros hasta aprobar el bring-up documentado.
+
+
+## 13. Display Control / IR Lab
+
+| Estado | Pieza | Cant. | Función |
+|---|---|---:|---|
+| P2 | receptor IR 38 kHz TSOP38238 / VS1838B | 1–2 | capturar comandos de controles propios |
+| P2 | LED IR 940 nm | 2–4 | reproducir comandos IR |
+| YA | 2N2222 / 2N3904 del kit | 1 | driver LED IR |
+| YA | resistencias del kit | varias | polarización/limitación |
+| P2 | switch HDMI 2x1 con control remoto | 1 | alternar signage normal / salida Dell |
+| P2 | cable HDMI Dell -> switch | 1 | vídeo del cyberdeck |
+| P3 | capturadora USB HDMI | 1 | análisis/registro de fuentes HDMI propias |
+| P3 | CC1101 | 1 | laboratorio sub-GHz autorizado de dispositivos propios |
+
+Arquitectura y uso: [18-display-control-ir-lab.md](./18-display-control-ir-lab.md).
