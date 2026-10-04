@@ -118,15 +118,19 @@ El Wi-Fi LAB USB permanece separado.
 
 ## Riesgo 6 — teclado/touchpad
 
-Son FFC dependientes de geometría.
+**Cambio de diseño:** el teclado/touchpad internos dejan de ser una dependencia mecánica importante. La interfaz principal será un **teclado Bluetooth externo con trackpad integrado**, colocado sobre el panel del cyberdeck.
 
-Recomendación v3:
-- mantener el palmrest/keyboard assembly como módulo superior al menos durante v1;
-- no intentar extender FFC hasta conocer pitch, número de contactos, orientación y longitud.
+Por lo tanto:
 
-Si el layout final obliga a moverlos:
-- crear adaptador FFC-to-FFC con conectores adecuados;
-- no soldar cables hilo-a-hilo.
+- el palmrest Dell puede quedar oculto debajo del panel durante prototipo;
+- más adelante se puede retirar por completo si el Dell arranca y funciona estable sin keyboard/touchpad internos;
+- los FFC de keyboard/touchpad no necesitan extenderse;
+- conservar los conectores de motherboard intactos por reversibilidad;
+- probar BIOS/boot, suspensión y wake con ambos FFC desconectados antes de eliminar definitivamente piezas del palmrest.
+
+El **power-button module**, I/O board, DC-in, display cable y refrigeración siguen siendo subsistemas distintos y deben conservarse según necesidad.
+
+Esto libera superficie y permite una bandeja técnica mucho más limpia.
 
 ## Riesgo 7 — I/O board y power button
 
