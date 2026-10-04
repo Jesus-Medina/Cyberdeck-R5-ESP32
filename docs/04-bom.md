@@ -136,10 +136,15 @@ Estados:
 | P0 | batería/powerbank AUX protegida | 1 | accesorios |
 | P0 | distribución 5 V | 1 | bus |
 | P0 | fusibles/polyfuse | lote | protección |
-| P2 | buck-boost CC/CV | 1 | fuente LAB |
-| P2 | V/A meter | 1 | medición |
-| P2 | switch OUTPUT | 1 | corte fuente LAB |
+| P2 | buck-boost **CC/CV programable con encoder** | 1 | fuente LAB universal |
+| P2 | display V/A/W integrado o V/A meter | 1 | medición |
+| P2 | switch OUTPUT físico | 1 | corte fuente LAB |
 | P2 | fusible OUTPUT | 1 | protección |
+| P2 | bananas 4 mm + borne tornillo | 1 set | salida universal |
+| P2 | regulador 5–6 V high-current | 1 | rail SERVO/AUX |
+| P2 | headers servo 3-pin / borne AUX | 2–4 | servos/periféricos |
+| P2 | regulador 3.3 V protegido | 1 | rail de lógica externo |
+| P2 | rail 12 V AUX (si se valida necesidad) | 1 | ventiladores/periféricos |
 | P2 | USB-C PD trigger/source según diseño | 1 | PD |
 
 ## 12. Ventilación
