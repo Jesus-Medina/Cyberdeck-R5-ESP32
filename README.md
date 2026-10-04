@@ -1,100 +1,147 @@
 # Cyberdeck R5 + ESP32
 
-Cyberdeck portátil basado en un notebook Dell con **AMD Ryzen 5 3450U**, reutilizando su pantalla, batería, RAM, SSD, Wi‑Fi/Bluetooth y sistema de refrigeración. Un **ESP32** funciona como supervisor de hardware, panel de control y reemplazo del GPIO que normalmente ofrecería una Raspberry Pi.
+Cyberdeck portátil modular basado en un **Dell Vostro 3405** con **AMD Ryzen 5 3450U, 12 GB RAM y SSD de 256 GB**, reutilizando pantalla, batería/BMS, teclado, touchpad, Wi‑Fi/Bluetooth, audio y refrigeración originales.
 
-> **Estado:** diseño / prototipo. El modelo exacto del notebook donante todavía debe confirmarse antes de definir dimensiones, pinout, conectores y puntos de montaje definitivos.
+La filosofía del proyecto es **no copiar literalmente** un cyberdeck de Raspberry Pi: se toma su idea de instrumentación y panel modular, pero el Dell x86 permanece como computador principal y se añaden subsistemas independientes para control, redes, radio, electrónica e instrumentación.
+
+> **Estado:** diseño mecánico/electrónico v2.0. Caja objetivo: Robust MJ-5018 / Easy 16", con volumen interior aproximado de 372 × 260 × 155 mm. Antes de cortar paneles se debe medir la unidad real.
 
 ## Objetivos
 
-- Reutilizar el notebook completo como computador x86 principal.
-- Mantener la batería y BMS originales del notebook sin modificar sus celdas.
-- Añadir GPIO, I²C, SPI y UART mediante ESP32.
-- Implementar switches físicos, pantalla de estado y control de periféricos.
-- Integrar SDR, GPS, LoRa, herramientas de electrónica y puertos de panel.
-- Permitir que el supervisor ESP32 permanezca activo con el PC principal apagado.
-- Mantener el proyecto modular: cada subsistema debe poder probarse por separado.
+- Computador x86 Linux/Windows completo.
+- Supervisor físico independiente con ESP32-S3.
+- Pantalla táctil ESP32 CYD como herramienta secundaria.
+- Arduino dedicado a laboratorio GPIO.
+- Doble Ethernet.
+- Wi‑Fi interno para uso normal y Wi‑Fi USB dedicado para laboratorio autorizado.
+- RTL-SDR con antena externa.
+- LoRa independiente.
+- GNSS/GPS, NFC/RFID y RTC.
+- Banco de electrónica integrado: fuente variable, osciloscopio, tester de componentes, analizador lógico y USB-UART.
+- Puertos de panel, antenas externas y alimentación modular.
+- Reparabilidad: módulos atornillados y conectados por JST/USB, evitando soldarlos permanentemente.
+- Mantener la batería/BMS Dell sin modificar sus celdas.
 
 ## Arquitectura resumida
 
 ```mermaid
-flowchart TD
-    LCD[Pantalla original Dell] -->|eDP| R5[Notebook / Motherboard Ryzen 5]
-    BAT[Batería + BMS originales] --> R5
-    R5 -->|USB| HUB[Hub USB interno]
-    HUB --> ESP[ESP32 Supervisor]
-    HUB --> SDR[RTL-SDR]
-    HUB --> GPS[GPS]
-    HUB --> SCOPE[Osciloscopio USB]
-    HUB --> PANEL[Puertos USB externos]
+flowchart TB
+    subgraph PC["COMPUTADOR PRINCIPAL"]
+        DELL["Dell Vostro 3405\nRyzen 5 3450U\n12 GB / 256 GB"]
+        BAT["Batería + BMS Dell"]
+        IO["Pantalla + teclado + touchpad"]
+        WIFI0["Wi‑Fi/Bluetooth interno"]
+    end
 
-    ESP --> OLED[OLED 1.3]
-    ESP --> SW[Switches y botones]
-    ESP --> MOS[MOSFET / salidas de potencia]
-    ESP --> SENS[Sensores]
-    ESP --> AUX[LoRa / LEDs / periféricos]
-    ESP -. optoacoplador .-> PWR[Botón Power original Dell]
-    PWR --> R5
+    subgraph USB["BACKBONE USB"]
+        HUB["Hub USB 3.x alimentado\ncon protección anti-backfeed"]
+    end
+
+    subgraph CONTROL["CONTROL"]
+        ESP["ESP32-S3 supervisor"]
+        OLED["OLED estado"]
+        SW["Switches / botones / encoder"]
+        PWRCTRL["Load switches / MOSFET"]
+        SENSOR["Sensores + INA219/INA226"]
+    end
+
+    subgraph AUXUI["UI AUXILIAR"]
+        CYD["ESP32 CYD 2.8\" táctil + microSD"]
+        RTC["RTC DS3231"]
+    end
+
+    subgraph LAB["LAB ELECTRÓNICO"]
+        ARD["Arduino de laboratorio"]
+        GPIO["Bornes GPIO / I²C / SPI / UART"]
+        PSU["Fuente DC variable + V/A + bananas"]
+        SCOPE["FNIRSI-138 Pro o equivalente"]
+        GM["GM328A"]
+        LOGIC["Analizador lógico USB"]
+        UART["USB-UART"]
+    end
+
+    subgraph COMMS["REDES / RADIO"]
+        WIFI1["Wi‑Fi USB dual-band de laboratorio"]
+        ETH2["TP-Link UE306"]
+        SDR["RTL-SDR"]
+        LORA["LoRa SX1262/SX127x"]
+        GPS["GNSS/GPS"]
+        NFC["PN532 NFC/RFID"]
+        RADIO["Radio FM/Bluetooth opcional"]
+    end
+
+    BAT --> DELL
+    IO --> DELL
+    WIFI0 --> DELL
+    DELL --> HUB
+
+    HUB --> ESP
+    HUB --> CYD
+    HUB --> ARD
+    HUB --> WIFI1
+    HUB --> ETH2
+    HUB --> SDR
+    HUB --> GPS
+    HUB --> LOGIC
+    HUB --> UART
+
+    ESP --> OLED
+    ESP --> SW
+    ESP --> PWRCTRL
+    ESP --> SENSOR
+    ESP --> LORA
+    ESP --> NFC
+    ESP --> RTC
+    ARD --> GPIO
+    PSU --> GPIO
 ```
 
-## Principio clave
+## Roles
 
-El Ryzen hace el trabajo pesado; el ESP32 maneja el mundo físico.
+| Subsistema | Rol |
+|---|---|
+| Dell Ryzen | Linux/Windows, VMs, programación, SDR, redes, análisis |
+| ESP32-S3 | Supervisor permanente del cyberdeck |
+| ESP32 CYD | Pantalla táctil/herramienta independiente |
+| Arduino | Microcontrolador de laboratorio reprogramable |
+| Wi‑Fi USB | Laboratorio inalámbrico autorizado |
+| LAN Dell + UE306 | Dos interfaces Ethernet físicas |
+| RTL-SDR | Recepción y análisis RF |
+| LoRa | Telemetría/enlaces LoRa compatibles con normativa local |
+| GNSS | Posición y tiempo |
+| PN532 | NFC/RFID de laboratorio |
+| FNIRSI + GM328A + logic analyzer | Instrumentación electrónica |
+| Fuente variable | Alimentar prototipos externos |
+
+## Principio de construcción
+
+**El Dell no se convierte en una Raspberry Pi.** El computador queda eléctricamente independiente y el mundo físico se añade mediante USB, ESP32, Arduino y una distribución auxiliar protegida.
 
 ```text
-Ryzen 5 = Linux/Windows, SDR++, terminal, programación, VMs, juegos, red
-ESP32  = GPIO, OLED, switches, LEDs, sensores, control de energía, supervisor
+PC Dell intacto
+      │
+      ├── USB backbone ── periféricos
+      │
+      └── USB serial ─── ESP32 supervisor
+                             │
+                    switches / power / sensores
 ```
 
-## Modos previstos
+No se soldará sobre la batería Dell, sus celdas ni la motherboard salvo que una futura modificación esté documentada, medida y sea realmente necesaria.
 
-| Modo | PC Ryzen | ESP32/OLED | SDR | GPS/LoRa | Objetivo |
-|---|---:|---:|---:|---:|---|
-| Standby | OFF | ON | OFF | opcional | Estado, batería auxiliar y control |
-| Normal | ON | ON | OFF | OFF | Uso como PC |
-| Radio | ON | ON | ON | opcional | SDR / recepción |
-| Dev | ON | ON | opcional | opcional | Electrónica y programación |
-| Low Power | OFF | ON | OFF | opcional | Supervisión mínima |
-| Gaming | ON | ON | OFF | OFF | Máximo rendimiento y menos periféricos |
+## Documentación
 
-## Estructura del repositorio
-
-- `docs/01-vision.md` — alcance y decisiones de diseño.
-- `docs/02-architecture.md` — arquitectura del sistema.
-- `docs/03-electrical.md` — alimentación, protecciones y control.
-- `docs/04-bom.md` — lista de materiales por fases.
-- `docs/05-mechanical.md` — distribución física del cyberdeck.
-- `docs/06-build-phases.md` — plan de construcción y pruebas.
+- `docs/01-vision.md` — alcance y decisiones.
+- `docs/02-architecture.md` — arquitectura completa.
+- `docs/03-electrical.md` — alimentación, protecciones y buses.
+- `docs/04-bom.md` — BOM maestra con todas las piezas.
+- `docs/05-mechanical.md` — distribución en la caja.
+- `docs/06-build-phases.md` — orden de construcción y pruebas.
 - `docs/07-protocol.md` — protocolo PC ↔ ESP32.
-- `firmware/esp32-supervisor/` — base del firmware del supervisor.
-- `host/` — bridge Linux/Windows para enviar telemetría al ESP32.
-- `TODO.md` — pendientes.
+- `docs/08-comms-radio.md` — Wi‑Fi, Ethernet, SDR, LoRa, GNSS y NFC.
+- `docs/09-instrumentation.md` — laboratorio electrónico integrado.
+- `TODO.md` — tareas pendientes.
 
-## Reglas de seguridad del diseño
+## Regla principal
 
-1. **No abrir ni modificar las celdas de la batería original del notebook.**
-2. Conservar su BMS, cargador, conector y cableado original.
-3. No alimentar periféricos de alto consumo directamente desde GPIO del ESP32.
-4. Usar MOSFETs o módulos de conmutación adecuados para cargas auxiliares.
-5. Mantener fusibles en las ramas auxiliares.
-6. Probar cada subsistema con fuente limitada en corriente antes de integrarlo.
-7. No definir conexiones a la motherboard hasta identificar el modelo exacto y revisar su esquema/boardview si existe.
-
-## Primera meta funcional
-
-**MVP 1:** notebook intacto + ESP32 + OLED + switches + comunicación USB serial.
-
-Una vez estable, se desmonta e integra en la carcasa definitiva.
-
-## Roadmap corto
-
-- [ ] Confirmar modelo exacto del notebook Dell.
-- [ ] Medir motherboard, batería, pantalla y cooler.
-- [ ] Probar notebook 100 % funcional antes de desmontar.
-- [ ] Montar ESP32 + OLED en protoboard.
-- [ ] Implementar telemetría PC → ESP32.
-- [ ] Implementar botón power mediante optoacoplador.
-- [ ] Añadir hub USB interno.
-- [ ] Añadir switches y control MOSFET.
-- [ ] Integrar RTL-SDR.
-- [ ] Diseñar carcasa y paneles.
-
+Primero se monta y prueba en banco. **La placa frontal definitiva se corta al final**, cuando todas las piezas reales estén compradas y medidas.
