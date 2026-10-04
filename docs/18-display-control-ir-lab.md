@@ -1,120 +1,172 @@
-# 18 — Display Control + IR Lab
+# 18 — Wireless Display Control + IR Lab
 
 ## Objetivo
 
-Agregar al cyberdeck una capacidad de laboratorio para **controlar y reemplazar el contenido mostrado en pantallas propias o autorizadas**, además de capturar/reproducir comandos infrarrojos de controles remotos propios.
+Agregar al cyberdeck capacidad para **controlar a distancia, sin tocar físicamente la TV**, pantallas propias o administradas por el usuario.
 
-El caso de uso inicial es una TV propia utilizada para mostrar anuncios.
+Caso inicial: una TV propia usada para mostrar anuncios. El objetivo es poder, desde el cyberdeck y a distancia:
 
-## Arquitectura recomendada para la TV
+- descubrir la pantalla/reproductor en la red;
+- cambiar la fuente o sesión cuando la plataforma lo permita;
+- enviar una imagen, vídeo, URL o dashboard;
+- controlar volumen/entrada/encendido mediante interfaces remotas autorizadas;
+- usar IR como fallback sin tocar la TV;
+- registrar qué método funciona para cada equipo.
 
-No intentamos "secuestrar" inalámbricamente la imagen de la TV. La forma robusta y controlable es insertar el cyberdeck en la ruta de vídeo:
+## Principio de diseño
+
+La solución principal es **inalámbrica / por red**. HDMI físico queda sólo como fallback de laboratorio, no como arquitectura principal.
+
+No existe un método universal para "interceptar cualquier TV": depende del sistema operativo, del reproductor de signage y de los protocolos habilitados. Para una pantalla propia primero se identifica cuál de estas superficies de control existe.
+
+## Rutas de control inalámbrico
+
+### 1. Smart TV / signage por LAN o Wi-Fi
 
 ~~~text
-Reproductor de anuncios ---- HDMI IN 1
-                              \
-                               > HDMI SWITCH 2x1 --> TV
-                              /
-Cyberdeck Dell HDMI -------- HDMI IN 2
+Cyberdeck Dell
+   |
+Wi-Fi / Ethernet
+   |
+LAN propia
+   |
+TV / signage player
 ~~~
 
-Con esto:
+Capacidades posibles, según modelo:
 
-- modo normal: la TV muestra el reproductor de anuncios;
-- modo cyberdeck: cambiamos el switch a HDMI IN 2;
-- el Dell muestra una imagen, vídeo, dashboard o mensaje a pantalla completa;
-- al terminar, volvemos a HDMI IN 1.
+- descubrimiento por mDNS / SSDP / servicios del fabricante;
+- envío de contenido mediante Cast / DLNA / AirPlay cuando esté soportado;
+- API o protocolo remoto del fabricante;
+- control del reproductor signage por su panel/API;
+- Android/Google TV: control remoto de red y ADB sólo cuando el propietario lo habilite;
+- control de navegador/dashboard si el signage carga contenido web.
 
-La conmutación puede hacerse:
+### 2. Signage player separado
 
-1. manualmente;
-2. enviando al switch el mismo comando IR de su control;
-3. en una versión posterior, mediante GPIO/relé sobre los contactos del pulsador del switch;
-4. mediante HDMI-CEC si se integra hardware compatible.
+Si la TV sólo muestra la salida de un reproductor dedicado, el objetivo preferido es el **reproductor**, no el panel.
+
+~~~text
+Cyberdeck -> LAN propia -> signage player -> TV
+~~~
+
+Así se puede cambiar el contenido sin tocar físicamente la TV.
+
+### 3. IR remoto como fallback
+
+Si la TV no expone control de red útil:
+
+~~~text
+Cyberdeck / ESP32
+   -> LED IR 940 nm
+   -> TV
+~~~
+
+No requiere tocar la TV, sólo línea de vista.
+
+Sirve para:
+
+- POWER;
+- INPUT;
+- volumen;
+- navegación;
+- comandos del control remoto propio.
 
 ## IR capture/replay
-
-Para controles remotos propios se añade un pequeño laboratorio IR.
 
 ### Hardware
 
 | Pieza | Cant. | Función |
 |---|---:|---|
-| receptor IR 38 kHz TSOP38238 / VS1838B | 1–2 | capturar comandos |
+| receptor IR 38 kHz TSOP38238 / VS1838B | 1–2 | aprender comandos |
 | LED IR 940 nm | 2–4 | transmitir comandos |
-| transistor 2N2222 / 2N3904 | 1 | driver del LED IR |
-| resistencias del kit | varias | base/limitación de corriente |
-| conector JST/borne | 1 | módulo desmontable |
+| 2N2222 / 2N3904 | 1 | driver del LED IR |
+| resistencias del kit | varias | base/limitación |
+| JST/borne | 1 | módulo desmontable |
 
-El kit ya comprado contiene 2N2222/2N3904 y resistencias, por lo que sólo faltaría comprar el receptor IR y los LED IR si no vienen en otro kit.
+El kit comprado ya incluye transistores y resistencias.
 
 ### Flujo
 
 ~~~text
 control remoto propio
-    -> receptor IR 38 kHz
-    -> ESP32 registra protocolo/comando
-    -> comando guardado
-    -> ESP32 + transistor
-    -> LED IR 940 nm
-    -> TV / switch HDMI propio
+   -> receptor IR
+   -> ESP32 aprende comando
+   -> perfil guardado
+   -> LED IR
+   -> TV propia
 ~~~
 
-El ESP32 puede guardar perfiles como:
+Perfiles posibles:
 
 ~~~text
 TV_POWER
 TV_INPUT
-HDMI_SWITCH_1
-HDMI_SWITCH_2
+TV_HOME
+TV_UP/DOWN/LEFT/RIGHT
+TV_OK
 VOLUME_UP
 VOLUME_DOWN
 ~~~
 
-## Cambio de imagen
+## Display takeover autorizado
 
-La imagen no se "clona" por IR. IR sólo controla la TV o el switch.
+Para una TV/signage propia, "takeover" significa **obtener el control del contenido mediante una interfaz que el equipo ya expone y que el propietario administra**.
 
-El contenido se genera en el Dell:
+Flujo de laboratorio:
 
-- imagen PNG/JPEG;
-- vídeo;
-- navegador en fullscreen;
-- dashboard web;
-- presentación;
-- reproductor signage propio.
+1. identificar marca/modelo/SO o reproductor;
+2. descubrir servicios de red;
+3. documentar protocolos disponibles;
+4. emparejar/autenticar si corresponde;
+5. enviar contenido de prueba;
+6. verificar retorno al contenido normal;
+7. automatizar desde el cyberdeck.
 
-El Dell entrega esa imagen por HDMI al switch.
+No se presupone que una técnica válida para una marca sirva en otra.
 
-## Captura HDMI opcional
+## Herramientas de software previstas
 
-Puede añadirse una capturadora USB HDMI para **visualizar/registrar una fuente HDMI propia** dentro del Dell.
+En el Dell:
 
-~~~text
-fuente HDMI propia -> splitter/capture -> USB Dell
-~~~
+- navegador + modo fullscreen/kiosk;
+- herramientas mDNS/SSDP;
+- Wireshark para observar tráfico de **la red propia**;
+- clientes Cast/DLNA/AirPlay cuando corresponda;
+- SDK/API oficial del fabricante cuando exista;
+- scripts Python para automatización;
+- dashboard local del cyberdeck;
+- ADB para dispositivos Android propios cuando esté explícitamente habilitado.
 
-No es necesaria para simplemente sustituir la imagen de la TV.
+## Captura de tráfico del dispositivo propio
+
+En laboratorio se puede observar cómo el control remoto/app oficial habla con la TV o player dentro de una red propia y documentar:
+
+- descubrimiento;
+- pairing;
+- comandos;
+- transporte;
+- autenticación.
+
+El objetivo es interoperabilidad con equipos propios, no evadir autenticación de terceros.
 
 ## RF sub-GHz opcional
 
-Para un laboratorio posterior de señales propias se contempla **CC1101** como módulo P2/P3:
+Se contempla CC1101 para laboratorio posterior con dispositivos propios compatibles:
 
-- recepción/transmisión sub-GHz compatible;
+- recepción/transmisión sub-GHz;
 - análisis de protocolos sencillos;
-- capture/replay de dispositivos propios de código fijo;
-- no sustituye a un SDR de transmisión universal.
+- reproducción de señales de código fijo de equipos propios cuando sea técnicamente aplicable.
 
-El RTL-SDR sigue siendo sólo de recepción.
+RTL-SDR permanece como receptor de propósito general.
 
 ## Integración con Smart Module Manager
 
-Posibles módulos:
+Módulos lógicos:
 
 ~~~text
+DISPLAY_NET
 IR_LAB
-DISPLAY_CONTROL
-HDMI_CAPTURE
 SUBGHZ_LAB
 ~~~
 
@@ -129,14 +181,15 @@ ACTIVE
 FAULT
 ~~~
 
-## Seguridad/uso autorizado
+## Uso autorizado
 
-Estas funciones se diseñan para:
+Diseñado para:
 
 - TVs propias;
-- switches HDMI propios;
+- signage propio;
+- reproductores administrados por el usuario;
 - controles remotos propios;
-- displays/signage administrados por el usuario;
-- dispositivos RF de laboratorio o con autorización.
+- redes propias o con autorización;
+- equipos RF de laboratorio propios.
 
-La vía recomendada para cambiar contenido de una pantalla es controlar su fuente de vídeo o su entrada, no interferir con emisiones de terceros.
+La primera estrategia siempre es usar una interfaz remota legítima disponible en el equipo; IR queda como fallback físico sin contacto.
