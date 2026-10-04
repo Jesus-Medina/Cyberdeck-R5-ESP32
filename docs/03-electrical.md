@@ -1,90 +1,164 @@
-# 03 — Alimentación y protección
+# 03 — Alimentación, protección y distribución
 
-## Alimentación principal
+## Regla 1
 
-Mantener intacto el sistema original:
+El sistema Dell permanece intacto:
 
 ```text
-Cargador Dell -> motherboard/BMS Dell -> batería Dell -> motherboard
+Cargador Dell -> motherboard/BMS Dell <-> batería Dell -> computador
 ```
 
-No se propone abrir el pack ni conectarse directamente a sus celdas.
+No abrir celdas, no puentear el BMS y no alimentar la motherboard desde una fuente DIY.
 
-## Alimentación del supervisor
+## Dos dominios de energía
 
-Hay dos opciones:
+### Dominio PC
 
-### Opción A — ESP32 desde USB del PC
+Alimenta exclusivamente el Dell y sus componentes originales.
 
-Más simple, pero el supervisor se apaga cuando el PC queda completamente sin energía.
+### Dominio AUX
 
-### Opción B — batería auxiliar para supervisor
+Alimenta:
 
-Una pequeña batería protegida independiente puede mantener:
-
-- ESP32;
+- ESP32-S3;
+- ESP32 CYD;
+- Arduino;
+- hub USB alimentado;
+- sensores;
 - OLED;
-- RTC/sensores;
-- lógica de switches.
+- ventiladores auxiliares;
+- audio/radio auxiliar;
+- módulos de instrumentación cuando corresponda;
+- fuente de laboratorio;
+- iluminación.
 
-Esta batería debe tener su propio módulo de carga/protección adecuado. No se recomienda improvisar packs multicelda.
+Se recomienda una batería/powerbank USB-C PD protegida o una fuente auxiliar certificada, no un pack casero multicelda durante la primera versión.
 
-## Árbol de alimentación auxiliar propuesto
+## Árbol AUX
 
-```text
-Entrada auxiliar regulada
-        |
-      Fusible
-        |
-    +---+------------------+
-    |                      |
-   5 V                    3.3 V
-    |                      |
-  Hub/USB            ESP32/sensores
-    |
- +--+-------+-------+
- |          |       |
-SDR        GPS     AUX
+```mermaid
+flowchart TB
+    IN["Entrada AUX / powerbank PD"]
+    FUSE["Fusible principal"]
+    REV["Protección polaridad / eFuse"]
+    BUS["BUS AUX"]
+    V5["5 V regulados"]
+    V12["12 V si un módulo lo requiere"]
+    LAB["Buck-Boost variable"]
+    PD["USB-C PD/QC"]
+
+    IN --> FUSE --> REV --> BUS
+    BUS --> V5
+    BUS --> V12
+    BUS --> LAB
+    BUS --> PD
+
+    V5 --> ESP["ESP32"]
+    V5 --> HUB["Hub"]
+    V5 --> ARD["Arduino"]
+    V5 --> OLED["Displays/sensores"]
 ```
 
-## Control de cargas
+## Protección mínima
 
-Un GPIO del ESP32 no debe alimentar directamente un SDR, GPS, luces o hub.
-
-```text
-GPIO ESP32 -> driver -> MOSFET/load switch -> periférico
-```
-
-Para cargas USB conviene usar módulos de power-switch o MOSFET high-side pensados para 5 V.
-
-## Protecciones recomendadas
-
-- fusible general de accesorios;
-- fusibles o polyfuse por grupos;
-- protección contra polaridad en líneas DIY;
-- cable con sección adecuada;
+- fusible principal;
+- fusibles/polyfuse por grupos;
+- eFuse o protección contra inversión si la entrada no es USB-C;
+- supresión transitoria apropiada;
 - conectores polarizados;
+- cables dimensionados por corriente;
 - termorretráctil;
-- etiquetas;
-- puntos de masa bien definidos.
+- masas claramente distribuidas;
+- switch físico MASTER AUX;
+- ventilación para DC/DC.
 
-## Mediciones a realizar antes de integrar
+## Anti-backfeed USB
 
-1. tensión nominal del cargador Dell;
-2. consumo del notebook en reposo y carga;
-3. corriente disponible en USB;
-4. consumo del hub;
-5. consumo del SDR;
-6. consumo del ESP32 + pantallas;
-7. temperatura de VRM/CPU dentro de la carcasa.
+El hub interno debe aceptar alimentación externa correctamente y **no devolver 5 V al puerto USB del Dell**. Si el modelo elegido no garantiza aislamiento de VBUS, debe interponerse un aislador de VBUS/data cable adecuado o elegirse otro hub.
+
+## Control de módulos
+
+Los switches de panel son entradas lógicas:
+
+```text
+switch -> ESP32 -> driver/load switch -> módulo
+```
+
+No se usará un pequeño switch de panel para cortar directamente corrientes importantes.
+
+Ramas previstas:
+
+- WIFI_LAB;
+- SDR;
+- LORA;
+- GPS;
+- NFC;
+- CYD;
+- AUDIO;
+- GPIO_LAB;
+- FAN_AUX;
+- LIGHTS.
+
+## Fuente de laboratorio
+
+Debe estar eléctricamente separada del control lógico:
+
+```text
+BUS AUX -> buck/boost regulable -> medidor V/A -> fusible de salida -> bananas +/-
+```
+
+Recomendado:
+
+- límite de corriente si el convertidor lo soporta;
+- interruptor OUTPUT;
+- display V/A;
+- bornes banana de 4 mm;
+- fusible de salida;
+- etiqueta clara del rango permitido.
+
+## Sensado
+
+El ESP32 puede leer:
+
+- tensión/corriente del AUX con INA219/INA226;
+- temperatura interna;
+- temperatura de zona DC/DC;
+- estado de ventiladores;
+- presencia de alimentación;
+- nivel de batería auxiliar si el sistema lo expone de forma segura.
 
 ## Refrigeración
 
-Conservar:
+El ventilador Dell sigue gestionado por el propio notebook.
 
-- heatpipe original;
-- ventilador original;
-- disipadores originales;
-- trayectoria de aire.
+Los ventiladores auxiliares son controlados por ESP32 mediante MOSFET/driver. Nunca bloquear rejillas inferiores del Vostro.
 
-La carcasa debe incluir entrada y salida de aire equivalentes o mejores que las del notebook original.
+## Backplane v1
+
+La PCB/backplane no transportará HDMI, USB 3 ni RF. Sólo:
+
+- alimentación de baja tensión;
+- señales GPIO;
+- I²C;
+- UART;
+- control de ventiladores;
+- entradas de switches;
+- LEDs;
+- salidas hacia load switches.
+
+Conectores tentativos:
+
+| ID | Función |
+|---|---|
+| J1 | AUX IN |
+| J2 | 5 V BUS |
+| J3 | ESP32-S3 |
+| J4 | OLED |
+| J5 | Switch panel |
+| J6 | Fan 1 |
+| J7 | Fan 2 |
+| J8 | I²C expansion |
+| J9 | LoRa |
+| J10 | NFC |
+| J11 | sensores |
+| J12 | load-switch outputs |
