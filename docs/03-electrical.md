@@ -171,16 +171,54 @@ Algunos instrumentos deben poder usarse aunque el ESP32 esté apagado:
 
 Cada una tendrá su propio switch físico y protección.
 
-## Fuente LAB
+## Fuente LAB / Universal Power Output
+
+Este subsistema corresponde a la **variable power supply** que aparece en el cyberdeck DTeK. En nuestra v3 se mantiene, pero se mejora.
 
 ```text
 AUX BUS
   -> fuse
-  -> buck/boost CC/CV
-  -> V/A meter
-  -> OUTPUT switch
-  -> bananas
+  -> buck/boost CC/CV programable
+  -> display V/A/W
+  -> rotary encoder / knob
+  -> OUTPUT hard switch
+  -> fuse output
+  -> bananas / screw terminal / AUX connector
 ```
+
+El control circular no es un "volumen": es un potenciómetro/encoder que permite ajustar **voltaje** y, en un módulo CC/CV adecuado, el **límite de corriente**.
+
+La fuente LAB sirve para alimentar temporalmente:
+
+- otros ESP32/Arduino;
+- sensores;
+- ventiladores;
+- servos pequeños/medianos dentro de la potencia disponible;
+- relés;
+- protoboards;
+- dispositivos externos compatibles.
+
+No se utiliza para alimentar los módulos internos críticos del cyberdeck; éstos usan rails fijos y protegidos del Smart Backplane.
+
+### Salidas fijas adicionales
+
+Para evitar estar ajustando la fuente LAB cada vez, el panel reservará rails fijos:
+
+- **3.3 V LOW CURRENT** para lógica/sensores;
+- **5 V LOGIC/USB**;
+- **5–6 V SERVO/AUX** de mayor corriente, con protección independiente;
+- **12 V AUX** sólo si la fuente AUX elegida y la demanda real lo justifican.
+
+La rama SERVO/AUX debe estar separada de ESP32/SDR para evitar caídas de tensión y ruido por picos de corriente de motores.
+
+### Seguridad
+
+- OUTPUT debe ser OFF por defecto;
+- límite de corriente ajustable;
+- fusible de salida;
+- bornes claramente etiquetados;
+- no cambiar tensión con una carga sensible conectada sin verificar el valor;
+- el ESP32 puede medir/reportar la fuente, pero no debe ser el único medio de corte de salida.
 
 No depende del ESP32 para apagar su salida.
 
