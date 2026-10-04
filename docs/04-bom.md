@@ -219,13 +219,12 @@ No se energizan módulos caros hasta aprobar el bring-up documentado.
 
 | Estado | Pieza | Cant. | Función |
 |---|---|---:|---|
-| P2 | receptor IR 38 kHz TSOP38238 / VS1838B | 1–2 | capturar comandos de controles propios |
-| P2 | LED IR 940 nm | 2–4 | reproducir comandos IR |
+| P2 | receptor IR 38 kHz TSOP38238 / VS1838B | 1–2 | capturar/aprender comandos de controles propios |
+| P2 | LED IR 940 nm | 2–4 | reproducir comandos IR sin tocar la TV |
 | YA | 2N2222 / 2N3904 del kit | 1 | driver LED IR |
 | YA | resistencias del kit | varias | polarización/limitación |
-| P2 | switch HDMI 2x1 con control remoto | 1 | alternar signage normal / salida Dell |
-| P2 | cable HDMI Dell -> switch | 1 | vídeo del cyberdeck |
-| P3 | capturadora USB HDMI | 1 | análisis/registro de fuentes HDMI propias |
+| P2 | soporte/software de control LAN/Wi-Fi | — | Cast/DLNA/API/vendor control según TV/player |
+| P3 | capturadora USB HDMI | 1 | opcional para análisis de fuentes HDMI propias |
 | P3 | CC1101 | 1 | laboratorio sub-GHz autorizado de dispositivos propios |
 
 Arquitectura y uso: [18-display-control-ir-lab.md](./18-display-control-ir-lab.md).
