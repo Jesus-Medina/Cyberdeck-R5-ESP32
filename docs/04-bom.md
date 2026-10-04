@@ -1,203 +1,191 @@
-# 04 — BOM maestra
-
-Esta es la lista de piezas del diseño completo. **No significa comprar todo el mismo día**: se agrupa por prioridad para evitar incompatibilidades.
+# 04 — BOM maestra v3 Smart Modular
 
 Estados:
 
-- **YA**: ya existe o viene con el Dell.
-- **P0**: imprescindible para la estructura.
-- **P1**: núcleo funcional del cyberdeck.
-- **P2**: laboratorio/comunicaciones.
-- **P3**: expansión opcional planificada.
+- **YA**: disponible.
+- **P0**: estructura/seguridad.
+- **P1**: núcleo.
+- **P2**: comunicaciones/laboratorio.
+- **P3**: expansión.
 
-## 1. Computador y carcasa
+## 1. Base
 
 | Estado | Pieza | Cant. | Función |
 |---|---|---:|---|
-| YA | Dell Vostro 3405 Ryzen 5 3450U | 1 | Computador principal |
-| YA | RAM 12 GB | 1 | Memoria |
+| YA | Dell Vostro 3405 Ryzen 5 3450U | 1 | Host |
+| YA | 12 GB RAM | 1 | Memoria |
 | YA | SSD 256 GB | 1 | Almacenamiento |
-| YA | LCD Dell 14" | 1 | Pantalla principal |
-| YA | Batería/BMS/cargador Dell | 1 | Energía PC |
-| YA | Teclado + touchpad Dell | 1 | Entrada |
-| YA | Wi‑Fi/Bluetooth Dell | 1 | Conectividad normal |
+| YA | pantalla/teclado/touchpad/batería/BMS/cargador | 1 set | plataforma Dell |
 | P0 | Caja Robust MJ-5018 / Easy 16" | 1 | Chasis |
-| P0 | ABS 3 mm / panel equivalente | 2 hojas | panel superior + bandeja |
-| P0 | Separadores M3 surtidos | lote | montaje |
-| P0 | Tornillería M2/M3 | lote | montaje |
-| P0 | JST-XH/JST-PH surtidos | lote | cableado desmontable |
-| P0 | Ferrules, termorretráctil, malla | lote | cableado |
+| P0 | ABS 3 mm / panel equivalente | 2+ | bandejas/paneles |
+| P0 | M2/M3 + separadores | lote | módulos |
+| P0 | JST-GH/XH o similar polarizado | lote | arneses |
+| P0 | ferrules, termorretráctil, malla | lote | cableado |
 
-## 2. Control y UI
-
-| Estado | Pieza | Cant. | Función |
-|---|---|---:|---|
-| P1 | ESP32-S3 DevKit USB-C | 1 | Supervisor principal |
-| P1 | OLED I²C 1.3" | 1 | Estado permanente |
-| P1 | ESP32-2432S028R CYD 2.8" | 1 | UI táctil auxiliar |
-| P1 | Extensión microSD macho-hembra | 1 | Acceso sin microsoldadura |
-| P1 | RTC DS3231 | 1 | Hora independiente |
-| P1 | Encoder rotatorio con pulsador | 1–2 | Navegación |
-| P1 | Switches de panel | 8–12 | Control módulos |
-| P1 | Pulsadores | 3–5 | Power/macros/reset |
-| P1 | LEDs indicadores | 6–12 | Estado |
-| P1 | Buzzer pequeño | 1 | Avisos |
-| P1 | BME280 o similar | 1 | Temp/humedad/presión |
-| P1 | INA219 o INA226 | 1–2 | V/A del rail AUX |
-
-## 3. Arduino y GPIO
+## 2. Supervisor
 
 | Estado | Pieza | Cant. | Función |
 |---|---|---:|---|
-| YA | Arduino existente | 1 | MCU de laboratorio |
-| P1 | Bornes verdes enchufables | lote | GPIO accesible |
-| P1 | Header GPIO de panel | 1 | I²C/SPI/UART/digital/analog |
-| P1 | Protoboard pequeña desmontable | 1 | Pruebas rápidas |
-| P2 | Level shifter 3.3/5 V | 1–2 | Adaptación lógica |
-| P2 | Optoacopladores | lote | aislamiento de señales |
+| P1 | ESP32-S3 DevKit | 1 | supervisor |
+| P1 | OLED I²C 1.3" | 1 | estado |
+| P1 | **SW1 SUPERVISOR ENABLE** DC | 1 | hard-off ESP32 |
+| P1 | encoder | 1–2 | menú |
+| P1 | switches/pulsadores | lote | control |
+| P1 | LEDs | lote | estado |
+| P1 | buzzer | 1 | alarma |
+| P1 | DS3231 | 1 | RTC |
+| P1 | BME280 | 1 | ambiente |
+| P1 | watchdog por firmware + brownout | — | resiliencia |
 
-## 4. Backbone USB / panel
-
-| Estado | Pieza | Cant. | Función |
-|---|---|---:|---|
-| P0 | Hub USB 3.x alimentado, anti-backfeed | 1 | Backbone |
-| P0 | Extensión USB-A 3.x panel mount | 2–3 | Puertos externos |
-| P0 | Extensión USB-C panel mount | 1–2 | Servicio |
-| P0 | HDMI panel mount | 1 | Salida externa |
-| P0 | RJ45 panel mount | 1–2 | Ethernet externo |
-| P0 | Jack 3.5 mm panel mount | 1 | Audio |
-| P0 | Pigtails SMA/RP-SMA bulkhead | varios | Antenas |
-| P1 | USB interno corto/angulado | varios | Cableado limpio |
-
-## 5. Redes
+## 3. Smart Backplane
 
 | Estado | Pieza | Cant. | Función |
 |---|---|---:|---|
-| YA | Ethernet integrado Dell | 1 | LAN1 |
+| P0 | **SW0 MASTER AUX** DC | 1 | hard-off AUX completo |
+| P0 | fusible principal | 1 | protección |
+| P0 | eFuse/protección de entrada | 1 | protección |
+| P1 | high-side load switch/eFuse con EN/FAULT | 6–10 | ramas |
+| P1 | resistencias pull-down EN | 1/canal | default OFF |
+| P1 | INA219/INA226 | 1–2 | rails críticos |
+| P1 | INA3221 o monitor multicanal equivalente | 1–3 | current sense slots |
+| P1 | TCA9548A I²C mux | 1 | smart slots |
+| P1 | EEPROM I²C 24C02/24C04 | 1/carrier | Module ID |
+| P1 | conectores Smart Module Port | 4–8 | módulos |
+| P1 | headers fan PWM/tach | 2 | ventilación |
+| P1 | PCB backplane v1 | 1 | distribución |
+
+## 4. Aislamiento Host ↔ Supervisor
+
+| Estado | Pieza | Cant. | Función |
+|---|---|---:|---|
+| P1 | USB-UART host side | 1 | Dell → serial |
+| P1 | aislador digital UART, p.ej. ISO7721/ADuM1201 o equivalente | 1 | evitar backfeed |
+| P1 | circuito PC_PWR_SENSE de alta impedancia/aislado | 1 | detectar Dell |
+| P1 | USB-C SERVICE para ESP32 | 1 | flash/debug |
+
+## 5. UI auxiliar
+
+| Estado | Pieza | Cant. | Función |
+|---|---|---:|---|
+| P1 | ESP32-2432S028R CYD 2.8" | 1 | UI táctil |
+| P1 | extensión microSD | 1 | SD accesible sin microsoldadura |
+
+## 6. Arduino / GPIO
+
+| Estado | Pieza | Cant. | Función |
+|---|---|---:|---|
+| YA | Arduino existente | 1 | MCU LAB |
+| P1 | bornes enchufables | lote | GPIO |
+| P1 | panel I²C/SPI/UART/digital/analog | 1 | expansión |
+| P2 | level shifters 3.3/5 V | 1–2 | niveles |
+| P2 | optoacopladores | lote | aislamiento |
+
+## 7. USB / panel
+
+| Estado | Pieza | Cant. | Función |
+|---|---|---:|---|
+| P0 | hub USB 3 alimentado **anti-backfeed** | 1 | backbone |
+| P0/P1 | hub con per-port power control si se encuentra compatible | 1 | modularidad USB pro |
+| P0 | extensiones USB-A panel | 2–3 | puertos |
+| P0 | USB-C panel | 1–2 | servicio |
+| P0 | HDMI panel | 1 | vídeo |
+| P0 | RJ45 panel | 1–2 | LAN |
+| P0 | audio 3.5 mm panel | 1 | audio |
+| P0 | SMA/RP-SMA bulkheads | varios | RF |
+
+## 8. Redes
+
+| Estado | Pieza | Cant. | Función |
+|---|---|---:|---|
+| YA | LAN Dell | 1 | LAN1 |
 | YA | TP-Link UE306 | 1 | LAN2 |
-| P2 | Wi‑Fi USB dual-band Linux-friendly | 1 | laboratorio autorizado |
-| P2 | Antenas Wi‑Fi removibles | 2 | Wi‑Fi USB |
-| P2 | RP-SMA bulkhead | 2 | panel Wi‑Fi |
+| P2 | Wi‑Fi USB dual-band Linux-friendly | 1 | LAB autorizado |
+| P2 | antenas Wi‑Fi | 2 | RF |
+| P2 | RP-SMA bulkhead | 2 | panel |
 
-Preferencia técnica para el adaptador Wi‑Fi: chipset con buen soporte Linux y antenas desmontables. Validar modelo exacto antes de comprar.
-
-## 6. Radio / RF / navegación
+## 9. RF / navegación
 
 | Estado | Pieza | Cant. | Función |
 |---|---|---:|---|
 | P2 | RTL-SDR | 1 | recepción RF |
-| P2 | SMA bulkhead SDR | 1 | antena externa |
-| P2 | Kit antenas SDR | 1 | recepción |
-| P2 | LoRa SX1262/SX127x | 1 | telemetría LoRa |
-| P2 | SMA bulkhead LoRa | 1 | antena LoRa |
-| P2 | Antena LoRa adecuada a banda legal | 1 | RF |
-| P2 | GNSS/GPS USB o UART | 1 | ubicación/tiempo |
-| P2 | Antena GNSS | 1 | recepción satelital |
+| P2 | SMA + antenas SDR | set | SDR |
+| P2 | LoRa SX1262/SX127x | 1 | telemetría |
+| P2 | Smart Carrier LoRa + EEPROM ID | 1 | módulo pro |
+| P2 | SMA + antena LoRa adecuada | set | LoRa |
+| P2 | GNSS/GPS | 1 | posición/tiempo |
+| P2 | Smart Carrier GNSS + EEPROM ID | 1 | módulo pro |
 | P2 | PN532 | 1 | NFC/RFID |
-| P3 | Radio FM/Bluetooth tipo 808BT | 1 | audio independiente |
-| P3 | Antena FM | 1 | recepción FM |
+| P2 | Smart Carrier NFC + EEPROM ID | 1 | módulo pro |
+| P3 | radio FM/Bluetooth | 1 | audio independiente |
 
-Para cualquier transmisor RF, configurar potencia/frecuencia de acuerdo con normativa local.
-
-## 7. Instrumentación electrónica
+## 10. Instrumentación
 
 | Estado | Pieza | Cant. | Función |
 |---|---|---:|---|
-| P2 | FNIRSI-138 Pro o equivalente | 1 | osciloscopio |
-| P2 | GM328A / LCR-T7 similar | 1 | tester componentes |
-| P2 | Analizador lógico USB 8 ch | 1 | señales digitales |
-| P2 | USB-UART CP2102/CH340/FTDI | 1–2 | consola serial |
-| P2 | Juego de puntas/cables | 1 | medición |
-| P2 | Bananas 4 mm rojo/negro | 1 par | fuente LAB |
-| P2 | Mini protoboard externa | 1 | prototipos |
+| P2 | FNIRSI-138 Pro/equivalente | 1 | scope |
+| P2 | GM328A/LCR-T7 | 1 | componentes |
+| P2 | logic analyzer USB 8 ch | 1 | digital |
+| P2 | USB-UART | 1–2 | serial |
+| P2 | bananas 4 mm | 1 par | PSU |
+| P2 | cables/puntas | set | banco |
 
-## 8. Alimentación auxiliar
-
-| Estado | Pieza | Cant. | Función |
-|---|---|---:|---|
-| P0 | Powerbank/batería AUX protegida USB-C PD | 1 | accesorios |
-| P0 | Módulo de distribución 5 V | 1 | rail AUX |
-| P0 | Fusible principal + portafusible | 1 | protección |
-| P0 | Polyfuses/fusibles por rama | lote | protección |
-| P1 | High-side load switches/eFuse | 6–10 canales | encendido módulos |
-| P1 | MOSFET/driver ventiladores | 2–3 | ventilación |
-| P2 | Buck-boost regulable | 1 | fuente LAB |
-| P2 | Voltímetro/amperímetro digital | 1 | fuente LAB |
-| P2 | USB-C PD trigger/source según diseño | 1 | distribución PD |
-| P2 | Interruptor OUTPUT para LAB PSU | 1 | seguridad |
-| P2 | Fusible salida LAB | 1 | seguridad |
-
-## 9. Audio / ambiente
+## 11. Energía AUX / fuente LAB
 
 | Estado | Pieza | Cant. | Función |
 |---|---|---:|---|
-| YA | Parlantes Dell | 2 | audio PC |
-| P3 | Amplificador clase D pequeño | 1 | audio auxiliar |
-| P3 | Parlantes auxiliares | 2 | radio/Bluetooth |
-| P3 | Micrófono externo/panel | 1 | experimentación |
-| P3 | Tira/LEDs RGB de estado | opcional | iluminación funcional |
+| P0 | batería/powerbank AUX protegida | 1 | accesorios |
+| P0 | distribución 5 V | 1 | bus |
+| P0 | fusibles/polyfuse | lote | protección |
+| P2 | buck-boost CC/CV | 1 | fuente LAB |
+| P2 | V/A meter | 1 | medición |
+| P2 | switch OUTPUT | 1 | corte fuente LAB |
+| P2 | fusible OUTPUT | 1 | protección |
+| P2 | USB-C PD trigger/source según diseño | 1 | PD |
 
-## 10. Refrigeración
+## 12. Ventilación
 
 | Estado | Pieza | Cant. | Función |
 |---|---|---:|---|
-| YA | Cooler/heatpipe Dell | 1 | CPU |
-| P1 | Ventilador 5 V silencioso | 1–2 | flujo caja |
-| P1 | Rejillas | 2 | entrada/salida |
-| P1 | Filtros desmontables | 1–2 | polvo |
-| P1 | Sensor temperatura auxiliar | 1 | control |
+| YA | cooler Dell | 1 | CPU |
+| P1 | fan 5 V PWM/tach si es posible | 1–2 | caja |
+| P1 | rejillas/filtros | 2 | flujo |
+| P1 | sensor temperatura zona power | 1 | control |
 
-## 11. PCB/backplane
+## Smart Module Port v3
 
-Primera versión: perfboard o PCB simple.
+Pinout lógico tentativo:
 
-La PCB final debe integrar:
+```text
+1  3V3_ID
+2  5V_SW
+3  GND
+4  ENABLE
+5  POWER_GOOD / FAULT
+6  SDA
+7  SCL
+8  UART_TX
+9  UART_RX
+10 INT / PRESENCE
+```
 
-- ESP32-S3 mediante headers;
-- entradas de switches;
-- LEDs;
-- drivers;
-- load switches;
-- I²C;
-- UART;
-- conectores para LoRa/NFC/sensores;
-- fan headers;
-- INA219/INA226;
-- fusibles de baja corriente;
-- conectores JST.
+No es un estándar final hasta validar corrientes, conectores y PCB.
 
-**No** integrar en nuestra PCB:
+## No pasa por el backplane genérico
 
-- USB 3 de alta velocidad;
+- USB 3 differential pairs;
 - HDMI;
 - Ethernet;
 - coaxial RF;
-- carga de batería Dell.
+- batería Dell.
 
-Esos enlaces usan módulos/cables certificados o prefabricados.
+Esos enlaces usan cableado diseñado para su señal.
 
-## 12. Herramientas de montaje
+## Pendientes de selección
 
-- cautín con control de temperatura;
-- estaño y flux;
-- multímetro;
-- pelacables;
-- crimpadora JST/ferrules;
-- Dremel o herramienta rotativa;
-- taladro;
-- limas;
-- calibre digital;
-- juego de brocas escalonadas;
-- ayuda de tercera mano;
-- etiquetadora o termorretráctil marcado.
-
-## Pendientes antes de comprar
-
-- identificar modelo exacto del Arduino;
-- medir caja real;
-- verificar layout interno real del Dell;
-- elegir hub con alimentación independiente real;
-- elegir modelo de Wi‑Fi USB;
-- elegir variante LoRa y banda permitida;
-- elegir powerbank/rail AUX;
-- medir consumo total estimado.
+- modelo exacto de eFuse/load switch;
+- hub con power por puerto;
+- aislador UART;
+- monitor de corriente multicanal;
+- conector final Smart Module Port;
+- banda LoRa legal/útil;
+- powerbank/fuente AUX.
