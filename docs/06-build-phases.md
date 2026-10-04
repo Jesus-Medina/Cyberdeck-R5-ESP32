@@ -1,86 +1,176 @@
 # 06 — Plan de construcción
 
-## Fase 0 — Validación del notebook
+La regla es simple: **probar primero, cortar después**.
 
-Antes de desmontar:
+## Fase 0 — Inventario y mediciones
 
-- arrancar Windows/Linux;
-- probar CPU/GPU;
-- probar RAM;
-- revisar SMART del SSD;
-- probar batería;
-- probar cargador;
-- probar Wi‑Fi/Bluetooth;
-- probar HDMI/USB/RJ45/audio;
-- comprobar temperaturas;
-- sacar fotos de todo.
+- validar Dell Vostro 3405;
+- confirmar 12 GB RAM y SSD;
+- batería y cargador;
+- temperaturas;
+- medir caja real;
+- identificar Arduino exacto;
+- fotografiar puertos y ventilación;
+- crear plantillas de cartón.
 
-## Fase 1 — Banco de pruebas del supervisor
+## Fase 1 — MVP de control
 
-Montar en protoboard:
+En mesa:
 
 ```text
-PC USB -> ESP32 -> OLED
-               -> 2 switches
-               -> 1 LED
+Dell USB -> ESP32-S3 -> OLED
+                    -> switch
+                    -> LED
+                    -> sensor
 ```
 
-Objetivo: comunicación estable PC ↔ ESP32.
+Implementar USB serial y telemetría.
 
-## Fase 2 — Telemetría
+## Fase 2 — Energía AUX
 
-El host envía:
+Sin conectar todavía instrumentos caros:
 
-- CPU %;
-- RAM %;
-- batería %;
-- temperatura si el sistema la expone;
-- IP;
-- estado de red.
+- powerbank/fuente AUX;
+- fusible;
+- eFuse/protección;
+- rail 5 V;
+- INA219/INA226;
+- un load switch;
+- ventilador de prueba.
 
-El ESP32 lo muestra en OLED.
+Medir corrientes y temperaturas.
 
-## Fase 3 — Control de encendido
+## Fase 3 — Backbone USB
 
-Después de medir el botón original:
+Instalar y probar:
 
-- añadir optoacoplador;
-- probar pulso de encendido;
-- conservar posibilidad de usar el botón físico original.
-
-## Fase 4 — Distribución USB
-
-Añadir hub interno y probar uno por uno:
-
+- hub alimentado;
+- anti-backfeed;
 - ESP32;
-- RTL-SDR;
-- GPS;
-- puertos de panel.
+- Arduino;
+- UE306;
+- USB-UART;
+- puertos externos.
 
-## Fase 5 — Alimentación de accesorios
+## Fase 4 — Laboratorio GPIO
 
-Construir ramas protegidas y validar consumos con multímetro.
+- Arduino a USB;
+- sacar digital/analog/I²C/SPI/UART a bornes;
+- level shifters;
+- mini protoboard;
+- logic analyzer.
 
-## Fase 6 — Desmontaje del notebook
+## Fase 5 — Panel auxiliar
 
-Solo cuando las fases anteriores funcionan:
+- ESP32 CYD;
+- extensión microSD;
+- OLED;
+- encoder;
+- switches;
+- LEDs;
+- RTC.
 
-- retirar motherboard;
-- retirar pantalla;
-- conservar cables etiquetados;
-- medir cada pieza;
-- documentar tornillos y conectores.
+No microsoldar el lector SD mientras una extensión comercial funcione.
 
-## Fase 7 — Prototipo mecánico
+## Fase 6 — Instrumentación
 
-Primero cartón/foamboard/acrílico barato. Luego carcasa definitiva.
+Integrar y probar por separado:
 
-## Fase 8 — Integración final
+- GM328A;
+- FNIRSI;
+- fuente variable;
+- voltímetro/amperímetro;
+- bananas;
+- fusible de salida.
 
-- paneles;
-- gestión de cables;
-- ventilación;
-- fijaciones;
-- pruebas térmicas;
-- autonomía;
-- pruebas SDR de ruido eléctrico.
+## Fase 7 — Redes
+
+- LAN Dell;
+- UE306;
+- Wi‑Fi interno;
+- Wi‑Fi USB de laboratorio;
+- panel RJ45;
+- antenas externas.
+
+## Fase 8 — RF
+
+Uno por uno:
+
+1. RTL-SDR;
+2. GNSS;
+3. LoRa;
+4. NFC/RFID;
+5. FM/Bluetooth opcional.
+
+Antes de cerrar la caja, medir si DC/DC o USB introducen ruido al SDR.
+
+## Fase 9 — Mecánica v1
+
+- bandeja inferior ABS;
+- standoffs;
+- canaletas/cableado;
+- panel superior temporal;
+- soportes de pantalla;
+- ventilación.
+
+## Fase 10 — Integración Dell
+
+Preferencia:
+
+- conservar base Dell funcional si cabe;
+- retirar únicamente el conjunto de display para fijarlo a la tapa;
+- desnudar motherboard sólo si el volumen lo exige.
+
+No soldar sobre placa/batería.
+
+## Fase 11 — Backplane/PCB
+
+Después de validar el prototipo:
+
+- esquemático;
+- conectores J1–J12;
+- drivers;
+- load switches;
+- sensores de potencia;
+- fan control;
+- headers ESP32;
+- fabricación PCB v1.
+
+## Fase 12 — Panel definitivo
+
+Sólo después de tener dimensiones reales de todos los módulos:
+
+- cortar ABS/aluminio;
+- rotular;
+- instalar bulkheads;
+- fijar instrumentos;
+- montar switches y displays.
+
+## Fase 13 — Pruebas finales
+
+- carga CPU/GPU;
+- batería Dell;
+- autonomía AUX;
+- temperatura;
+- ruido SDR;
+- Wi‑Fi;
+- doble Ethernet;
+- LoRa en condiciones legales;
+- GNSS;
+- GPIO;
+- fuente LAB;
+- continuidad y aislamiento;
+- cierre/apertura repetidos;
+- transporte.
+
+## Criterio de terminado
+
+El deck se considera v1.0 cuando:
+
+- el Dell funciona sin módulos AUX;
+- cada módulo se puede reemplazar individualmente;
+- no hay cables sueltos;
+- todos los rails están protegidos;
+- toda conexión externa está etiquetada;
+- el panel puede abrirse para mantenimiento;
+- existe un diagrama actualizado del cableado real.
