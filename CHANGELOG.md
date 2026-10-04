@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.3 — Wireless display control
+
+- corregida arquitectura: control de TV/signage sin tocar físicamente el equipo;
+- prioridad a LAN/Wi-Fi, Cast/DLNA/AirPlay/API/vendor control según el dispositivo;
+- IR pasa a fallback remoto sin contacto;
+- HDMI switch deja de ser la solución principal.
+
+
 ## 0.1.2 — Display Control / IR Lab
 
 - añadido módulo IR 38 kHz + emisor 940 nm;
