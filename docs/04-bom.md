@@ -194,3 +194,22 @@ Esos enlaces usan cableado diseñado para su señal.
 - conector final Smart Module Port;
 - banda LoRa legal/útil;
 - powerbank/fuente AUX.
+
+
+## V0.1 — BOM cerrada
+
+La primera implementación Smart Power + Supervisor queda congelada en [17-v0.1-final-bom-checklist.md](./17-v0.1-final-bom-checklist.md).
+
+Decisiones específicas de V0.1:
+
+- 1 x INA3221 para tres canales de medida;
+- 5 x TPS2553DBVR-1 comprados, 2 instalados inicialmente;
+- RILIM de cada canal activo: 20 kΩ + 6.8 kΩ en serie = 26.8 kΩ;
+- 1 x ADuM1201BRZ instalado, con dominios de masa separados;
+- TCA9548A no es requisito de V0.1 y queda para expansión;
+- 100 nF por TPS2553, 10 µF local según necesidad y 470 µF/16 V en bus 5 V;
+- fusible V0.1: 2 A slow-blow 5x20 en la entrada DC de 12 V;
+- cargas de banco: 1 x 10 Ω/10 W y 1 x 5 Ω/10 W;
+- entrada física: Mean Well GST60A12-P1J -> jack 5.5x2.1 mm centro positivo.
+
+No se energizan módulos caros hasta aprobar el bring-up documentado.
