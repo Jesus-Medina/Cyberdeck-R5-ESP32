@@ -89,26 +89,47 @@ El panel debe incluir o reservar espacio para:
 
 Nunca asumir que un pin de 3.3 V tolera 5 V.
 
-## Fuente regulable
+## Fuente regulable / Universal Power Module
+
+Es la versión mejorada del módulo de **variable power supply** visto en el cyberdeck de referencia.
 
 ```mermaid
 flowchart LR
-    AUX["BUS AUX"] --> BB["Buck/Boost regulable"]
-    BB --> VA["Medidor V/A"]
-    VA --> F["Fusible salida"]
-    F --> SW["OUTPUT switch"]
-    SW --> BAN["Bananas + / -"]
+    AUX["BUS AUX"] --> F0["Fusible"]
+    F0 --> BB["Buck/Boost CC/CV programable"]
+    BB --> DISP["Display V/A/W"]
+    ENC["Encoder rotatorio"] --> BB
+    DISP --> SW["OUTPUT físico"]
+    SW --> F1["Fusible salida"]
+    F1 --> BAN["Bananas 4 mm"]
+    F1 --> TERM["Borne tornillo / AUX OUT"]
 ```
 
-Características deseadas:
+Características objetivo:
 
-- ajuste mediante perilla;
-- display V/A;
+- buck-boost: poder subir o bajar tensión dentro del rango del módulo elegido;
+- **CV**: fijar tensión de salida;
+- **CC**: fijar límite máximo de corriente;
+- encoder/perilla para ajuste;
+- display de tensión, corriente y potencia;
 - salida OFF independiente;
-- fusible;
-- límite de corriente si el módulo seleccionado lo soporta.
+- fusible de salida;
+- protección OVP/OCP/OTP cuando el módulo seleccionado la incluya.
 
-La fuente de laboratorio **no alimenta el Dell**.
+Casos de uso:
+
+| Carga | Salida típica |
+|---|---|
+| sensores/MCU | 3.3 V o 5 V |
+| ESP32/Arduino externos | 5 V |
+| ventiladores | 5 V / 12 V según modelo |
+| servos | rail dedicado 5–6 V, corriente suficiente |
+| relés/motores pequeños | según especificación |
+| protoboard | variable |
+
+**Importante:** un servo puede tener picos de corriente altos. Para servos se reserva una rama 5–6 V de mayor corriente separada del rail lógico, en vez de colgarlos del mismo 5 V que usa el ESP32.
+
+La fuente LAB no alimenta el Dell ni reemplaza los rails fijos del Smart Backplane.
 
 ## Flujo de trabajo típico
 
