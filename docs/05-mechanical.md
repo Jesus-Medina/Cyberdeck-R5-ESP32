@@ -1,72 +1,155 @@
 # 05 — Diseño mecánico
 
-## Principio
+## Caja
 
-La carcasa se diseña **después** de desmontar y medir el notebook real.
+Objetivo actual:
 
-Medir y registrar:
+- Robust MJ-5018 / Easy 16";
+- exterior aprox. 406 × 330 × 174 mm;
+- interior de referencia aprox. 372 × 260 × 155 mm;
+- Dell completo aprox. 330 × 240 mm.
 
-- ancho/alto de motherboard;
-- posición de puertos;
-- volumen del cooler;
-- tamaño de batería;
-- tamaño de pantalla y marco;
-- recorrido del cable eDP;
-- daughterboards;
-- botón power;
-- parlantes;
-- antenas Wi‑Fi.
+El Dell ocupa casi toda el área útil, por lo que el diseño se resuelve **en capas**.
 
-## Distribución conceptual
+## Estrategia recomendada
 
-### Tapa
+No desnudar la motherboard desde el primer día.
 
-```text
-+------------------------------------------+
-|                                          |
-|             LCD DELL 14"                 |
-|                                          |
-+------------------------------------------+
-```
+Primera integración:
 
-### Base
+1. conservar el conjunto inferior Dell funcional;
+2. separar el display assembly si hace falta montarlo en la tapa;
+3. mantener motherboard, cooler, batería, teclado y touchpad en su estructura original mientras sea posible;
+4. colocar los módulos auxiliares en una bandeja técnica inferior;
+5. montar instrumentación en un panel superior independiente.
+
+## Capas
 
 ```text
-+------------------------------------------+
-| OLED | AUX DISPLAY | VOLT | SDR STATUS  |
-|------------------------------------------|
-|                                          |
-|         teclado / zona de trabajo        |
-|                                          |
-|------------------------------------------|
-| MASTER  SDR  GPS  RADIO  GPIO  AUX      |
-|                                          |
-| USB-A USB-A USB-C RJ45 AUDIO SMA        |
-+------------------------------------------+
+TAPA
+┌────────────────────────────────────┐
+│ LCD Dell 14"                       │
+│ OLED / indicadores / audio opc.    │
+└────────────────────────────────────┘
+
+SUPERFICIE
+┌────────────────────────────────────┐
+│ FNIRSI | GM328A | CYD | GPIO       │
+│ PSU LAB | V/A | switches           │
+│                                    │
+│ teclado + touchpad Dell            │
+└────────────────────────────────────┘
+
+BANDEJA TÉCNICA
+┌────────────────────────────────────┐
+│ ESP32-S3 | HUB | Arduino | UE306   │
+│ power AUX | logic | UART           │
+│ Wi-Fi LAB | RTL-SDR | LoRa | GNSS │
+└────────────────────────────────────┘
 ```
 
-## Interior
+## Distribución por zonas
 
-Separar físicamente:
+### Zona RF
 
-1. zona PC y refrigeración;
-2. zona batería original;
-3. zona señal/radio;
-4. zona alimentación auxiliar;
-5. zona microcontroladores.
+- RTL-SDR;
+- Wi‑Fi USB;
+- LoRa;
+- GNSS;
+- coaxiales;
+- bulkheads.
 
-Evitar colocar convertidores DC ruidosos pegados al RTL-SDR y a la antena.
+Ubicar en un extremo y lejos de:
 
-## Refrigeración
+- buck/boost;
+- USB-C PD converters;
+- amplificadores;
+- cables de potencia.
 
-El aire debe entrar por una zona limpia y salir directamente por el radiador original. No recircular aire caliente dentro de la caja.
+### Zona power
 
-## Panel frontal
+- fusibles;
+- eFuse;
+- load switches;
+- DC/DC;
+- powerbank/entrada AUX;
+- medidor;
+- fuente variable.
 
-Cada conector debe estar etiquetado. Recomendación de grupos:
+### Zona control
 
-- COMPUTE: USB-A / USB-C / RJ45;
-- RADIO: SMA / SDR;
-- CONTROL: MASTER / AUX / GPIO;
-- SERVICE: programación ESP32 / reset;
-- POWER: carga original Dell y entrada auxiliar si existe.
+- ESP32-S3;
+- backplane;
+- RTC;
+- sensores;
+- conectores JST.
+
+### Zona lab
+
+- Arduino;
+- USB-UART;
+- logic analyzer;
+- bornes GPIO.
+
+## Panel superior propuesto
+
+```text
+┌──────────────────────────────────────────────┐
+│ FNIRSI | GM328A | ESP32 CYD | GPIO TERMINAL │
+│                                              │
+│ OLED | ENC | USB | PSU V/A | SWITCH BANK    │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │          TECLADO DELL                   │ │
+│ │                              TOUCHPAD    │ │
+│ └──────────────────────────────────────────┘ │
+└──────────────────────────────────────────────┘
+```
+
+## Panel de comunicaciones
+
+```text
+[DC DELL] [AUX/PD] [USB3] [USB3] [USB-C]
+[LAN1] [LAN2] [HDMI] [AUDIO]
+[RP-SMA WIFI A] [RP-SMA WIFI B]
+[SMA SDR] [SMA LORA] [GNSS]
+[GPIO/I2C/SPI/UART] [+ LAB -]
+```
+
+## Fijación
+
+Preferir:
+
+- separadores M3;
+- inserts térmicos en piezas impresas;
+- brackets atornillados;
+- velcro industrial sólo para módulos que deban retirarse;
+- foam fino antivibración;
+- bridas reutilizables.
+
+Evitar:
+
+- silicona caliente como fijación estructural;
+- módulos suspendidos por cables;
+- PCB tocando plástico sin separadores;
+- cables RF doblados agresivamente.
+
+## Acceso de mantenimiento
+
+La bandeja superior debe poder levantarse sin desconectar todo.
+
+Cada arnés debe llevar etiqueta:
+
+- PWR-01;
+- USB-01;
+- RF-SDR;
+- RF-LORA;
+- FAN-01;
+- I2C-01;
+- GPIO-LAB.
+
+## Ventilación
+
+Mantener libres las entradas del Dell. Añadir entrada y extracción en la caja según las temperaturas medidas.
+
+La resistencia al agua original de la caja deja de estar garantizada después de hacer agujeros, salvo que se usen bulkheads, juntas y respiraderos diseñados para sellado.
