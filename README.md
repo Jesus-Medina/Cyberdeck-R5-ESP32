@@ -195,7 +195,8 @@ Incluye:
 - `docs/11-smart-modules.md` — backplane, slots e identificación.
 - `docs/12-supervisor-firmware.md` — Module Manager y máquina de estados.
 - `docs/15-v0.1-smart-power-supervisor.md` — primer prototipo Smart Power + Supervisor.
-- `docs/16-v0.1-procurement-chile-aliexpress.md` — compras V0.1 Chile/AliExpress.
+- `docs/16-v0.1-procurement-chile-aliexpress.md` — compras V0.1 reconciliadas con el pedido real.
+- `docs/17-v0.1-final-bom-checklist.md` — **BOM final V0.1, sustituciones, RILIM, capacitores y bring-up obligatorio.**
 - `TODO.md`
 
 ## Regla de construcción
