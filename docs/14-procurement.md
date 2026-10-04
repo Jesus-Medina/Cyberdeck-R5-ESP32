@@ -34,9 +34,12 @@ No comprar piezas dependientes del Dell hasta abrir la unidad real.
 - eFuse/load-switch channels;
 - Smart Backplane PCB;
 - powerbank/fuente AUX;
-- buck/boost CC/CV;
-- V/A meter;
-- bananas;
+- buck/boost **CC/CV programable con encoder/perilla**;
+- display V/A/W (si no viene integrado);
+- bananas + borne de salida;
+- regulador dedicado 5–6 V de mayor corriente para SERVO/AUX;
+- headers/conectores de servo;
+- regulador 3.3 V protegido para prototipos;
 - USB-C PD modules;
 - aislador digital UART;
 - hub USB 3 con per-port power switching real si se consigue.
