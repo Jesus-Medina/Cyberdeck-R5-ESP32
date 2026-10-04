@@ -2,146 +2,202 @@
 
 Cyberdeck portátil modular basado en un **Dell Vostro 3405** con **AMD Ryzen 5 3450U, 12 GB RAM y SSD de 256 GB**, reutilizando pantalla, batería/BMS, teclado, touchpad, Wi‑Fi/Bluetooth, audio y refrigeración originales.
 
-La filosofía del proyecto es **no copiar literalmente** un cyberdeck de Raspberry Pi: se toma su idea de instrumentación y panel modular, pero el Dell x86 permanece como computador principal y se añaden subsistemas independientes para control, redes, radio, electrónica e instrumentación.
+> **Estado:** arquitectura **v3 Smart Modular**. Caja objetivo: Robust MJ-5018 / Easy 16". El Dell sigue siendo un computador independiente y el resto del deck se construye como una plataforma modular supervisada.
 
-> **Estado:** diseño mecánico/electrónico v2.0. Caja objetivo: Robust MJ-5018 / Easy 16", con volumen interior aproximado de 372 × 260 × 155 mm. Antes de cortar paneles se debe medir la unidad real.
+## Idea central
 
-## Objetivos
+El proyecto queda dividido en cuatro cerebros/capas:
 
-- Computador x86 Linux/Windows completo.
-- Supervisor físico independiente con ESP32-S3.
-- Pantalla táctil ESP32 CYD como herramienta secundaria.
-- Arduino dedicado a laboratorio GPIO.
-- Doble Ethernet.
-- Wi‑Fi interno para uso normal y Wi‑Fi USB dedicado para laboratorio autorizado.
-- RTL-SDR con antena externa.
-- LoRa independiente.
-- GNSS/GPS, NFC/RFID y RTC.
-- Banco de electrónica integrado: fuente variable, osciloscopio, tester de componentes, analizador lógico y USB-UART.
-- Puertos de panel, antenas externas y alimentación modular.
-- Reparabilidad: módulos atornillados y conectados por JST/USB, evitando soldarlos permanentemente.
-- Mantener la batería/BMS Dell sin modificar sus celdas.
+- **Dell Ryzen:** computación pesada, Linux/Windows, redes, SDR, VMs y desarrollo.
+- **ESP32-S3 Supervisor:** Module Manager, power manager, sensores, estado, ventilación y panel físico.
+- **ESP32 CYD:** pantalla táctil/herramienta experimental independiente.
+- **Arduino:** microcontrolador de laboratorio, completamente libre para prototipos.
 
-## Arquitectura resumida
+El supervisor **NO estará encendido permanentemente por obligación**. Tendrá un interruptor físico **SUPERVISOR ENABLE** que corta realmente su alimentación.
+
+```text
+SUPERVISOR OFF
+  -> ESP32 sin alimentación
+  -> OLED supervisor apagado
+  -> smart modules con EN por defecto en OFF
+  -> Dell sigue funcionando normalmente
+  -> consumo del supervisor ≈ 0; sólo queda el consumo propio de la fuente AUX si ésta sigue conectada
+
+SUPERVISOR ON
+  -> ESP32 arranca
+  -> inventaría módulos
+  -> detecta estado del Dell
+  -> mide alimentación
+  -> aplica perfil
+  -> habilita sólo los módulos solicitados
+```
+
+Además existirá **MASTER AUX**, un corte físico general para apagar toda la electrónica auxiliar cuando se quiera consumo mínimo absoluto.
+
+## Arquitectura v3
 
 ```mermaid
 flowchart TB
     subgraph PC["COMPUTADOR PRINCIPAL"]
-        DELL["Dell Vostro 3405\nRyzen 5 3450U\n12 GB / 256 GB"]
-        BAT["Batería + BMS Dell"]
-        IO["Pantalla + teclado + touchpad"]
-        WIFI0["Wi‑Fi/Bluetooth interno"]
+        DELL["Dell Vostro 3405\nRyzen 5 3450U"]
+        BAT["Batería/BMS Dell"]
+        HOST["Cyberdeck Host Daemon"]
     end
 
-    subgraph USB["BACKBONE USB"]
-        HUB["Hub USB 3.x alimentado\ncon protección anti-backfeed"]
+    subgraph POWER["AUX POWER"]
+        AUX["Fuente/Batería AUX"]
+        MASTER["SW0 MASTER AUX\nHard power cut"]
+        SUPSW["SW1 SUPERVISOR ENABLE\nHard power cut"]
+        DIST["Smart Power Backplane"]
     end
 
-    subgraph CONTROL["CONTROL"]
-        ESP["ESP32-S3 supervisor"]
-        OLED["OLED estado"]
-        SW["Switches / botones / encoder"]
-        PWRCTRL["Load switches / MOSFET"]
-        SENSOR["Sensores + INA219/INA226"]
+    subgraph SUP["SUPERVISOR"]
+        ESP["ESP32-S3"]
+        MM["Module Manager"]
+        PM["Power Manager"]
+        HM["Host Monitor"]
+        OLED["OLED / LEDs"]
     end
 
-    subgraph AUXUI["UI AUXILIAR"]
-        CYD["ESP32 CYD 2.8\" táctil + microSD"]
-        RTC["RTC DS3231"]
+    subgraph SMART["SMART MODULES"]
+        SDR["RTL-SDR"]
+        WIFI["Wi-Fi LAB"]
+        LORA["LoRa"]
+        GNSS["GNSS"]
+        NFC["NFC"]
+        CYD["ESP32 CYD"]
+        AUDIO["Audio/Radio"]
     end
 
-    subgraph LAB["LAB ELECTRÓNICO"]
-        ARD["Arduino de laboratorio"]
-        GPIO["Bornes GPIO / I²C / SPI / UART"]
-        PSU["Fuente DC variable + V/A + bananas"]
-        SCOPE["FNIRSI-138 Pro o equivalente"]
+    subgraph LAB["LAB"]
+        ARD["Arduino"]
+        PSU["Fuente variable"]
+        SCOPE["FNIRSI"]
         GM["GM328A"]
-        LOGIC["Analizador lógico USB"]
+        LOGIC["Logic Analyzer"]
         UART["USB-UART"]
     end
 
-    subgraph COMMS["REDES / RADIO"]
-        WIFI1["Wi‑Fi USB dual-band de laboratorio"]
-        ETH2["TP-Link UE306"]
-        SDR["RTL-SDR"]
-        LORA["LoRa SX1262/SX127x"]
-        GPS["GNSS/GPS"]
-        NFC["PN532 NFC/RFID"]
-        RADIO["Radio FM/Bluetooth opcional"]
-    end
-
     BAT --> DELL
-    IO --> DELL
-    WIFI0 --> DELL
-    DELL --> HUB
+    DELL --> HOST
 
-    HUB --> ESP
-    HUB --> CYD
-    HUB --> ARD
-    HUB --> WIFI1
-    HUB --> ETH2
-    HUB --> SDR
-    HUB --> GPS
-    HUB --> LOGIC
-    HUB --> UART
+    AUX --> MASTER --> DIST
+    DIST --> SUPSW --> ESP
 
+    ESP --> MM
+    ESP --> PM
+    ESP --> HM
     ESP --> OLED
-    ESP --> SW
-    ESP --> PWRCTRL
-    ESP --> SENSOR
-    ESP --> LORA
-    ESP --> NFC
-    ESP --> RTC
-    ARD --> GPIO
-    PSU --> GPIO
+
+    PM --> DIST
+    DIST --> SDR
+    DIST --> WIFI
+    DIST --> LORA
+    DIST --> GNSS
+    DIST --> NFC
+    DIST --> CYD
+    DIST --> AUDIO
+
+    HOST <-->|serial aislado / heartbeat| HM
+
+    DELL --> ARD
+    DELL --> SCOPE
+    DELL --> LOGIC
+    DELL --> UART
+    PSU --> LAB
 ```
 
-## Roles
+## Modularidad real
 
-| Subsistema | Rol |
-|---|---|
-| Dell Ryzen | Linux/Windows, VMs, programación, SDR, redes, análisis |
-| ESP32-S3 | Supervisor permanente del cyberdeck |
-| ESP32 CYD | Pantalla táctil/herramienta independiente |
-| Arduino | Microcontrolador de laboratorio reprogramable |
-| Wi‑Fi USB | Laboratorio inalámbrico autorizado |
-| LAN Dell + UE306 | Dos interfaces Ethernet físicas |
-| RTL-SDR | Recepción y análisis RF |
-| LoRa | Telemetría/enlaces LoRa compatibles con normativa local |
-| GNSS | Posición y tiempo |
-| PN532 | NFC/RFID de laboratorio |
-| FNIRSI + GM328A + logic analyzer | Instrumentación electrónica |
-| Fuente variable | Alimentar prototipos externos |
+La versión pro no se limita a “módulos atornillados”. Tendremos **Smart Module Ports**.
 
-## Principio de construcción
+Cada módulo compatible podrá disponer de:
 
-**El Dell no se convierte en una Raspberry Pi.** El computador queda eléctricamente independiente y el mundo físico se añade mediante USB, ESP32, Arduino y una distribución auxiliar protegida.
+- alimentación conmutable;
+- `ENABLE`;
+- `POWER_GOOD`;
+- medición de corriente;
+- identificación;
+- bus I²C/UART de baja velocidad;
+- línea de interrupción;
+- conector desmontable;
+- soporte mecánico M3.
+
+Los módulos de alta velocidad como USB 3, HDMI, Ethernet y RF **no atraviesan nuestra PCB genérica**: usan cables/extensiones dedicadas para mantener integridad de señal.
+
+## Smart Module Manager
+
+El ESP32 mantiene estados como:
 
 ```text
-PC Dell intacto
-      │
-      ├── USB backbone ── periféricos
-      │
-      └── USB serial ─── ESP32 supervisor
-                             │
-                    switches / power / sensores
+ABSENT
+PRESENT_OFF
+STARTING
+POWERED
+ONLINE
+ACTIVE
+FAULT
+DISABLED
 ```
 
-No se soldará sobre la batería Dell, sus celdas ni la motherboard salvo que una futura modificación esté documentada, medida y sea realmente necesaria.
+Para módulos directos como LoRa/NFC/GNSS, el ESP32 puede verificar respuesta por bus. Para módulos USB como RTL-SDR o Wi‑Fi, Linux confirma enumeración/health mediante el Host Daemon.
+
+## Detección del PC
+
+Dos señales distintas:
+
+1. **PC_PWR_SENSE:** presencia eléctrica del Dell.
+2. **HOST_HEARTBEAT:** Linux confirma que el sistema operativo está vivo.
+
+Así se puede distinguir:
+
+```text
+PWR=0                         -> PC OFF
+PWR=1, HEARTBEAT=0           -> BOOTING / BIOS / HOST NO DISPONIBLE
+PWR=1, HEARTBEAT=1           -> HOST ONLINE
+```
+
+## Hardware previsto
+
+Incluye:
+
+- doble Ethernet;
+- Wi‑Fi normal + Wi‑Fi LAB;
+- RTL-SDR;
+- LoRa;
+- GNSS/GPS;
+- NFC/RFID;
+- ESP32 CYD;
+- RTC;
+- sensores;
+- Arduino GPIO;
+- FNIRSI;
+- GM328A;
+- analizador lógico;
+- USB-UART;
+- fuente variable;
+- USB-C PD;
+- ventilación inteligente;
+- radio/audio auxiliar opcional.
 
 ## Documentación
 
-- `docs/01-vision.md` — alcance y decisiones.
-- `docs/02-architecture.md` — arquitectura completa.
-- `docs/03-electrical.md` — alimentación, protecciones y buses.
-- `docs/04-bom.md` — BOM maestra con todas las piezas.
-- `docs/05-mechanical.md` — distribución en la caja.
-- `docs/06-build-phases.md` — orden de construcción y pruebas.
-- `docs/07-protocol.md` — protocolo PC ↔ ESP32.
-- `docs/08-comms-radio.md` — Wi‑Fi, Ethernet, SDR, LoRa, GNSS y NFC.
-- `docs/09-instrumentation.md` — laboratorio electrónico integrado.
-- `TODO.md` — tareas pendientes.
+- `docs/01-vision.md`
+- `docs/02-architecture.md`
+- `docs/03-electrical.md`
+- `docs/04-bom.md`
+- `docs/05-mechanical.md`
+- `docs/06-build-phases.md`
+- `docs/07-protocol.md`
+- `docs/08-comms-radio.md`
+- `docs/09-instrumentation.md`
+- `docs/10-assembly-map.md`
+- `docs/11-smart-modules.md` — backplane, slots e identificación.
+- `docs/12-supervisor-firmware.md` — Module Manager y máquina de estados.
+- `TODO.md`
 
-## Regla principal
+## Regla de construcción
 
-Primero se monta y prueba en banco. **La placa frontal definitiva se corta al final**, cuando todas las piezas reales estén compradas y medidas.
+**Primero banco de pruebas, después PCB, y el panel definitivo al final.**
+
+La batería/BMS Dell y la motherboard no se modifican para alimentar el sistema auxiliar.
