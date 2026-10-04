@@ -194,6 +194,8 @@ Incluye:
 - `docs/10-assembly-map.md`
 - `docs/11-smart-modules.md` — backplane, slots e identificación.
 - `docs/12-supervisor-firmware.md` — Module Manager y máquina de estados.
+- `docs/15-v0.1-smart-power-supervisor.md` — primer prototipo Smart Power + Supervisor.
+- `docs/16-v0.1-procurement-chile-aliexpress.md` — compras V0.1 Chile/AliExpress.
 - `TODO.md`
 
 ## Regla de construcción
