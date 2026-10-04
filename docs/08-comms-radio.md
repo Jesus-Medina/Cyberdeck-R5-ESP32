@@ -187,14 +187,13 @@ El cyberdeck tendrá un módulo IR para laboratorio con equipos propios:
 - captura y reproducción de comandos de controles propios;
 - perfiles para TV, switch HDMI y otros equipos compatibles.
 
-Para cambiar el contenido de una TV propia usada como signage, la arquitectura preferida no es RF sino:
+Para cambiar el contenido de una TV propia usada como signage, la arquitectura preferida es **remota y sin contacto físico**:
 
 ~~~text
-signage HDMI -> HDMI switch -> TV
-Dell HDMI ---/
+Cyberdeck -> Wi-Fi/Ethernet -> TV o signage player propio
 ~~~
 
-El cyberdeck puede controlar el switch mediante IR y mostrar cualquier imagen/vídeo/dashboard desde el Dell.
+Según el equipo se podrá usar Cast, DLNA, AirPlay, API/protocolo remoto del fabricante, Android/Google TV con control de red habilitado o el panel/API del reproductor signage. IR queda como fallback cuando no exista un control de red adecuado.
 
 Detalles: [18-display-control-ir-lab.md](./18-display-control-ir-lab.md).
 
