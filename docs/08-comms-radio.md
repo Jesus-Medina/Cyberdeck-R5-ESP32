@@ -176,3 +176,30 @@ No es requisito para v1, pero queda contemplado mecánica y eléctricamente.
 ```
 
 Cada conector debe estar rotulado para evitar conectar una antena incorrecta.
+
+
+## IR / control de displays
+
+El cyberdeck tendrá un módulo IR para laboratorio con equipos propios:
+
+- receptor IR 38 kHz;
+- LED IR 940 nm con driver por transistor;
+- captura y reproducción de comandos de controles propios;
+- perfiles para TV, switch HDMI y otros equipos compatibles.
+
+Para cambiar el contenido de una TV propia usada como signage, la arquitectura preferida no es RF sino:
+
+~~~text
+signage HDMI -> HDMI switch -> TV
+Dell HDMI ---/
+~~~
+
+El cyberdeck puede controlar el switch mediante IR y mostrar cualquier imagen/vídeo/dashboard desde el Dell.
+
+Detalles: [18-display-control-ir-lab.md](./18-display-control-ir-lab.md).
+
+## Sub-GHz lab opcional
+
+Se contempla CC1101 para pruebas autorizadas con dispositivos propios de código fijo y protocolos sub-GHz compatibles.
+
+El RTL-SDR se mantiene como receptor de propósito general; no transmite.
