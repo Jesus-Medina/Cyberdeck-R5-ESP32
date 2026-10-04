@@ -1,176 +1,240 @@
-# 02 — Arquitectura del sistema
+# 02 — Arquitectura del sistema v3 Smart Modular
 
-## Vista completa
+## Principio
+
+El cyberdeck debe funcionar incluso si el supervisor está apagado. El Dell es independiente y el subsistema AUX es opcional.
 
 ```mermaid
 flowchart TB
-    subgraph PC["A · COMPUTADOR PRINCIPAL"]
-        DELL["Dell Vostro 3405\nRyzen 5 3450U"]
-        RAM["12 GB RAM"]
-        SSD["SSD 256 GB"]
-        LCD["LCD Dell 14\""]
-        KBD["Teclado + touchpad"]
-        WINT["Wi‑Fi/Bluetooth interno"]
-        ETH1["Ethernet Dell"]
-        BAT["Batería + BMS Dell"]
-    end
+    AUX["AUX source"] --> MA["SW0 MASTER AUX"]
+    MA --> BP["Smart Power Backplane"]
+    BP --> SS["SW1 SUPERVISOR ENABLE"]
+    SS --> ESP["ESP32-S3 Supervisor"]
 
-    subgraph USB["B · BACKBONE USB"]
-        HUB["Hub USB 3.x alimentado"]
-    end
+    DELL["Dell Vostro 3405"] --> HOST["Host Daemon"]
+    HOST <-->|heartbeat aislado| ESP
 
-    subgraph CTRL["C · SUPERVISOR"]
-        ESP["ESP32-S3"]
-        OLED["OLED 1.3\""]
-        RTC["DS3231"]
-        SENS["BME280 / temperatura"]
-        INA["INA219/INA226"]
-        SWITCH["Switches + botones + encoder"]
-        LOAD["Load switches / MOSFET"]
-        FAN["Ventiladores auxiliares"]
-    end
+    ESP --> MM["Module Manager"]
+    ESP --> PM["Power Manager"]
+    ESP --> UI["OLED / LEDs / controls"]
 
-    subgraph AUXUI["D · INTERFAZ SECUNDARIA"]
-        CYD["ESP32-2432S028R CYD\nTFT táctil + microSD"]
-    end
+    PM --> BP
 
-    subgraph LAB["E · LAB ELECTRÓNICO"]
-        ARD["Arduino existente"]
-        TERM["Bornes GPIO"]
-        PSU["Fuente variable"]
-        METER["Volt/Amp meter"]
-        BAN["Bornes banana"]
-        SCOPE["FNIRSI-138 Pro"]
-        GM["GM328A"]
-        LOGIC["Logic Analyzer USB"]
-        UART["USB-UART"]
-    end
-
-    subgraph COMMS["F · COMUNICACIONES"]
-        WIFI2["Wi‑Fi USB dual-band\nmonitor/lab autorizado"]
-        ETH2["TP-Link UE306"]
-        SDR["RTL-SDR"]
-        LORA["LoRa SX1262/SX127x"]
-        GNSS["GNSS/GPS"]
-        NFC["PN532"]
-        FM["FM/Bluetooth audio opcional"]
-    end
-
-    BAT --> DELL
-    RAM --> DELL
-    SSD --> DELL
-    LCD --> DELL
-    KBD --> DELL
-    WINT --> DELL
-    ETH1 --> DELL
-
-    DELL --> HUB
-    HUB --> ESP
-    HUB --> CYD
-    HUB --> ARD
-    HUB --> WIFI2
-    HUB --> ETH2
-    HUB --> SDR
-    HUB --> GNSS
-    HUB --> LOGIC
-    HUB --> UART
-
-    ESP --> OLED
-    ESP --> RTC
-    ESP --> SENS
-    ESP --> INA
-    ESP --> SWITCH
-    ESP --> LOAD
-    ESP --> FAN
-    ESP --> LORA
-    ESP --> NFC
-
-    ARD --> TERM
-    PSU --> METER --> BAN
+    BP --> M1["Slot: LoRa"]
+    BP --> M2["Slot: GNSS"]
+    BP --> M3["Slot: NFC"]
+    BP --> M4["Slot: CYD"]
+    BP --> M5["Slot: SDR power"]
+    BP --> M6["Slot: Wi-Fi LAB power"]
 ```
 
-## Separación de responsabilidades
+## SW0 — MASTER AUX
 
-### Dell
+Interruptor físico de corte general.
 
-No depende del ESP32 para arrancar o funcionar. Mantiene su botón power y sistema eléctrico original. El ESP32 puede, opcionalmente, simular una pulsación mediante aislamiento, pero el botón físico original se conserva.
+OFF:
 
-### ESP32-S3 supervisor
+- backplane sin alimentación;
+- supervisor apagado;
+- ramas AUX apagadas;
+- módulos AUX apagados;
+- Dell sigue independiente.
 
-Funciones permanentes:
+Es el modo de transporte/almacenamiento y consumo auxiliar mínimo.
 
-- leer switches;
-- controlar LEDs;
-- manejar ventiladores;
-- mostrar estado;
-- leer sensores;
-- medir el rail auxiliar;
-- habilitar/deshabilitar ramas con load switches;
-- hablar con Linux por USB CDC/serial;
-- manejar LoRa y NFC si se decide conectarlos directamente por SPI/I²C;
-- emitir alarmas locales.
+## SW1 — SUPERVISOR ENABLE
 
-### ESP32 CYD
+Interruptor físico sólo para el supervisor.
 
-Herramienta secundaria:
+OFF:
 
-- pantalla táctil;
-- microSD;
-- UI propia;
-- firmware experimental;
-- panel auxiliar.
+- ESP32-S3 sin alimentación;
+- OLED supervisor apagado;
+- Module Manager detenido;
+- todas las ramas smart tienen `EN` con pull-down hardware y quedan OFF;
+- instrumentos con su propio interruptor manual siguen independientes si MASTER AUX está ON.
 
-No controla el power del Dell ni funciones críticas.
+ON:
 
-### Arduino
+1. arranca el ESP32;
+2. valida tensión AUX;
+3. lee los Smart Module IDs;
+4. detecta PC power;
+5. espera/lee heartbeat;
+6. aplica el perfil seleccionado;
+7. habilita únicamente las ramas solicitadas.
 
-Se deja completamente disponible para proyectos. Su GPIO se expone en bornes y se conecta por USB al Dell.
-
-## Buses
+## Estados del Dell
 
 ```mermaid
-flowchart LR
-    PC["Dell"] -->|USB 3| HUB["Hub"]
-    HUB -->|USB CDC| ESP["ESP32-S3"]
-    HUB -->|USB| CYD["CYD"]
-    HUB -->|USB| ARD["Arduino"]
-    HUB -->|USB| SDR["RTL-SDR"]
-    HUB -->|USB| WIFI["Wi-Fi Lab"]
-    HUB -->|USB| ETH["UE306"]
-    HUB -->|USB| LOGIC["Logic analyzer"]
-
-    ESP -->|I²C| OLED["OLED"]
-    ESP -->|I²C| RTC["RTC"]
-    ESP -->|I²C| INA["Power monitor"]
-    ESP -->|SPI/UART| LORA["LoRa"]
-    ESP -->|I²C/SPI| NFC["PN532"]
+stateDiagram-v2
+    [*] --> OFF
+    OFF --> POWERED: PC_PWR_SENSE=1
+    POWERED --> ONLINE: heartbeat válido
+    ONLINE --> HOST_LOST: heartbeat timeout
+    HOST_LOST --> ONLINE: heartbeat vuelve
+    POWERED --> OFF: PC_PWR_SENSE=0
+    HOST_LOST --> OFF: PC_PWR_SENSE=0
+    ONLINE --> OFF: PC_PWR_SENSE=0
 ```
 
-## RF
+El supervisor no presupone que “5 V = Linux funcionando”.
 
-- Wi‑Fi de laboratorio: RP-SMA externo según el adaptador elegido.
-- RTL-SDR: SMA externo.
-- LoRa: SMA externo independiente.
-- GNSS: antena activa/pasiva según el módulo.
-- FM opcional: antena independiente.
+## Smart Module Manager
 
-Los coaxiales deben ser cortos y mantenerse alejados de DC/DC y cables de potencia.
+Cada módulo tiene estado propio:
 
-## Panel de servicio
+```mermaid
+stateDiagram-v2
+    [*] --> ABSENT
+    ABSENT --> PRESENT_OFF: ID detectado
+    PRESENT_OFF --> STARTING: enable
+    STARTING --> POWERED: power_good
+    POWERED --> ONLINE: health check OK
+    ONLINE --> ACTIVE: workload
+    ACTIVE --> ONLINE: idle
+    ONLINE --> PRESENT_OFF: disable
+    POWERED --> FAULT: timeout/error
+    STARTING --> FAULT: timeout/overcurrent
+    FAULT --> PRESENT_OFF: reset
+```
 
-Debe existir acceso externo a:
+Estados mínimos:
 
-- USB-A 3.x;
-- USB-C;
-- HDMI;
-- audio 3.5 mm;
-- LAN1;
-- LAN2;
-- SMA SDR;
-- SMA LoRa;
-- RP-SMA Wi‑Fi;
-- GPIO/I²C/SPI/UART;
-- bananas de fuente variable;
-- power Dell;
-- entrada/carga auxiliar;
-- programación ESP32.
+- `ABSENT`
+- `PRESENT_OFF`
+- `STARTING`
+- `POWERED`
+- `ONLINE`
+- `ACTIVE`
+- `FAULT`
+- `DISABLED`
+
+## Cómo se verifica cada tipo
+
+### Módulos conectados directamente al ESP32
+
+Ejemplos:
+
+- LoRa;
+- PN532;
+- GNSS UART;
+- sensores.
+
+El supervisor verifica respuesta real por I²C/SPI/UART.
+
+### Módulos USB
+
+Ejemplos:
+
+- RTL-SDR;
+- Wi‑Fi LAB;
+- UE306;
+- logic analyzer.
+
+El supervisor sabe:
+
+- si les entregó energía;
+- PGOOD;
+- consumo aproximado.
+
+Cuando el Dell está ONLINE, el Host Daemon informa además si el dispositivo se enumeró y funciona.
+
+Por eso un RTL-SDR con PC apagado puede estar `POWERED`, pero no se marca `ONLINE` sólo por consumir corriente.
+
+## Smart Module Port
+
+Puerto lógico de baja velocidad:
+
+```text
+3V3_ID     identificación de muy bajo consumo
+5V_SW      alimentación principal conmutable
+GND
+ENABLE
+POWER_GOOD
+SDA
+SCL
+UART_TX
+UART_RX
+INT
+```
+
+No todos los pines se usan en todos los módulos.
+
+### Identificación futura/pro
+
+Cada carrier puede llevar una EEPROM I²C pequeña con:
+
+```text
+module_id
+name
+hardware_revision
+driver
+nominal_voltage
+max_current
+capabilities
+```
+
+Para permitir EEPROMs con la misma dirección en varios slots, el backplane puede usar un multiplexor I²C TCA9548A o equivalente.
+
+Esto permite que el ESP32 detecte qué hay instalado **sin energizar el módulo principal**.
+
+## No hot-swap por defecto
+
+“Modular” significa reemplazable y autodetectable, no necesariamente hot-swap.
+
+Procedimiento:
+
+1. apagar la rama;
+2. confirmar corriente ~0;
+3. retirar módulo;
+4. insertar módulo;
+5. ejecutar rescan;
+6. habilitar.
+
+Sólo se permitirá hot-swap en un puerto específicamente diseñado para ello.
+
+## Comunicación Host ↔ Supervisor
+
+Producción:
+
+```text
+Dell USB -> USB-UART host -> aislador digital -> ESP32 UART
+```
+
+El aislamiento evita back-power/phantom power cuando el supervisor está físicamente apagado.
+
+El USB-C nativo del ESP32 queda disponible como puerto SERVICE/FLASH durante desarrollo.
+
+## Perfiles
+
+- NORMAL
+- NETWORK
+- RADIO
+- DEV
+- LOW_POWER
+- GAMING
+- MANUAL
+
+Los perfiles no sustituyen los switches físicos; establecen defaults.
+
+Ejemplo RADIO:
+
+```text
+SDR=ON
+GNSS=ON
+LORA=ON
+WIFI_LAB=OFF
+NFC=OFF
+FANS=AUTO
+```
+
+## Fail-safe
+
+Ante reset/watchdog del ESP32:
+
+- los enables tienen pull-down;
+- módulos controlados quedan OFF;
+- Dell no se apaga;
+- fuente LAB conserva su interruptor OUTPUT independiente;
+- ningún GPIO energiza directamente una carga.
