@@ -15,6 +15,23 @@
 - [x] Supervisor con hard-off físico.
 - [x] MASTER AUX separado.
 
+## V0.1 arquitectura congelada
+
+- [x] definir flujo 12 V -> fusible -> SW0 -> XL4015 -> 5V_BUS.
+- [x] definir SW1 y +5V_SUP medido por INA3221 CH3.
+- [x] definir dos ramas TPS2553 + INA3221 CH1/CH2.
+- [x] definir RILIM 20 kΩ + 6.8 kΩ y EN/FAULT.
+- [x] definir GPIO V0.1 del ESP32.
+- [x] definir bus I²C y TCA9548A para dos EEPROM 24C02.
+- [x] definir aislamiento CP2102 <-> ADuM1201 <-> ESP32.
+- [x] definir GND_DELL separado de GND_AUX.
+- [x] definir colores/calibres de cable y test points.
+- [x] documentar manual pin-a-pin y checklist VERIFY-ON-ARRIVAL.
+- [ ] verificar físicamente pinout/serigrafía de breakouts al llegar.
+- [ ] medir RSHUNT real del INA3221 al llegar.
+- [ ] verificar pin 3V3/TX/RX/GND del CP2102 al llegar.
+- [ ] verificar orden de pines/dirección/pull-ups del OLED al llegar.
+
 ## Medición física
 
 - [ ] medir interior real caja.
