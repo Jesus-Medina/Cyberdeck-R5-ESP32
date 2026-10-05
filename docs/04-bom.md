@@ -206,7 +206,7 @@ Decisiones específicas de V0.1:
 - 5 x TPS2553DBVR-1 comprados, 2 instalados inicialmente;
 - RILIM de cada canal activo: 20 kΩ + 6.8 kΩ en serie = 26.8 kΩ;
 - 1 x ADuM1201BRZ instalado, con dominios de masa separados;
-- TCA9548A no es requisito de V0.1 y queda para expansión;
+- TCA9548A es requisito de la baseline V0.1 de dos slots para aislar las EEPROM 24C02 en CH0/CH1;
 - 100 nF por TPS2553, 10 µF local según necesidad y 470 µF/16 V en bus 5 V;
 - fusible V0.1: 2 A slow-blow 5x20 en la entrada DC de 12 V;
 - cargas de banco: 1 x 10 Ω/10 W y 1 x 5 Ω/10 W;
@@ -228,3 +228,11 @@ No se energizan módulos caros hasta aprobar el bring-up documentado.
 | P3 | CC1101 | 1 | laboratorio sub-GHz autorizado de dispositivos propios |
 
 Arquitectura y uso: [18-display-control-ir-lab.md](./18-display-control-ir-lab.md).
+
+
+### Documentación eléctrica V0.1
+
+- [19-v0.1-system-architecture.md](./19-v0.1-system-architecture.md)
+- [20-v0.1-wiring-netlist.md](./20-v0.1-wiring-netlist.md)
+
+Estas páginas son la referencia de arquitectura y cableado para el prototipo.
