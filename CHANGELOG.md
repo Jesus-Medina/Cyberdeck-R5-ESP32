@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.4 — Arquitectura V0.1 pin-a-pin
+
+- documentada arquitectura completa de power, supervisor, medición e aislamiento;
+- congelada asignación GPIO del ESP32 para V0.1;
+- añadido netlist con colores de cable, conectores y puntos de prueba;
+- documentado pinout/conexión de TPS2553, ADuM1201 y 24C02;
+- reincorporado TCA9548A a la baseline de dos slots para evitar conflicto entre EEPROM 24C02;
+- separado explícitamente GND_DELL de GND_AUX;
+- añadido checklist VERIFY-ON-ARRIVAL para breakouts genéricos.
+
+
 ## 0.1.3 — Wireless display control
 
 - corregida arquitectura: control de TV/signage sin tocar físicamente el equipo;
