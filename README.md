@@ -199,7 +199,9 @@ Incluye:
 - `docs/15-v0.1-smart-power-supervisor.md` — primer prototipo Smart Power + Supervisor.
 - `docs/16-v0.1-procurement-chile-aliexpress.md` — compras V0.1 reconciliadas con el pedido real.
 - `docs/17-v0.1-final-bom-checklist.md` — **BOM final V0.1, sustituciones, RILIM, capacitores y bring-up obligatorio.**
-- `docs/18-display-control-ir-lab.md` — control de TV/signage propio, IR capture/replay, HDMI switching y sub-GHz lab.
+- `docs/18-display-control-ir-lab.md` — control remoto de TV/signage propio y laboratorio IR/sub-GHz.
+- `docs/19-v0.1-system-architecture.md` — **arquitectura eléctrica/funcional V0.1 detallada por subsistema.**
+- `docs/20-v0.1-wiring-netlist.md` — **manual pin-a-pin: nets, GPIO, cables, soldadura, conectores y test points.**
 - `TODO.md`
 
 ## Regla de construcción
