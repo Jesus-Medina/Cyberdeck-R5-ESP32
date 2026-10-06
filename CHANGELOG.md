@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.5 — Estrategia mecánica de prototipado
+
+- adoptado PVC espumado (Sintra/Trovicel) como baseline mecánica V0.1;
+- definido 3 mm para paneles/pruebas y 5 mm para bandeja estructural;
+- añadidas fases cartón -> PVC 3 mm -> PVC 5 mm -> piezas definitivas;
+- impresión 3D postergada hasta congelar layout y medidas reales;
+- añadidos standoffs M2.5/M3 y separación de PCB de 5–10 mm;
+- añadidas reglas térmicas para power sobre PVC;
+- corregido el protocolo dimensional: no inferir bandeja desde las medidas exteriores;
+- fijada regla de no perforar la carcasa exterior para conservar el sellado;
+- panel de comunicaciones redefinido como panel interno de servicio.
+
 ## 0.1.4 — Arquitectura V0.1 pin-a-pin
 
 - documentada arquitectura completa de power, supervisor, medición e aislamiento;
