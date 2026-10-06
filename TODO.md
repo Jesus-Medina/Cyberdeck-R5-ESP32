@@ -143,8 +143,15 @@
 
 ## Mecánica
 
-- [ ] cardboard mockup.
-- [ ] technical tray.
+- [x] definir material de prototipado: PVC espumado/Sintra/Trovicel.
+- [x] definir 3 mm para paneles/pruebas y 5 mm para bandeja estructural V0.1.
+- [x] reservar impresión 3D para layout congelado.
+- [x] prohibir perforaciones en la carcasa exterior del maletín.
+- [ ] medir dimensiones interiores reales y obstáculos.
+- [ ] cardboard mockup / plantillas 1:1.
+- [ ] validar layout físico completo antes de cortar PVC.
+- [ ] technical tray PVC 5 mm.
+- [ ] instalar standoffs M2.5/M3 y separar PCB 5–10 mm del PVC.
 - [ ] smart backplane position.
 - [ ] RF/power separation.
 - [ ] supervisor switch accessible.
