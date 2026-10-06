@@ -208,4 +208,6 @@ Incluye:
 
 **Primero banco de pruebas, después PCB, y el panel definitivo al final.**
 
+Para la mecánica V0.1 se adopta **cartón/cartón pluma -> PVC espumado 3 mm -> PVC espumado 5 mm -> piezas definitivas**. La impresión 3D se reserva para cuando el layout y las medidas estén congelados. La carcasa exterior del maletín **no se perfora**; la bandeja se dimensionará con medidas interiores reales. Ver `docs/05-mechanical.md` y `docs/06-build-phases.md`.
+
 La batería/BMS Dell y la motherboard no se modifican para alimentar el sistema auxiliar.
