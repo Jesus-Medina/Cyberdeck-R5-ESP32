@@ -8,21 +8,23 @@ La regla es simple: **probar primero, cortar después**.
 - confirmar 12 GB RAM y SSD;
 - batería y cargador;
 - temperaturas;
-- medir caja real;
+- medir caja **interior real**;
+- no deducir la bandeja desde las medidas exteriores 406 × 330 × 174 mm;
 - identificar Arduino exacto;
 - fotografiar puertos y ventilación;
-- crear plantillas de cartón.
+- crear plantillas 1:1 de cartón/cartón pluma;
+- comprobar que ningún diseño requiera perforar la carcasa exterior.
 
 ## Fase 1 — MVP de control
 
 En mesa:
 
-```text
+~~~text
 Dell USB -> ESP32-S3 -> OLED
                     -> switch
                     -> LED
                     -> sensor
-```
+~~~
 
 Implementar USB serial y telemetría.
 
@@ -30,13 +32,13 @@ Implementar USB serial y telemetría.
 
 Sin conectar todavía instrumentos caros:
 
-- powerbank/fuente AUX;
+- fuente AUX;
 - fusible;
-- eFuse/protección;
+- protección;
 - rail 5 V;
-- INA219/INA226;
-- un load switch;
-- ventilador de prueba.
+- medición INA3221;
+- una rama TPS2553;
+- carga de prueba.
 
 Medir corrientes y temperaturas.
 
@@ -50,7 +52,7 @@ Instalar y probar:
 - Arduino;
 - UE306;
 - USB-UART;
-- puertos externos.
+- puertos de servicio internos.
 
 ## Fase 4 — Laboratorio GPIO
 
@@ -89,8 +91,8 @@ Integrar y probar por separado:
 - UE306;
 - Wi‑Fi interno;
 - Wi‑Fi USB de laboratorio;
-- panel RJ45;
-- antenas externas.
+- cableado;
+- antenas acomodadas dentro del maletín.
 
 ## Fase 8 — RF
 
@@ -104,49 +106,81 @@ Uno por uno:
 
 Antes de cerrar la caja, medir si DC/DC o USB introducen ruido al SDR.
 
-## Fase 9 — Mecánica v1
+## Fase 9 — Mecánica V0.1-A: maqueta
 
-- bandeja inferior ABS;
-- standoffs;
-- canaletas/cableado;
-- panel superior temporal;
-- soportes de pantalla;
-- ventilación.
+Antes de PVC o impresión 3D:
 
-## Fase 10 — Integración Dell
+- usar cartón/cartón pluma;
+- ubicar plantillas 1:1 o componentes reales;
+- comprobar que el Dell y los módulos caben;
+- definir zonas power/RF/control/lab;
+- reservar espacio para cables;
+- probar posiciones de antenas;
+- comprobar acceso a switches y mantenimiento;
+- verificar cierre completo del maletín.
+
+## Fase 10 — Mecánica V0.1-B: PVC espumado 3 mm
+
+Usar Sintra/Trovicel de 3 mm para:
+
+- paneles provisionales;
+- divisiones;
+- soportes sencillos;
+- pruebas de perforación;
+- validar posiciones antes de fabricar la base final de prototipo.
+
+## Fase 11 — Mecánica V0.1-C: PVC espumado 5 mm
+
+Una vez validado el layout:
+
+- cortar bandeja técnica usando **medidas interiores reales**;
+- instalar standoffs M2.5/M3;
+- dejar PCB elevadas 5–10 mm;
+- organizar cableado y bridas;
+- crear acceso de servicio;
+- mantener potencia alejada de RF;
+- validar ventilación;
+- verificar que nada toque la carcasa al cerrar.
+
+No usar pegamento caliente como fijación estructural y no quemar el PVC con cautín.
+
+## Fase 12 — Integración Dell
 
 Preferencia:
 
 - conservar base Dell funcional si cabe;
-- retirar únicamente el conjunto de display para fijarlo a la tapa;
+- retirar únicamente el conjunto de display si fuese necesario;
 - desnudar motherboard sólo si el volumen lo exige.
 
 No soldar sobre placa/batería.
 
-## Fase 11 — Backplane/PCB
+## Fase 13 — Backplane/PCB
 
 Después de validar el prototipo:
 
 - esquemático;
-- conectores J1–J12;
+- conectores;
 - drivers;
 - load switches;
 - sensores de potencia;
 - fan control;
 - headers ESP32;
-- fabricación PCB v1.
+- fabricación PCB.
 
-## Fase 12 — Panel definitivo
+## Fase 14 — Mecánica definitiva
 
-Sólo después de tener dimensiones reales de todos los módulos:
+Sólo después de tener dimensiones reales de todos los módulos y haber validado PVC:
 
-- cortar ABS/aluminio;
-- rotular;
-- instalar bulkheads;
-- fijar instrumentos;
-- montar switches y displays.
+- impresión 3D de brackets y bezels;
+- ABS/aluminio donde aporte una ventaja real;
+- canaletas;
+- soportes definitivos;
+- rotulación;
+- acabado.
 
-## Fase 13 — Pruebas finales
+La impresión 3D **no se usa para descubrir el layout**; se usa para reproducir un layout ya probado.
+
+## Fase 15 — Pruebas finales
 
 - carga CPU/GPU;
 - batería Dell;
@@ -161,7 +195,8 @@ Sólo después de tener dimensiones reales de todos los módulos:
 - fuente LAB;
 - continuidad y aislamiento;
 - cierre/apertura repetidos;
-- transporte.
+- transporte;
+- comprobar que la carcasa exterior continúa sin perforaciones.
 
 ## Criterio de terminado
 
@@ -171,6 +206,8 @@ El deck se considera v1.0 cuando:
 - cada módulo se puede reemplazar individualmente;
 - no hay cables sueltos;
 - todos los rails están protegidos;
-- toda conexión externa está etiquetada;
-- el panel puede abrirse para mantenimiento;
-- existe un diagrama actualizado del cableado real.
+- toda conexión está etiquetada;
+- las bandejas pueden abrirse para mantenimiento;
+- existe un diagrama actualizado del cableado real;
+- el layout físico fue validado antes de fabricar soportes definitivos;
+- la carcasa exterior no ha sido perforada.
