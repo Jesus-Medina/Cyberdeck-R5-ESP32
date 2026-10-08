@@ -1,5 +1,7 @@
 # 03 — Alimentación, protección y distribución v3
 
+> **Arquitectura portátil:** en la versión final, una batería LiFePO4 principal alimentará tanto AUX como la entrada normal del Dell mediante DC-DC. La batería/BMS Dell sigue sin modificarse. Ver [21-portable-power-architecture.md](./21-portable-power-architecture.md). El Mean Well se reserva para pruebas V0.1.
+
 ## Dos dominios independientes
 
 ### PC
