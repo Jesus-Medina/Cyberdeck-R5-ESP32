@@ -1,5 +1,7 @@
 ## 2026-10-08 — Arquitectura portátil y carga única
 
+- El respaldo Dell deja de ser un rail crítico limitado: pasa a ser una fuente alternativa del dominio AUX completo mediante selector interbloqueado, break-before-make y bloqueo de corriente inversa; los módulos siguen controlados por sus switches y la potencia queda limitada por la fuente Dell real.
+
 - Se añade respaldo AUX de emergencia desde USB PowerShare del Dell mediante DC-DC aislado, power mux y `EMERGENCY_ARM`; sólo alimentará el rail crítico y no las cargas de potencia hasta validar mediciones.
 
 - Se define LiFePO4 4S como arquitectura de batería principal objetivo (12,8 V nominal, ~10 Ah como objetivo inicial).
