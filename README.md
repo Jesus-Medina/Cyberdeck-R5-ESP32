@@ -202,6 +202,7 @@ Incluye:
 - `docs/18-display-control-ir-lab.md` — control remoto de TV/signage propio y laboratorio IR/sub-GHz.
 - `docs/19-v0.1-system-architecture.md` — **arquitectura eléctrica/funcional V0.1 detallada por subsistema.**
 - `docs/20-v0.1-wiring-netlist.md` — **manual pin-a-pin: nets, GPIO, cables, soldadura, conectores y test points.**
+- `docs/21-portable-power-architecture.md` — **arquitectura portátil: LiFePO4, carga única, alimentación del Dell y del ESP32.**
 - `TODO.md`
 
 ## Regla de construcción
