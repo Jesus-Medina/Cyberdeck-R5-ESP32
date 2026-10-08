@@ -152,7 +152,7 @@ El cargador/power-path definitivo se seleccionará después de medir el consumo 
 
 ## 8. Alimentación del ESP32
 
-El ESP32 pertenece al dominio AUX y **se alimenta desde la batería principal del cyberdeck**, no desde el notebook.
+El ESP32 pertenece al dominio AUX y normalmente se alimenta desde la batería principal del cyberdeck. En modo de emergencia, el mismo bus AUX puede ser alimentado desde el Dell mediante el selector de fuente; el ESP32 no recibe alimentación directa de un USB sin pasar por la arquitectura de selección/protección.
 
 Ruta de producción:
 
@@ -301,7 +301,7 @@ Mean Well -> electrónica AUX de prueba
 
 ## 14. Decisiones congeladas
 
-- El ESP32 se alimenta normalmente desde **AUX 5 V proveniente de la batería principal**; en emergencia puede recibir +5V_CRITICAL desde el Dell mediante una ruta aislada y protegida.
+- El ESP32 se alimenta desde el **bus AUX común**. Normalmente ese bus proviene de la LiFePO4; en emergencia puede provenir del Dell mediante el selector interbloqueado y la ruta aislada/protegida.
 - El ESP32 no depende de USB del Dell para alimentación normal.
 - La batería/BMS original Dell no se modifica.
 - El Dell recibe energía externa por su entrada normal.
