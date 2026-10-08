@@ -334,158 +334,183 @@ Mean Well 12 V -> V0.1 Smart Power + Supervisor
 
 En la versión portátil, la batería principal sustituye a la fuente de banco como origen energético, pero se mantienen las reglas de protección y los rails regulados.
 
-## 17. Respaldo AUX desde la batería interna del Dell
+## 17. Selector de fuente AUX con interbloqueo
 
-Cuando la LiFePO4 principal se agote o quede desconectada, el Dell puede seguir funcionando con su batería interna. El diseño aprovechará esa reserva también para mantener **un subconjunto crítico del dominio AUX**, sin modificar la batería/BMS del notebook.
+El respaldo desde el Dell **no se limita a un rail crítico**. Tanto la LiFePO4 como el Dell pueden alimentar el **mismo dominio AUX completo**. Los switches normales del panel siguen decidiendo qué módulos están encendidos.
 
-El Dell Vostro 3405 dispone de un puerto USB Type-A 2.0 identificado por Dell como **Charging port** y la BIOS contempla **USB PowerShare**. La corriente real disponible desde batería se verificará físicamente antes de congelar la potencia de emergencia.
+La limitación en modo Dell será únicamente el presupuesto de potencia que realmente pueda entregar la salida de emergencia del notebook. Ningún módulo queda prohibido por arquitectura: cualquier combinación puede encenderse mientras la suma de consumo permanezca dentro del límite de la fuente seleccionada.
 
-### Principio
-
-No se conectará el USB del Dell directamente a GND_AUX/+5V_BUS, porque eso anularía la barrera de aislamiento Dell ↔ AUX.
-
-La ruta prevista es:
+### Arquitectura
 
 ~~~text
-Batería interna Dell
-        |
-motherboard Dell
-        |
-USB PowerShare / Charging port
-        |
-EMERGENCY_ARM
-        |
-DC-DC 5V -> 5V AISLADO
-        |
-power mux / ideal-diode con reverse blocking
-        |
-+5V_CRITICAL
-        |
-        +--> ESP32 supervisor
-        +--> OLED / indicadores mínimos
-        +--> RTC / sensores
-        +--> GNSS
-        +--> LoRa / NFC de bajo consumo
-        +--> una carga AUX seleccionada si el presupuesto lo permite
+                         FUENTES AUX
+                            |
+          +-----------------+-----------------+
+          |                                   |
+          v                                   v
+   LiFePO4 principal                 Batería interna Dell
+          |                                   |
+ protección/fusible                  motherboard Dell
+          |                                   |
+          |                          USB PowerShare / salida
+          |                                   |
+          |                         protección + aislamiento
+          |                                   |
+          +--------------+   +----------------+
+                         |   |
+                         v   v
+                SELECTOR DE FUENTE
+          break-before-make + reverse blocking
+                         |
+                         v
+                    AUX_RAW_SELECTED
+                         |
+             wide-input buck/boost
+                         |
+              BUS AUX NORMALIZADO
+                         |
+            protecciones / medición
+                         |
+       +-----------------+------------------+
+       |                 |                  |
+     ESP32              USB               RF/etc.
+       |                 |                  |
+     switches normales de cada rama/módulo
 ~~~
 
-El convertidor aislado conserva:
+El mismo backplane, fusibles secundarios, medición, TPS2553 y control de módulos se usan independientemente de la fuente elegida.
+
+### No conectar fuentes en paralelo
+
+El objetivo no es sumar la LiFePO4 y el Dell. Debe existir **una sola fuente conductora a la vez**.
+
+El concepto electrónico se llama **power-source selector / power MUX / transfer switch con interbloqueo**. La conmutación debe ser **break-before-make**: primero se abre la fuente actual y sólo después se conecta la otra.
+
+No se implementará un simple empalme de diodos que permita compartir corriente entre fuentes.
+
+### Lógica de seguridad
+
+La lógica deseada a nivel de habilitación es:
+
+| LiFePO4 path | Dell emergency path | Resultado |
+|---:|---:|---|
+| 0 | 0 | AUX OFF |
+| 1 | 0 | AUX desde LiFePO4 |
+| 0 | 1 | AUX desde Dell |
+| 1 | 1 | ESTADO INVÁLIDO: hardware fuerza ambos OFF |
+
+Esto equivale a una exclusión mutua tipo XOR para los **comandos de los paths**, no necesariamente para la mera presencia física de tensión en ambas entradas.
+
+Ambas fuentes pueden estar físicamente disponibles. El selector/power MUX mantiene sólo un camino conductor y bloquea corriente inversa.
+
+### Control EMERGENCY NOTEBOOK -> AUX
+
+El panel tendrá un control físico protegido, rotulado por ejemplo:
 
 ~~~text
-GND_DELL  || aislamiento galvánico ||  GND_AUX
+EMERGENCY
+NOTEBOOK -> AUX
 ~~~
 
-### Separación de buses
-
-El sistema portátil tendrá dos categorías de cargas de 5 V:
+Estado normal:
 
 ~~~text
-                 +5V_MAIN
-                    |
-        +-----------+-----------------+
-        |                             |
-        v                             v
- cargas de potencia             entrada primaria
- USB/hub/SDR/etc.                del POWER MUX
-                                      |
-Dell USB -> aislador 5V -> backup ----+
-                                      |
-                                      v
-                                +5V_CRITICAL
-                                      |
-                         ESP32 / sensores / GNSS
+LiFePO4 path = ON
+Dell AUX path = OFF
 ~~~
 
-En operación normal:
+Al activar emergencia:
 
 ~~~text
-LiFePO4 -> +5V_MAIN -> +5V_CRITICAL
+1. LiFePO4 AUX path OFF
+2. dead-time / confirmación path abierto
+3. Dell AUX path ON
+4. BUS AUX vuelve a energizarse desde Dell
 ~~~
 
-En emergencia, con EMERGENCY_ARM habilitado:
+Al desactivar emergencia se realiza la secuencia inversa.
+
+La función de exclusión debe existir en hardware; el ESP32 puede supervisar y reportar el estado, pero no será la única protección contra conexión simultánea.
+
+Un selector mecánico 3 posiciones **LiFePO4 / OFF / NOTEBOOK** con contactos break-before-make es una opción muy robusta. Otra opción es implementar el mismo comportamiento con MOSFETs/load switches y un power MUX con control manual e interbloqueo.
+
+### Power MUX
+
+Dispositivos como el TI TPS2121 son referencias útiles porque aceptan dos entradas, incorporan reverse-current blocking, protección y selección manual/automática. El componente definitivo no queda congelado todavía: el TPS2121 llega a unos 4,5 A y debemos dimensionar el selector según la potencia AUX real.
+
+Referencia:
+https://www.ti.com/product/TPS2121
+
+## 18. Normalización de tensión
+
+La LiFePO4 y la salida de emergencia del Dell no tienen por qué entregar la misma tensión.
+
+Por tanto, después del selector se utilizará una etapa **buck/boost de amplio rango de entrada**, o se acondicionará cada fuente antes del selector, según resulte más eficiente tras medir el hardware real.
+
+Objetivo conceptual:
 
 ~~~text
-LiFePO4 agotada
+SOURCE_SELECTED
       |
-      X
-
-Dell battery -> USB PowerShare -> DC-DC aislado -> +5V_CRITICAL
+wide-input DC-DC
+      |
+BUS AUX estable
+      |
+protecciones comunes
+      |
+módulos
 ~~~
 
-El power mux debe impedir corriente inversa entre ambas fuentes y priorizar automáticamente +5V_MAIN cuando exista.
+Así las protecciones y la distribución aguas abajo no cambian al cambiar de fuente.
 
-### EMERGENCY_ARM
+La tensión definitiva del BUS AUX intermedio (5 V, 12 V u otra) queda pendiente del presupuesto de potencia y de los módulos finales.
 
-El respaldo desde el Dell será **armable manualmente**. No queremos que una falla o batería LiFePO4 descargada consuma automáticamente la reserva del notebook sin que el usuario lo sepa.
+## 19. Todos los módulos siguen disponibles en emergencia
 
-Comportamiento:
+El modo NOTEBOOK -> AUX no crea una lista fija de cargas permitidas. El usuario decide qué encender con los mismos switches del cyberdeck.
+
+Si se supera la corriente que puede entregar la fuente Dell, la protección de entrada debe limitar/cortar de forma segura. El diseño no prometerá potencia ilimitada.
+
+El Vostro 3405 tiene un USB Type-A 2.0 identificado por Dell como **Charging port** y BIOS con USB PowerShare, pero Dell no documenta en la guía una potencia suficiente para asumir que podrá sostener simultáneamente todas las cargas AUX. Esto se medirá en la unidad real.
+
+## 20. Separación del ramal Dell DC-IN
+
+El ramal que alimenta al propio notebook desde la LiFePO4 queda **fuera del selector AUX**:
 
 ~~~text
-EMERGENCY_ARM OFF
-  -> Dell nunca alimenta AUX.
+LiFePO4
+   |
+   +----> DC-DC 19,5 V / Dell-ID -> DC-IN Dell
+   |
+   +----> SOURCE A del selector AUX
 
-EMERGENCY_ARM ON + LiFePO4 disponible
-  -> MAIN tiene prioridad; Dell no entrega AUX.
-
-EMERGENCY_ARM ON + MAIN cae
-  -> power mux conmuta +5V_CRITICAL al respaldo Dell.
+Dell battery
+   |
+motherboard / USB PowerShare
+   |
+SOURCE B del selector AUX
 ~~~
 
-### Cargas que NO entran por defecto en emergencia
+En modo de emergencia, la salida AUX jamás puede volver hacia el DC-IN del Dell.
 
-Hasta medir el presupuesto real de corriente, el modo de emergencia no alimentará automáticamente:
-
-- hub USB general;
-- Wi-Fi LAB de alta potencia;
-- fuente LAB CC/CV;
-- servos/motores;
-- iluminación decorativa;
-- pantallas grandes;
-- ventiladores AUX no esenciales;
-- transmisores RF de alta potencia;
-- cargas externas.
-
-RTL-SDR u otras cargas USB sólo podrán habilitarse en emergencia si las mediciones demuestran margen suficiente.
-
-Las antenas pasivas no requieren alimentación. Antenas activas, LNAs o bias-tee sí cuentan como carga y deberán presupuestarse.
-
-### Requisitos del bloque de respaldo
-
-Antes de comprar piezas:
-
-1. activar/verificar USB PowerShare en BIOS;
-2. medir tensión del Charging port con el Dell sólo en batería;
-3. medir corriente continua y pico que el puerto tolera;
-4. comprobar funcionamiento con Dell encendido, suspendido y apagado;
-5. seleccionar DC-DC 5V→5V aislado con potencia acorde;
-6. seleccionar power mux con bloqueo de corriente inversa;
-7. limitar por hardware la corriente de +5V_CRITICAL;
-8. comprobar térmicamente el conjunto;
-9. ensayar la transición MAIN -> DELL sin reset del ESP32;
-10. verificar que nunca exista backfeed hacia USB Dell o hacia +5V_MAIN.
-
-### Power mux
-
-No se congela todavía un componente concreto. Como referencias de diseño:
-
-- TPS2113A: power mux 2,8–5,5 V con reverse-current blocking y limitación de corriente, apropiado si el rail crítico queda alrededor de ~1 A;
-- TPS2121: alternativa de mayor corriente si las mediciones justifican un rail crítico más potente.
-
-La selección final depende de la corriente real del USB PowerShare y de las cargas críticas medidas.
-
-## 18. Filosofía UPS completa
-
-Con este cambio, el Dell deja de ser únicamente respaldo del computador y pasa a ser **reserva de supervivencia del cyberdeck**.
+Prohibido:
 
 ~~~text
-ESTADO NORMAL
-LiFePO4 -> Dell + MAIN AUX + CRITICAL AUX
-
-LiFePO4 AGOTADA
-Dell battery -> Dell
-            -> EMERGENCY AUX aislado
-            -> ESP32 + cargas críticas
+Dell battery -> USB -> AUX -> boost 19,5 V -> DC-IN Dell
 ~~~
 
-No pretende mantener toda la potencia del cyberdeck; pretende conservar control, telemetría, comunicaciones ligeras y funciones esenciales el tiempo suficiente para seguir operando o hacer un apagado ordenado.
+## 21. Objetivo de la arquitectura de respaldo
 
+~~~text
+NORMAL
+LiFePO4 -> Dell
+        -> AUX selector -> sistema completo
+
+EMERGENCY
+Dell battery -> salida de emergencia
+             -> AUX selector
+             -> mismo sistema completo
+             -> usuario decide módulos con switches
+~~~
+
+La diferencia entre NORMAL y EMERGENCY es la **fuente disponible y su potencia máxima**, no qué módulos existen en el bus.
