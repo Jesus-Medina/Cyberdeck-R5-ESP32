@@ -301,7 +301,7 @@ Mean Well -> electrónica AUX de prueba
 
 ## 14. Decisiones congeladas
 
-- El ESP32 se alimenta desde **AUX 5 V proveniente de la batería principal**.
+- El ESP32 se alimenta normalmente desde **AUX 5 V proveniente de la batería principal**; en emergencia puede recibir +5V_CRITICAL desde el Dell mediante una ruta aislada y protegida.
 - El ESP32 no depende de USB del Dell para alimentación normal.
 - La batería/BMS original Dell no se modifica.
 - El Dell recibe energía externa por su entrada normal.
@@ -333,3 +333,159 @@ Mean Well 12 V -> V0.1 Smart Power + Supervisor
 ~~~
 
 En la versión portátil, la batería principal sustituye a la fuente de banco como origen energético, pero se mantienen las reglas de protección y los rails regulados.
+
+## 17. Respaldo AUX desde la batería interna del Dell
+
+Cuando la LiFePO4 principal se agote o quede desconectada, el Dell puede seguir funcionando con su batería interna. El diseño aprovechará esa reserva también para mantener **un subconjunto crítico del dominio AUX**, sin modificar la batería/BMS del notebook.
+
+El Dell Vostro 3405 dispone de un puerto USB Type-A 2.0 identificado por Dell como **Charging port** y la BIOS contempla **USB PowerShare**. La corriente real disponible desde batería se verificará físicamente antes de congelar la potencia de emergencia.
+
+### Principio
+
+No se conectará el USB del Dell directamente a GND_AUX/+5V_BUS, porque eso anularía la barrera de aislamiento Dell ↔ AUX.
+
+La ruta prevista es:
+
+~~~text
+Batería interna Dell
+        |
+motherboard Dell
+        |
+USB PowerShare / Charging port
+        |
+EMERGENCY_ARM
+        |
+DC-DC 5V -> 5V AISLADO
+        |
+power mux / ideal-diode con reverse blocking
+        |
++5V_CRITICAL
+        |
+        +--> ESP32 supervisor
+        +--> OLED / indicadores mínimos
+        +--> RTC / sensores
+        +--> GNSS
+        +--> LoRa / NFC de bajo consumo
+        +--> una carga AUX seleccionada si el presupuesto lo permite
+~~~
+
+El convertidor aislado conserva:
+
+~~~text
+GND_DELL  || aislamiento galvánico ||  GND_AUX
+~~~
+
+### Separación de buses
+
+El sistema portátil tendrá dos categorías de cargas de 5 V:
+
+~~~text
+                 +5V_MAIN
+                    |
+        +-----------+-----------------+
+        |                             |
+        v                             v
+ cargas de potencia             entrada primaria
+ USB/hub/SDR/etc.                del POWER MUX
+                                      |
+Dell USB -> aislador 5V -> backup ----+
+                                      |
+                                      v
+                                +5V_CRITICAL
+                                      |
+                         ESP32 / sensores / GNSS
+~~~
+
+En operación normal:
+
+~~~text
+LiFePO4 -> +5V_MAIN -> +5V_CRITICAL
+~~~
+
+En emergencia, con EMERGENCY_ARM habilitado:
+
+~~~text
+LiFePO4 agotada
+      |
+      X
+
+Dell battery -> USB PowerShare -> DC-DC aislado -> +5V_CRITICAL
+~~~
+
+El power mux debe impedir corriente inversa entre ambas fuentes y priorizar automáticamente +5V_MAIN cuando exista.
+
+### EMERGENCY_ARM
+
+El respaldo desde el Dell será **armable manualmente**. No queremos que una falla o batería LiFePO4 descargada consuma automáticamente la reserva del notebook sin que el usuario lo sepa.
+
+Comportamiento:
+
+~~~text
+EMERGENCY_ARM OFF
+  -> Dell nunca alimenta AUX.
+
+EMERGENCY_ARM ON + LiFePO4 disponible
+  -> MAIN tiene prioridad; Dell no entrega AUX.
+
+EMERGENCY_ARM ON + MAIN cae
+  -> power mux conmuta +5V_CRITICAL al respaldo Dell.
+~~~
+
+### Cargas que NO entran por defecto en emergencia
+
+Hasta medir el presupuesto real de corriente, el modo de emergencia no alimentará automáticamente:
+
+- hub USB general;
+- Wi-Fi LAB de alta potencia;
+- fuente LAB CC/CV;
+- servos/motores;
+- iluminación decorativa;
+- pantallas grandes;
+- ventiladores AUX no esenciales;
+- transmisores RF de alta potencia;
+- cargas externas.
+
+RTL-SDR u otras cargas USB sólo podrán habilitarse en emergencia si las mediciones demuestran margen suficiente.
+
+Las antenas pasivas no requieren alimentación. Antenas activas, LNAs o bias-tee sí cuentan como carga y deberán presupuestarse.
+
+### Requisitos del bloque de respaldo
+
+Antes de comprar piezas:
+
+1. activar/verificar USB PowerShare en BIOS;
+2. medir tensión del Charging port con el Dell sólo en batería;
+3. medir corriente continua y pico que el puerto tolera;
+4. comprobar funcionamiento con Dell encendido, suspendido y apagado;
+5. seleccionar DC-DC 5V→5V aislado con potencia acorde;
+6. seleccionar power mux con bloqueo de corriente inversa;
+7. limitar por hardware la corriente de +5V_CRITICAL;
+8. comprobar térmicamente el conjunto;
+9. ensayar la transición MAIN -> DELL sin reset del ESP32;
+10. verificar que nunca exista backfeed hacia USB Dell o hacia +5V_MAIN.
+
+### Power mux
+
+No se congela todavía un componente concreto. Como referencias de diseño:
+
+- TPS2113A: power mux 2,8–5,5 V con reverse-current blocking y limitación de corriente, apropiado si el rail crítico queda alrededor de ~1 A;
+- TPS2121: alternativa de mayor corriente si las mediciones justifican un rail crítico más potente.
+
+La selección final depende de la corriente real del USB PowerShare y de las cargas críticas medidas.
+
+## 18. Filosofía UPS completa
+
+Con este cambio, el Dell deja de ser únicamente respaldo del computador y pasa a ser **reserva de supervivencia del cyberdeck**.
+
+~~~text
+ESTADO NORMAL
+LiFePO4 -> Dell + MAIN AUX + CRITICAL AUX
+
+LiFePO4 AGOTADA
+Dell battery -> Dell
+            -> EMERGENCY AUX aislado
+            -> ESP32 + cargas críticas
+~~~
+
+No pretende mantener toda la potencia del cyberdeck; pretende conservar control, telemetría, comunicaciones ligeras y funciones esenciales el tiempo suficiente para seguir operando o hacer un apagado ordenado.
+
