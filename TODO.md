@@ -160,18 +160,20 @@
 - [ ] labels.
 - [ ] final panel only after real components.
 
-## Emergency AUX / Dell UPS
+## AUX source transfer / Dell UPS
 
-- [ ] habilitar y verificar USB PowerShare en BIOS del Vostro 3405.
-- [ ] identificar físicamente el USB Type-A 2.0 Charging port.
-- [ ] medir VBUS del Charging port funcionando sólo con batería Dell.
-- [ ] medir corriente continua/pico disponible sin provocar shutdown del puerto.
-- [ ] comprobar PowerShare con Dell ON / suspendido / OFF.
-- [ ] medir consumo real del rail crítico: ESP32 + OLED + sensores + GNSS + LoRa/NFC.
-- [ ] seleccionar DC-DC 5V->5V aislado según mediciones.
-- [ ] seleccionar power mux con reverse-current blocking.
-- [ ] implementar EMERGENCY_ARM manual.
-- [ ] validar switchover MAIN -> DELL sin reset del ESP32.
-- [ ] comprobar que GND_DELL y GND_AUX siguen aislados.
-- [ ] comprobar cero backfeed hacia el USB Dell y hacia +5V_MAIN.
-
+- [ ] verificar USB PowerShare y el Charging port del Vostro 3405.
+- [ ] medir tensión/corriente/potencia disponible desde batería Dell.
+- [ ] medir comportamiento Dell ON / suspendido / OFF.
+- [ ] definir potencia máxima requerida del dominio AUX completo.
+- [ ] decidir tensión del BUS AUX normalizado.
+- [ ] seleccionar arquitectura de normalización buck/boost.
+- [ ] seleccionar selector/power MUX dimensionado a la corriente real.
+- [ ] implementar reverse-current blocking.
+- [ ] implementar interbloqueo hardware: jamás LiFePO4 path + Dell path simultáneos.
+- [ ] implementar secuencia break-before-make.
+- [ ] decidir control físico EMERGENCY NOTEBOOK -> AUX o selector LiFePO4/OFF/NOTEBOOK.
+- [ ] impedir cualquier ruta AUX -> DC-IN Dell.
+- [ ] validar que los mismos switches controlan módulos con cualquiera de las dos fuentes.
+- [ ] ensayar sobrecarga del modo Dell y comprobar corte seguro.
+- [ ] comprobar térmicamente convertidores y selector.
