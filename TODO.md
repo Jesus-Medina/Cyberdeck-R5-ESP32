@@ -159,3 +159,19 @@
 - [ ] service access.
 - [ ] labels.
 - [ ] final panel only after real components.
+
+## Emergency AUX / Dell UPS
+
+- [ ] habilitar y verificar USB PowerShare en BIOS del Vostro 3405.
+- [ ] identificar físicamente el USB Type-A 2.0 Charging port.
+- [ ] medir VBUS del Charging port funcionando sólo con batería Dell.
+- [ ] medir corriente continua/pico disponible sin provocar shutdown del puerto.
+- [ ] comprobar PowerShare con Dell ON / suspendido / OFF.
+- [ ] medir consumo real del rail crítico: ESP32 + OLED + sensores + GNSS + LoRa/NFC.
+- [ ] seleccionar DC-DC 5V->5V aislado según mediciones.
+- [ ] seleccionar power mux con reverse-current blocking.
+- [ ] implementar EMERGENCY_ARM manual.
+- [ ] validar switchover MAIN -> DELL sin reset del ESP32.
+- [ ] comprobar que GND_DELL y GND_AUX siguen aislados.
+- [ ] comprobar cero backfeed hacia el USB Dell y hacia +5V_MAIN.
+
