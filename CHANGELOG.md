@@ -1,5 +1,7 @@
 ## 2026-10-08 — Arquitectura portátil y carga única
 
+- Se añade respaldo AUX de emergencia desde USB PowerShare del Dell mediante DC-DC aislado, power mux y `EMERGENCY_ARM`; sólo alimentará el rail crítico y no las cargas de potencia hasta validar mediciones.
+
 - Se define LiFePO4 4S como arquitectura de batería principal objetivo (12,8 V nominal, ~10 Ah como objetivo inicial).
 - El Dell conserva batería/BMS original y recibe energía por su entrada normal mediante DC-DC a especificar tras verificar su cargador.
 - El ESP32 pasa a estar explícitamente alimentado por AUX 5 V desde la batería principal; USB Dell se reserva para comunicación aislada.
