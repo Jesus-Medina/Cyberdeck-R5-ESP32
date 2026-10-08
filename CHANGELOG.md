@@ -1,3 +1,12 @@
+## 2026-10-08 — Arquitectura portátil y carga única
+
+- Se define LiFePO4 4S como arquitectura de batería principal objetivo (12,8 V nominal, ~10 Ah como objetivo inicial).
+- El Dell conserva batería/BMS original y recibe energía por su entrada normal mediante DC-DC a especificar tras verificar su cargador.
+- El ESP32 pasa a estar explícitamente alimentado por AUX 5 V desde la batería principal; USB Dell se reserva para comunicación aislada.
+- El Mean Well GST60A12-P1J queda clasificado como fuente de banco V0.1, no como fuente primaria ni cargador LiFePO4.
+- Se establece como objetivo de producción una sola entrada externa de carga mediante cargador LiFePO4 + power-path compatible.
+- Se documenta la corrección: TPS2553 sólo en rail de 5 V (Vin 2,5–6,5 V), nunca directo al bus de batería/12 V.
+
 # Changelog
 
 ## 0.1.5 — Estrategia mecánica de prototipado
