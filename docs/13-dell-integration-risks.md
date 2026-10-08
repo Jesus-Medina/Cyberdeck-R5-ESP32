@@ -199,3 +199,26 @@ Antes de eliminar el plástico original:
 - forma del exhaust original;
 - puntos de tornillo de motherboard;
 - ubicación de sensores térmicos.
+
+## Riesgo 9 — usar la batería Dell como respaldo AUX
+
+El Vostro 3405 dispone de un **USB Type-A 2.0 Charging port** y la BIOS contempla **USB PowerShare**. Esto permite evaluar el Dell como fuente de emergencia para un rail AUX crítico cuando la batería principal del cyberdeck se agote.
+
+No unir directamente USB VBUS/GND del Dell con +5V_BUS/GND_AUX, porque se perdería el aislamiento Dell ↔ AUX y aparecerían rutas de backfeed.
+
+Arquitectura objetivo:
+
+~~~text
+Dell USB PowerShare
+       |
+EMERGENCY_ARM
+       |
+DC-DC 5V->5V AISLADO
+       |
+power mux con reverse blocking
+       |
++5V_CRITICAL
+~~~
+
+La corriente disponible del puerto no se asume por especificación genérica USB: debe medirse en la unidad real. El respaldo queda restringido inicialmente al ESP32, UI mínima, sensores y comunicaciones ligeras. Ver `21-portable-power-architecture.md`.
+
