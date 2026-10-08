@@ -514,3 +514,124 @@ Dell battery -> salida de emergencia
 ~~~
 
 La diferencia entre NORMAL y EMERGENCY es la **fuente disponible y su potencia máxima**, no qué módulos existen en el bus.
+
+
+## 22. Regla de carga: Dell nunca carga la LiFePO4
+
+La batería interna del Dell es una **fuente de respaldo**, no una fuente de carga para la LiFePO4.
+
+Queda prohibida cualquier ruta:
+
+~~~text
+Dell battery -> USB/PowerShare -> cargador LiFePO4 -> LiFePO4
+~~~
+
+El Dell no carga la LiFePO4 en ningún modo.
+
+La única ruta de carga de la batería principal es:
+
+~~~text
+230 V AC -> cargador LiFePO4 compatible -> batería LiFePO4
+~~~
+
+La LiFePO4 sí puede alimentar al Dell por su ramal dedicado mientras tenga energía:
+
+~~~text
+LiFePO4 -> DC-DC Dell -> DC-IN Dell
+~~~
+
+pero esa relación nunca se invierte para cargar la LiFePO4 desde el notebook.
+
+## 23. Diferentes tensiones de fuente y regulación
+
+Un convertidor DC-DC regulado no "resta" una cantidad fija de voltios. Por ejemplo, un buck ajustado correctamente a 5,0 V intenta mantener 5,0 V de salida dentro de su rango válido de entrada y de carga.
+
+Por tanto, un convertidor correctamente seleccionado puede producir:
+
+~~~text
+12,8 V IN -> 5,0 V OUT
+16,0 V IN -> 5,0 V OUT
+20,0 V IN -> 5,0 V OUT
+~~~
+
+siempre que todas esas entradas estén dentro de sus especificaciones.
+
+Lo que sí cambia es la eficiencia, corriente de entrada, pérdidas y disipación.
+
+### Caso XL4015 de la V0.1
+
+El XL4015 es un **buck** y su rango de entrada especificado es aproximadamente 8–36 V. Si está ajustado a 5,0 V:
+
+~~~text
+12 V IN -> 5 V OUT   OK
+16 V IN -> 5 V OUT   OK
+24 V IN -> 5 V OUT   OK
+5 V IN  -> NO VÁLIDO para XL4015
+~~~
+
+Por eso no se utilizará el XL4015 como único regulador común después de un selector que pueda recibir directamente 5 V del USB Dell.
+
+Referencia:
+https://www.xlsemi.com/datasheet/XL4015-EN.pdf
+
+## 24. Acondicionamiento de las dos fuentes
+
+La tensión interna de la batería Dell no se conecta directamente al selector. Si la fuente de emergencia se toma desde el USB PowerShare del Vostro 3405, la motherboard del Dell ya entrega una alimentación USB regulada; no se expone el voltaje bruto del pack.
+
+El diseño final deberá usar una de estas dos estrategias:
+
+### Estrategia A — acondicionar cada fuente antes del selector
+
+~~~text
+LiFePO4 4S
+    |
+DC-DC A
+    |
+BUS_A normalizado
+          \
+           > selector -> BUS AUX común -> protecciones -> módulos
+          /
+Dell USB
+    |
+aislamiento + DC-DC B
+    |
+BUS_B normalizado
+~~~
+
+BUS_A y BUS_B deben presentar la misma tensión nominal al selector.
+
+### Estrategia B — seleccionar primero y usar un buck-boost de entrada amplia
+
+~~~text
+LiFePO4 -------------------+
+                           |
+                           v
+                      POWER MUX
+                           |
+Dell USB -> aislamiento ---+
+                           |
+                           v
+                  WIDE-INPUT BUCK-BOOST
+                           |
+                     BUS AUX estable
+                           |
+                 protecciones comunes
+                           |
+                        módulos
+~~~
+
+En esta estrategia el convertidor posterior debe aceptar todo el rango posible de ambas fuentes y poder tanto **reducir como elevar** tensión.
+
+El XL4015 no cumple esa función porque sólo reduce tensión y requiere al menos ~8 V de entrada.
+
+## 25. Principio de diseño definitivo
+
+Las dos fuentes pueden tener tensiones diferentes. Lo importante es que:
+
+1. nunca estén conectadas directamente entre sí;
+2. el selector impida conducción simultánea;
+3. exista reverse-current blocking;
+4. la etapa de conversión acepte la tensión de la fuente seleccionada;
+5. los módulos reciban siempre rails regulados correctos;
+6. la batería Dell nunca cargue la LiFePO4;
+7. el mismo sistema de fusibles, TPS2553, medición y switches quede aguas abajo del bus ya normalizado.
