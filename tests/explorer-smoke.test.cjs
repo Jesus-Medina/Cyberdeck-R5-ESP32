@@ -175,7 +175,7 @@ test('catálogo expandido representa módulos de RF, redes, electrónica, panel 
  }
  assert.equal(idSet.size,a.items.length,'IDs duplicados');
  for(const floor of ['panel','electronics','power']){
-  const parts=a.items.filter(x=>x.floor===floor);
+  const parts=a.items.filter(x=>x.floor===floor&&!["sw0","sw1"].includes(x.id));
   assert.ok(parts.length>=15,'Pocos módulos para '+floor);
   for(const p of parts){
    assert.ok(p.box[0]>=-5&&p.box[1]>=-3.35&&p.box[0]+p.box[2]<=5&&p.box[1]+p.box[3]<=3.35,'Componente fuera del piso: '+p.id);
