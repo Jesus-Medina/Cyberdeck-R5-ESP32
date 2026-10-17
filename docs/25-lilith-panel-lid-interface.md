@@ -18,6 +18,39 @@ Fecha: 2026-10-17. Prevalece sobre esquemas anteriores donde el Dell aparecía c
 - **Zona tapa/pantalla**: pantalla Dell 14" con zona activa aprox. 309.35 × 173.99 mm, de acuerdo con variante, dentro de una envolvente de referencia 371 × 258 mm. Si se centrase geométricamente, quedarían a lo sumo ~30.8 mm a cada lado y ~42 mm arriba/abajo, **sin descontar bisagras, bisel, placa del panel, cable eDP ni refuerzos**. Es una oportunidad para LED de estado, antenas plegables/interiores, pequeños indicadores o puertos estrechos; **no se afirma** que quepa un OLED 40x38 ni instrumentos grandes en los márgenes.
 - Los corredores de cable y coax deben librar cierre y bisagra; reservar alivio de tensión, radio mínimo del coax y acceso a reparación. Confirmar que el LCD sea realmente desmontable, cable compatible y seguro con la motherboard antes de fijarlo en la tapa.
 
+## Mapa de accesos operativos completo (visualización v3.5)
+
+El panel 3D anterior mostraba solamente nueve reservas dimensionadas o de envolvente provisional, ocultando múltiples módulos registrados en el inventario. Se mantiene esa precaución mecánica, pero ahora se acompaña de un **mapa funcional explícito**: 22 puntos de operación en panel y 8 en tapa. **30 puntos NO significa 30 PCB físicas ni confirma 30 posiciones que caben simultáneamente.** Cada ficha se conecta con el módulo real/interior correspondiente.
+
+**22 accesos planificados del panel** (puntos de control, medición o conexión, no 22 agujeros aprobados):
+
+1. 12 interruptores en conjunto (6 palancas SPST + 6 basculantes).
+2. OLED SH1106 del supervisor.
+3. Pantalla táctil CYD.
+4. Teclado Bluetooth con trackpad y Ñ, separado del Dell.
+5. Osciloscopio FNIRSI y sondas.
+6. Comprobador GM328A / LCR con zócalo ZIF.
+7. Conectores GPIO, I²C y SPI.
+8. USB-A / USB-C de servicio.
+9. Red RJ45, HDMI y audio.
+10. Salidas Smart Out 1/2 protegidas.
+11. Fuente variable LAB con salida/bananas.
+12. Display V/A/W.
+13. Encoder de fuente LAB.
+14. Analizador lógico, entradas en panel.
+15. USB-UART de servicio.
+16. IR RX/TX para dispositivos propios.
+17. Zona lectora NFC/RFID.
+18. LEDs y buzzer de estado.
+19. Entrada DC y fusible de acceso seguro, según circuito final.
+20. USB-C PD futuro.
+21. Salida servo 5–6 V futura.
+22. Salida de 3,3 V protegida futura.
+
+**8 accesos/funciones de tapa**: LCD Dell, soportes de antenas, Wi-Fi LAB, LoRa, SDR, GNSS, indicadores y zona IR/sensores. **La tapa es un área muy limitada**, especialmente alrededor del LCD: estas son *alternativas/capacidades previstas*, no ocho módulos grandes que se afirme caben a la vez. Wi-Fi/LoRa/SDR se representan mediante antenas/coax accesibles, no por placas enterradas detrás de la pantalla.
+
+Se conservan por separado los planos proporcionales de **reservas físicas (panel 371×258 mm bruto y pantalla activa 309×174 mm aprox.)**. FNIRSI/GM328A y otras piezas sin medidas reales pueden compartir la reserva como *alternativas de diseño*, no ocupaciones simultáneas. El usuario debe decidir distribución final con medidas reales y/o sustituir módulos por puertos de extensión, sin levantar pisos para utilizarlos.
+
 ## Mapa de acceso funcional previsto
 | Módulo interior | Acceso operativo desde panel o marco de tapa (sin abrir pisos) |
 |---|---|
