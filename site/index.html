@@ -4,13 +4,13 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0b11"><meta name="description" content="Lilith Cyberdeck — gemelo visual interactivo por pisos, circuito probado y cableado previsto.">
 <title>LILITH — Gemelo visual del Cyberdeck</title>
-<link rel="stylesheet" href="./styles.css?v=3.5-operating-inventory-20261017">
-<script defer src="./app.js?v=3.5-operating-inventory-20261017"></script>
+<link rel="stylesheet" href="./styles.css?v=3.6-engineering-20261017">
+<script defer src="./app.js?v=3.6-engineering-20261017"></script>
 </head>
 <body>
 <div class="app" id="app">
 <aside class="sidebar">
-  <div class="brand"><div class="emblem" aria-hidden="true">☾<span>✦</span></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK · EXPLORER 3.5</small></div><span class="brand-trailing">V0.1</span></div>
+  <div class="brand"><div class="emblem" aria-hidden="true">☾<span>✦</span></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK · EXPLORER 3.6</small></div><span class="brand-trailing">V0.1</span></div>
   <div class="sidebar-content">
     <div class="intro"><span class="eyebrow">ESTACIÓN DE INGENIERÍA / 17.10.2026</span><h1>Explora lo que<br><em>estamos construyendo.</em></h1><p>La operación se realiza desde el panel y la tapa alrededor del LCD. Los pisos inferiores son infraestructura y solo se abren para mantenimiento.</p>
     <div class="stat-pair"><div><strong>03</strong><small>bloques probados</small></div><div><strong id="moduleTotal">—</strong><small>elementos del modelo</small></div></div></div>
@@ -49,7 +49,7 @@
 <div id="viewer" class="viewer">
   <canvas id="scene" tabindex="0" role="img" aria-label="Modelo tridimensional interactivo de Lilith Cyberdeck. Arrastra para girar en la dirección del movimiento. Mayús o botón derecho más arrastre para desplazar. Pellizca para ampliar. Usa flechas para girar y Home para restablecer."></canvas>
   <div class="viewer-shade" aria-hidden="true"></div>
-  <div class="scene-meta meta-left">LILITH // EXPLORER 3.5 <span>— ESTRUCTURA POR CAPAS</span></div>
+  <div class="scene-meta meta-left">LILITH // EXPLORER 3.6 <span>— ESTRUCTURA POR CAPAS</span></div>
   <div class="scene-meta meta-right">MÓDULOS REALES + PREVISTOS</div>
   <div class="scene-info"><span class="dot-pink"></span><span id="sceneInfoText">VISUALIZACIÓN ISOMÉTRICA · ARRASTRA PARA GIRAR</span></div>
   <button id="accessJump" class="access-jump" type="button">30 accesos operativos ↓</button>
@@ -73,6 +73,40 @@
   <div class="access-grid" id="lidAccessGrid" aria-label="Todos los accesos funcionales de tapa y pantalla"></div></article>
  </div>
  <p class="operating-note">Los puntos se colorean según <strong>probado en banco</strong>, <strong>registrado por verificar</strong> o <strong>planificado</strong>. Selecciona cualquier ficha para ver el módulo relacionado y su acceso superior. Si buscas medidas de corte, consulta el <strong>plano de reservas</strong> de abajo: no debe confundirse con este mapa funcional.</p>
+</section>
+<section class="engineering-audit" id="switchAndRf" aria-labelledby="auditTitle">
+<div class="engineering-head"><div><span class="eyebrow">CONTROL ELÉCTRICO / RF · AUDITORÍA TÉCNICA</span><h3 id="auditTitle">Nada de interruptores decorativos ni antenas mágicas</h3><p>La imagen del cyberdeck es una referencia estética. Este esquema distingue <b>funciones reales</b> de propuestas y especifica cómo se conectarán los módulos con la tapa. No cambies cables siguiendo esta tabla: la V0.1 aprobada sigue en la netlist original.</p></div><a href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/26-lilith-switch-matrix-and-antenna-routing.md" target="_blank" rel="noopener">ESQUEMA COMPLETO ↗</a></div>
+<div class="audit-cols">
+<article class="audit-panel">
+<div class="audit-panel-title"><b>12 interruptores = 6 palancas + 6 basculantes</b><span>2 funciones V0.1 / 10 propuestas</span></div>
+<div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>ID</th><th>Tipo</th><th>Función y circuito necesario</th><th>Estado</th></tr></thead><tbody><tr data-switch="P1" data-maturity="canonical"><th scope="row">P1</th><td>Palanca</td><td><strong>MASTER AUX</strong><small>Mean Well 12V → fusible 2A → SW0 → XL4015</small></td><td><span class="audit-status audit-canonical">V0.1 definida</span></td></tr>
+<tr data-switch="P2" data-maturity="canonical"><th scope="row">P2</th><td>Palanca</td><td><strong>SUPERVISOR</strong><small>Bus 5V → SW1 → INA CH3 → ESP32</small></td><td><span class="audit-status audit-canonical">V0.1 definida</span></td></tr>
+<tr data-switch="P3" data-maturity="proposed"><th scope="row">P3</th><td>Palanca</td><td><strong>SMART 1 ARM</strong><small>Propuesta: inhibición física GPIO4 → EN1 de TPS #1</small></td><td><span class="audit-status audit-proposed">Cambio por aprobar</span></td></tr>
+<tr data-switch="P4" data-maturity="proposed"><th scope="row">P4</th><td>Palanca</td><td><strong>SMART 2 ARM</strong><small>Propuesta: inhibición física GPIO6 → EN2 de TPS #2</small></td><td><span class="audit-status audit-proposed">Cambio por aprobar</span></td></tr>
+<tr data-switch="P5" data-maturity="blocked"><th scope="row">P5</th><td>Palanca</td><td><strong>RESPALDO DELL ARM</strong><small>Bloqueado: falta power-MUX, convertidor, antirretorno y corriente USB comprobada</small></td><td><span class="audit-status audit-blocked">Sin cablear</span></td></tr>
+<tr data-switch="P6" data-maturity="blocked"><th scope="row">P6</th><td>Palanca</td><td><strong>LAB OUTPUT ARM</strong><small>Bloqueado: falta fuente CC/CV y control de salida con protección</small></td><td><span class="audit-status audit-blocked">Sin cablear</span></td></tr>
+<tr data-switch="B1" data-maturity="blocked"><th scope="row">B1</th><td>Basculante</td><td><strong>WI-FI LAB</strong><small>Bloqueado: falta hub/power por puerto USB sin backfeed</small></td><td><span class="audit-status audit-blocked">Sin cablear</span></td></tr>
+<tr data-switch="B2" data-maturity="blocked"><th scope="row">B2</th><td>Basculante</td><td><strong>RTL-SDR</strong><small>Bloqueado: falta USB power por puerto y medición</small></td><td><span class="audit-status audit-blocked">Sin cablear</span></td></tr>
+<tr data-switch="B3" data-maturity="blocked"><th scope="row">B3</th><td>Basculante</td><td><strong>LoRa</strong><small>Bloqueado: falta radio elegido y control de rail 3,3V</small></td><td><span class="audit-status audit-blocked">Sin cablear</span></td></tr>
+<tr data-switch="B4" data-maturity="blocked"><th scope="row">B4</th><td>Basculante</td><td><strong>GNSS</strong><small>Bloqueado: falta receptor, rail/USB y antena</small></td><td><span class="audit-status audit-blocked">Sin cablear</span></td></tr>
+<tr data-switch="B5" data-maturity="blocked"><th scope="row">B5</th><td>Basculante</td><td><strong>PN532 / NFC</strong><small>Bloqueado: falta driver y alimentación/level-shift ensayado</small></td><td><span class="audit-status audit-blocked">Sin cablear</span></td></tr>
+<tr data-switch="B6" data-maturity="blocked"><th scope="row">B6</th><td>Basculante</td><td><strong>IR LAB</strong><small>Bloqueado: falta etapa transistor/LED y firmware</small></td><td><span class="audit-status audit-blocked">Sin cablear</span></td></tr></tbody></table></div>
+<p><strong>Importante:</strong> P3/P4 modificarían la conexión original GPIO→EN y NO están autorizados aún. P5/P6 y B1–B6 quedan desconectados hasta que existan circuitos protegidos. <strong>12 switches ≠ 12 canales TPS2553.</strong></p>
+</article>
+<article class="audit-panel">
+<div class="audit-panel-title"><b>RF en la tapa, radios en el piso técnico</b><span>Arnés coaxial ≠ alimentación</span></div>
+<div class="rf-path">
+<div class="rf-node rf-lid"><small>TAPA INTERNA / CON LILITH ABIERTA</small><b>Antena específica</b><span>Wi-Fi A/B · LoRa · SDR · GNSS</span></div>
+<div class="rf-arrow"><span>Coaxial RF 50 Ω + SMA/RP-SMA/U.FL compatible</span><i>↓</i></div>
+<div class="rf-node rf-hinge"><small>ZONA BISAGRA</small><b>Coax protegido, holgura y alivio de tensión</b><span>Sin perforar carcasa ni soldar nada al LCD</span></div>
+<div class="rf-arrow"><span>Extensión corta, pérdidas reales según cable</span><i>↓</i></div>
+<div class="rf-node"><small>BANDEJA ELECTRÓNICA</small><b>Receptor / transceptor RF</b><span>LoRa SPI/UART → ESP32 · Wi-Fi/SDR USB → Dell</span></div>
+<div class="rf-split"><span>↳ Datos hacia ESP32/Dell</span><span>↳ Alimentación desde rail regulado/protegido o USB compatible</span></div>
+</div>
+<div class="rf-caution"><strong>¿100 % de rendimiento?</strong> No: el coax, conectores, adaptación y entorno producen pérdidas. Ejemplo de referencia RG-316 30 cm @ 2,4 GHz: ~0,42 dB solo en cable, sin conectores. Puede mejorar frente a una antena tapada, pero hay que medir RSSI/SNR, recepción y orientación.</div>
+<div class="rf-radio-rows"><div><b>Wi-Fi LAB</b><span>1 o 2 coax independientes según adaptador, antenas 2,4/5 GHz</span></div><div><b>LoRa</b><span>1 coax y antena de la frecuencia legal/elegida; nunca TX sin antena</span></div><div><b>RTL-SDR</b><span>1 coax y antena de la banda recibida; solo recepción</span></div><div><b>GNSS</b><span>Antena compatible, vista al cielo; si es activa, bias/LNA correcto</span></div></div>
+</article></div>
+<p class="audit-footnote">**Bloqueantes:** faltan referencia/puerto RF reales de módulos y antenas compradas, longitud y tipo del cable, medición de bisagra y ventilación, ratings DC de interruptores y protecciones por salida. <a href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/20-v0.1-wiring-netlist.md" target="_blank" rel="noopener">Ver netlist V0.1 vigente ↗</a></p>
 </section>
 <section class="access-principle" aria-labelledby="accessTitle">
 <div class="access-heading"><div><span class="eyebrow">ARQUITECTURA DE OPERACIÓN</span><h3 id="accessTitle">Reservas de espacio: lo que aún debemos medir</h3><p>Este segundo dibujo conserva únicamente las <strong>reservas dimensionales preliminares</strong> del panel y la tapa. Las funciones del mapa anterior no están empaquetadas físicamente ni tienen medidas aprobadas.</p></div>
