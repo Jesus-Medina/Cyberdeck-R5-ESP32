@@ -40,6 +40,86 @@ const raw=[
 ["r2","Resistencia CH2 / 100 Ω","bench","tested","resistor",[0,0,.7,.3],"3,17 V / 32,4 mA","VIN2− a GND","Segunda carga independiente, retorno por riel GND.","En V0.1 definitiva CH2 medirá Smart Out 2.","ina"],
 ["r3","Resistencia CH3 / 100 Ω","bench","tested","resistor",[0,0,.7,.3],"3,17 V / 32,4 mA","VIN3− a GND","Tercera carga independiente, fila 45/40.","En V0.1 definitiva CH3 se reserva supervisor.","ina"]
 ];
+
+// Inventario ampliado según BOM maestra y bitácora. Una ficha por módulo físico o conjunto identificable.
+// POSICIONES DEL VISOR SON ILUSTRATIVAS: NO están medidas ni deben utilizarse para fabricar paneles.
+const expandedParts=[
+["arduino","Arduino de laboratorio","electronics","owned","arduino",[],"USB / 5 V según placa","USB Dell + GPIO","Arduino existente registrado para experimentos; modelo físico por identificar.","Identificar modelo, patillaje y dimensiones.","dell,gpio,levelshift"],
+["ue306","TP-Link UE306 / LAN 2","electronics","owned","ethernet",[],"USB 3.0","Ethernet RJ45 / USB","Adaptador LAN2 señalado como disponible en la BOM; integración física por confirmar.","Verificar unidad y enlace Linux.","hub,networkpanel,dell"],
+["wifilab","Wi-Fi USB de laboratorio","electronics","planned","wifi",[],"5 V USB por verificar","USB / antenas RP-SMA","Adaptador Wi-Fi independiente para laboratorio autorizado; modelo exacto por elegir, no acreditado como comprado.","Elegir chipset con soporte Linux y medir potencia.","hub,antenna,ue306"],
+["adum","ADuM1201 / aislamiento UART","electronics","owned","chip",[],"Dominios Dell y AUX aislados","UART / GND separados","5 IC registrados; uno previsto para aislamiento serial, todavía sin montaje y pruebas.","Montar en adaptador SOIC8 y comprobar aislamiento.","uart,esp32,dell"],
+["eeprom","EEPROM 24C02 / IDs","electronics","owned","chip",[],"3,3 V lógica","I²C mediante TCA9548A","Memorias registradas para identificar dos Smart Slots; llegada individual sin verificar.","Verificar dirección I²C y montar en breakout.","tca,smartports"],
+["logic","Analizador lógico USB 8 canales","electronics","planned","logic",[],"USB del Dell","GPIO / UART / I²C / SPI","Instrumento de laboratorio previsto, sin referencia de compra confirmada.","Definir referencia y salida accesible de señales.","dell,gpio,arduino"],
+["rtc","RTC DS3231","electronics","planned","rtc",[],"3,3/5 V según breakout","I²C","Reloj de tiempo real previsto; no consta prueba ni compra.","Elegir breakout y batería RTC adecuada.","esp32,tca"],
+["bme","BME280 ambiental","electronics","planned","sensor",[],"3,3 V","I²C / temperatura / presión / humedad","Sensor ambiental propuesto para el supervisor; no instalado.","Elegir módulo compatible con lógica 3,3 V.","esp32,tca"],
+["levelshift","Conversión de niveles GPIO","electronics","planned","chip",[],"3,3 V ↔ 5 V","GPIO / I²C","Conversores de nivel previstos para periféricos externos; no ensamblados.","Definir líneas que realmente requieren conversión.","gpio,arduino,esp32"],
+["temp","Sensor térmico de potencia","electronics","planned","sensor",[],"Según referencia","Termometría DC/DC","Sensor previsto cerca del buck y de la potencia, aún sin hardware seleccionado.","Medir temperatura de XL4015 antes de decidir montaje.","xl,fan,esp32"],
+["irctrl","Driver IR / transistores","electronics","planned","ir",[],"3,3/5 V según circuito","LED IR y receptor","Transistores del kit disponibles; driver IR todavía no construido.","Probar LED IR y receptor con cargas apropiadas.","irpanel,esp32"],
+["backplane","Backplane de distribución AUX","power","planned","backplane",[],"12 V entrada / 5 V salida V0.1","Buses protegidos + señales","PCB de distribución smart pendiente; V0.1 se ensaya antes sobre protoboard y placa perforada.","Validar 2 salidas TPS y las pistas de potencia.","xl,smartports,tps1,tps2"],
+["smartports","Smart Module Ports 1 y 2","power","planned","ports",[],"5 V protegidos / 3V3_ID","EN / FAULT / I²C / UART","Dos puertos lógicos de V0.1 pendientes. No son dos dispositivos conectados ni dos salidas adicionales.","Congelar conectores y corriente antes de soldar.","tps1,tps2,eeprom,tca"],
+["tpsspares","TPS2553 ×3 / reserva","power","owned","chip",[],"5 V solamente","SOT-23-6 / EN / FAULT","Tres TPS2553 adicionales registrados como repuesto o futura expansión; no están instalados.","Probar cada chip con adaptador y carga segura.","tps1,tps2"],
+["chargepath","Cargador LiFePO4 + power-path","power","planned","regulator",[],"Para pack 4S compatible","Carga separada del Dell","Sistema futuro de carga y uso simultáneo, no comprado ni conectado. Mean Well 12 V no es cargador LiFePO4.","Seleccionar BMS y cargador por especificación real.","battery,mux"],
+["regservo","Rail servo 5–6 V","power","planned","regulator",[],"5–6 V y corriente por definir","Headers servo / AUX","Regulación dedicada para cargas con picos de corriente; fuera de los TPS de ~1 A.","Dimensionar picos de los servos previstos.","labout,backplane"],
+["reg33","Rail 3,3 V protegido","power","planned","regulator",[],"3,3 V","Sensores / GPIO externo","Rail independiente de lógica para expansiones, no ensamblado.","Diseñar protección y margen de corriente.","backplane,levelshift"],
+["aux12","Rail 12 V regulado","power","planned","regulator",[],"12 V regulados","Ventiladores / periféricos","Carril final opcional; no se conecta directamente a TPS2553 de 5 V.","Justificar cargas y regular tensión de batería variable.","battery,fan"],
+["pd","USB-C Power Delivery","power","planned","usb",[],"Según negociación PD","USB-C PD","Módulo PD propuesto; sin circuito de negociación ni protección validados.","Elegir entrada/salida PD compatible y protegida.","backplane,hub"],
+["power_meter","Medición V/A/W de fuente LAB","power","planned","meter",[],"Según módulo regulable","Medición de salida CC/CV","Indicador eléctrico futuro, independiente de los datos históricos del INA3221.","Seleccionar medidor y rango de tensión/corriente.","lab,labmeter"],
+["pc_sense","Detección PC_PWR_SENSE","power","planned","sensor",[],"Aislamiento alta impedancia","Estado de energía Dell","Función lógica futura para detectar Dell encendido sin unir masas.","Validar nivel seguro, opto y aislamiento.","adum,dell,esp32"],
+["fuses_aux","Fusibles y bornes por salida","power","owned","fuse",[],"Ratings por verificar","5×20 / KF301 / bornes","Portafusibles, fusibles, terminales y borneras registrados; todavía no ensamblados.","Comprobar polaridades y rating DC antes de conexión.","fuse,backplane"],
+["labout","Salida CC/CV universal","power","planned","ports",[],"Ajustable, rango sin definir","Bornes + bananas + interruptor","Salida protegida del futuro módulo LAB; no equivale al XL4015 fijo de 5 V.","Definir buck-boost, protección y conector.","lab,smartout"],
+["labmeter","Display de fuente LAB","panel","planned","meter",[],"Según medidor","V / A / W","Indicador visible de la fuente regulable variable, aún por seleccionar.","Alinear con la salida LAB y controles.","lab,power_meter"],
+["encoder","Encoder y control LAB","panel","planned","encoder",[],"GPIO según placa","Perilla / salida CC/CV","Control giratorio futuro para ajustar la fuente LAB; aún sin montaje.","Seleccionar encoder compatible.","lab,labmeter"],
+["fnirsi","Osciloscopio FNIRSI-138 Pro","panel","planned","scope",[],"Según instrumento","Sondas y pantalla","Osciloscopio de laboratorio planificado; sin compra confirmada.","Medir modelo definitivo y reservar acceso a puntas.","gpio,logic"],
+["gm328","GM328A / comprobador LCR","panel","planned","tester",[],"Según instrumento","Zócalo ZIF","Medidor de componentes previsto, con zócalo accesible. No hay prueba física confirmada.","Elegir GM328A/LCR-T7 y medir volumen.","gpio,fnirsi"],
+["gpio","Panel GPIO / I²C / SPI / UART","panel","planned","ports",[],"3,3/5 V separados","Bornes / headers etiquetados","Panel interno de laboratorio previsto; no hay pinout mecánico definitivo.","Separar los niveles de tensión y proteger señales.","arduino,esp32,logic"],
+["usbpanel","Puertos USB-A / USB-C de panel","panel","planned","usb",[],"USB 5 V según puerto","USB 3 / USB-C servicio","Extensiones de servicio internas previstas, sin cantidad final ni backfeed probado.","Definir rutas USB y fijación sin perforar la caja.","hub,ue306,esp32"],
+["networkpanel","Panel HDMI / LAN / audio","panel","planned","ethernet",[],"Datos; cada interfaz independiente","HDMI / RJ45 / jack 3,5 mm","Conectores pasivos internos de servicio, pendientes de selección; no son un bus eléctrico común.","Elegir extensores aptos para alta velocidad.","ue306,dell"],
+["irpanel","Módulo infrarrojo RX/TX","panel","planned","ir",[],"LED 940 nm / RX 38 kHz","Control de equipos propios","Receptor y emisor IR previstos para laboratorio autorizado, no integrados.","Probar emisor con driver y receptor antes de montar.","irctrl,esp32"],
+["ledpanel","LEDs de estado y buzzer","panel","planned","leds",[],"Según GPIO y resistencias","Indicadores / alarmas","LEDs y buzzer propuestos; parte del kit pasivo registrado, sin montaje del panel.","Definir señalización de fault, rail y actividad.","esp32,sw1"],
+["smartout","SMART OUT 1 / 2 + bananas LAB","panel","planned","ports",[],"5 V CH1/CH2; LAB separado","Bornes / salidas rotuladas","Salidas futuras separadas: dos canales TPS para V0.1 y bornes de fuente LAB para V1.","No confundir 2 salidas de 5 V con 12 interruptores.","smartports,labout"]
+];
+raw.push(...expandedParts);
+// Mover fichas existentes a la bandeja donde se consultarán (ubicación aún sin validar).
+for(const [id,floor] of [["cyd","panel"],["hub","electronics"]]){
+ const row=raw.find(r=>r[0]===id);if(row)row[2]=floor;
+}
+for(const [id,name,details] of [
+ ["uart","CP2102 USB-UART","El CP2102 registrado se usa del lado Dell; el aislamiento ADuM1201 se representa por separado, sin ensamblar."],
+ ["tca","Multiplexor I²C TCA9548A","TCA9548A registrado para separar dos EEPROM 24C02 por canal; todavía sin montaje/pruebas."],
+ ["ports","Panel de interfaces AUX","Conectores futuros de servicio; posición y cantidad sin validar físicamente."]
+]){const row=raw.find(r=>r[0]===id);if(row){row[1]=name;row[8]=details;}}
+const floorRows={
+ electronics:[
+ ["esp32","ina","arduino","lora","sdr"],
+ ["ue306","wifilab","gps","nfc","uart"],
+ ["adum","tca","eeprom","logic","rtc"],
+ ["bme","levelshift","hub","temp","irctrl"]
+ ],
+ power:[
+ ["battery","xl","tps1","tps2","fuse"],
+ ["mux","dcdell","lab","backplane","smartports"],
+ ["tpsspares","chargepath","regservo","reg33","aux12"],
+ ["pd","power_meter","pc_sense","fuses_aux","labout"]
+ ],
+ panel:[
+ ["switches","oled","cyd","labmeter","encoder"],
+ ["fnirsi","gm328","gpio","ports","antenna"],
+ ["usbpanel","networkpanel","irpanel","ledpanel","smartout"]
+ ]
+};
+for(const [floor,rows] of Object.entries(floorRows)){
+ rows.forEach((row,ri)=>row.forEach((id,ci)=>{
+  const entry=raw.find(r=>r[0]===id);
+  if(!entry)throw Error("Ficha sin geometría: "+id);
+  entry[2]=floor;
+  entry[5]=[-4.70+ci*1.93,-3.04+ri*1.51,1.70,1.17];
+ }));
+}
+raw.find(r=>r[0]==="keyboard")[5]=[-4.50,1.69,8.97,1.27];
+raw.find(r=>r[0]==="dell")[5]=[-4.75,-2.68,8.05,5.32];
+raw.find(r=>r[0]==="fan")[5]=[3.57,-2.44,1.18,1.12];
+// No duplicar el portátil Dell en electrónica: va en la base, con carcasa intacta.
+
 const items=raw.map(r=>({id:r[0],name:r[1],floor:r[2],status:r[3],kind:r[4],box:r[5],v:r[6],io:r[7],desc:r[8],next:r[9],links:r[10].split(","),doc:r[2]==="power"?"21-portable-power-architecture.md":"22-lilith-build-status-2026-10-17.md"}));
 const index=Object.fromEntries(items.map(i=>[i.id,i]));
 const bench={esp32:[-3.7,-1.1,2.24,1.32],ina:[-.77,-1.1,2.1,1.35],oled:[2.38,-1.0,1.45,1.1],r1:[-2.55,1.35,.87,.4],r2:[-.32,1.35,.87,.4],r3:[1.91,1.35,.87,.4]};
