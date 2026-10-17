@@ -4,13 +4,13 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0b11"><meta name="description" content="Lilith Cyberdeck — gemelo visual interactivo por pisos, circuito probado y cableado previsto.">
 <title>LILITH — Gemelo visual del Cyberdeck</title>
-<link rel="stylesheet" href="./styles.css?v=3.4-panel-lid-20261017">
-<script defer src="./app.js?v=3.4-panel-lid-20261017"></script>
+<link rel="stylesheet" href="./styles.css?v=3.5-operating-inventory-20261017">
+<script defer src="./app.js?v=3.5-operating-inventory-20261017"></script>
 </head>
 <body>
 <div class="app" id="app">
 <aside class="sidebar">
-  <div class="brand"><div class="emblem" aria-hidden="true">☾<span>✦</span></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK · EXPLORER 3.4</small></div><span class="brand-trailing">V0.1</span></div>
+  <div class="brand"><div class="emblem" aria-hidden="true">☾<span>✦</span></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK · EXPLORER 3.5</small></div><span class="brand-trailing">V0.1</span></div>
   <div class="sidebar-content">
     <div class="intro"><span class="eyebrow">ESTACIÓN DE INGENIERÍA / 17.10.2026</span><h1>Explora lo que<br><em>estamos construyendo.</em></h1><p>La operación se realiza desde el panel y la tapa alrededor del LCD. Los pisos inferiores son infraestructura y solo se abren para mantenimiento.</p>
     <div class="stat-pair"><div><strong>03</strong><small>bloques probados</small></div><div><strong id="moduleTotal">—</strong><small>elementos del modelo</small></div></div></div>
@@ -49,9 +49,10 @@
 <div id="viewer" class="viewer">
   <canvas id="scene" tabindex="0" role="img" aria-label="Modelo tridimensional interactivo de Lilith Cyberdeck. Arrastra para girar en la dirección del movimiento. Mayús o botón derecho más arrastre para desplazar. Pellizca para ampliar. Usa flechas para girar y Home para restablecer."></canvas>
   <div class="viewer-shade" aria-hidden="true"></div>
-  <div class="scene-meta meta-left">LILITH // EXPLORER 3.4 <span>— ESTRUCTURA POR CAPAS</span></div>
+  <div class="scene-meta meta-left">LILITH // EXPLORER 3.5 <span>— ESTRUCTURA POR CAPAS</span></div>
   <div class="scene-meta meta-right">MÓDULOS REALES + PREVISTOS</div>
   <div class="scene-info"><span class="dot-pink"></span><span id="sceneInfoText">VISUALIZACIÓN ISOMÉTRICA · ARRASTRA PARA GIRAR</span></div>
+  <button id="accessJump" class="access-jump" type="button">30 accesos operativos ↓</button>
   <div id="floorCaption" class="floor-caption">TODOS LOS NIVELES <small>EXPLOTADO · POSICIÓN ILUSTRATIVA</small></div>
   <div id="selectedMini" class="selected-mini" hidden><span id="selectedMiniText"></span><button id="openInspector">Ver ficha ↗</button></div>
   <div class="view-controls">
@@ -61,8 +62,20 @@
 </div>
 <div id="viewLegend" class="viewer-legend"><span><i class="legend-dot tested"></i> Probado</span><span><i class="legend-dot owned"></i> Comprado o registrado (verificar)</span><span><i class="legend-dot planned"></i> Planificado</span><span class="legend-side">Arrastra: girar · Mayús + arrastrar: mover · pellizca: zoom</span></div>
 <div id="netFilter" class="net-filter" hidden><span>RESALTAR</span><button class="net active" data-net="all">Todas</button><button class="net" data-net="power">Energía</button><button class="net" data-net="i2c">I²C / señales</button><button class="net" data-net="ground">GND</button></div>
+<section id="operatingOverview" class="operating-overview" aria-labelledby="operatingTitle">
+ <div class="operating-heading"><div><span class="eyebrow">EL MAPA COMPLETO · FUNCIONES DE LILITH</span><h3 id="operatingTitle"><span id="operatingCount">30</span> accesos operativos previstos</h3>
+ <p>Esto es lo que faltaba en el panel: cada <strong>pantalla, instrumento, puerto, salida, interfaz de radio y control</strong> se muestra por separado. Un módulo puede estar físicamente abajo y tener su acceso arriba. <strong>Son funciones y accesos, no 30 placas instaladas ni 30 huecos que ya caben.</strong></p></div>
+ <a href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/25-lilith-panel-lid-interface.md" target="_blank" rel="noopener">CRITERIOS MECÁNICOS ↗</a></div>
+ <div class="operating-surfaces">
+  <article class="operating-surface"><div class="surface-heading"><span class="surface-kicker">01 / INTERFAZ OPERATIVA</span><h4><span id="panelAccessCount">22</span> accesos del panel</h4><p>Mandos, instrumentos, laboratorio, alimentación y conectores. Todo utilizable con el maletín abierto, sin levantar bandejas internas.</p></div>
+  <div class="access-grid" id="panelAccessGrid" aria-label="Todos los accesos funcionales del panel principal"></div></article>
+  <article class="operating-surface"><div class="surface-heading"><span class="surface-kicker">TAPA / PERÍMETRO DEL LCD</span><h4><span id="lidAccessCount">8</span> accesos de tapa</h4><p>Pantalla, antenas remotas, GNSS, indicadores y opciones IR. La cabida y separación RF todavía dependen de medidas reales.</p></div>
+  <div class="access-grid" id="lidAccessGrid" aria-label="Todos los accesos funcionales de tapa y pantalla"></div></article>
+ </div>
+ <p class="operating-note">Los puntos se colorean según <strong>probado en banco</strong>, <strong>registrado por verificar</strong> o <strong>planificado</strong>. Selecciona cualquier ficha para ver el módulo relacionado y su acceso superior. Si buscas medidas de corte, consulta el <strong>plano de reservas</strong> de abajo: no debe confundirse con este mapa funcional.</p>
+</section>
 <section class="access-principle" aria-labelledby="accessTitle">
-<div class="access-heading"><div><span class="eyebrow">ARQUITECTURA DE OPERACIÓN</span><h3 id="accessTitle">Todo accesible arriba: panel + tapa</h3><p>Los pisos internos son solo infraestructura. Puedes seleccionar las zonas del dibujo para ver sus fichas técnicas. <strong>Las dimensiones son reservas, no posiciones de fabricación.</strong></p></div>
+<div class="access-heading"><div><span class="eyebrow">ARQUITECTURA DE OPERACIÓN</span><h3 id="accessTitle">Reservas de espacio: lo que aún debemos medir</h3><p>Este segundo dibujo conserva únicamente las <strong>reservas dimensionales preliminares</strong> del panel y la tapa. Las funciones del mapa anterior no están empaquetadas físicamente ni tienen medidas aprobadas.</p></div>
 <a href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/25-lilith-panel-lid-interface.md" target="_blank" rel="noopener">VER COTAS Y REGLAS ↗</a></div>
 <div class="access-layout">
 <article class="plan-card"><div class="plan-head"><b>01 / PANEL OPERATIVO</b><small>371 × 258 mm interior bruto</small></div><svg class="dimension-plan" viewBox="0 0 371 258" role="img" aria-label="Distribución preliminar del panel de 371 por 258 milímetros, con doce interruptores a paso de 36 milímetros en dos filas."><rect x=".8" y=".8" width="369.4" height="256.4" rx="10" fill="#17131d" stroke="#89627b" stroke-width="1.5"/><g class="plan-hit" data-part="switches" tabindex="0" role="button" aria-label="Seis palancas y seis interruptores basculantes"><rect x="12" y="10" width="216" height="78" rx="5" fill="#3a273c" stroke="#e7b3d0" stroke-width="2"/><rect x="15" y="13" width="30" height="30" rx="4" fill="#5a4057" stroke="#b78eac"/><circle cx="30" cy="28" r="5" fill="#d1b9c9"/><path d="M30,28l4,-8" stroke="#fce4ef" stroke-width="2"/><rect x="51" y="13" width="30" height="30" rx="4" fill="#5a4057" stroke="#b78eac"/><circle cx="66" cy="28" r="5" fill="#d1b9c9"/><path d="M66,28l4,-8" stroke="#fce4ef" stroke-width="2"/><rect x="87" y="13" width="30" height="30" rx="4" fill="#5a4057" stroke="#b78eac"/><circle cx="102" cy="28" r="5" fill="#d1b9c9"/><path d="M102,28l4,-8" stroke="#fce4ef" stroke-width="2"/><rect x="123" y="13" width="30" height="30" rx="4" fill="#5a4057" stroke="#b78eac"/><circle cx="138" cy="28" r="5" fill="#d1b9c9"/><path d="M138,28l4,-8" stroke="#fce4ef" stroke-width="2"/><rect x="159" y="13" width="30" height="30" rx="4" fill="#5a4057" stroke="#b78eac"/><circle cx="174" cy="28" r="5" fill="#d1b9c9"/><path d="M174,28l4,-8" stroke="#fce4ef" stroke-width="2"/><rect x="195" y="13" width="30" height="30" rx="4" fill="#5a4057" stroke="#b78eac"/><circle cx="210" cy="28" r="5" fill="#d1b9c9"/><path d="M210,28l4,-8" stroke="#fce4ef" stroke-width="2"/><rect x="15" y="49" width="30" height="30" rx="4" fill="#242b38" stroke="#b78eac"/><rect x="20" y="56" width="20" height="16" rx="2" fill="#131926" stroke="#baa1b3"/><rect x="51" y="49" width="30" height="30" rx="4" fill="#242b38" stroke="#b78eac"/><rect x="56" y="56" width="20" height="16" rx="2" fill="#131926" stroke="#baa1b3"/><rect x="87" y="49" width="30" height="30" rx="4" fill="#242b38" stroke="#b78eac"/><rect x="92" y="56" width="20" height="16" rx="2" fill="#131926" stroke="#baa1b3"/><rect x="123" y="49" width="30" height="30" rx="4" fill="#242b38" stroke="#b78eac"/><rect x="128" y="56" width="20" height="16" rx="2" fill="#131926" stroke="#baa1b3"/><rect x="159" y="49" width="30" height="30" rx="4" fill="#242b38" stroke="#b78eac"/><rect x="164" y="56" width="20" height="16" rx="2" fill="#131926" stroke="#baa1b3"/><rect x="195" y="49" width="30" height="30" rx="4" fill="#242b38" stroke="#b78eac"/><rect x="200" y="56" width="20" height="16" rx="2" fill="#131926" stroke="#baa1b3"/></g>
