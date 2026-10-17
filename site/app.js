@@ -1,289 +1,152 @@
-/* Lilith Explorer V2 | 2026-10-17
-   Physical boards are carefully drawn illustrative vectors, NOT 1:1 CAD;
-   bench wires correspond to verified breadboard NETS, not photogrammetry.
-   No connection to hardware is implemented. */
-(function(){
+(()=>{
 "use strict";
-
-var DOC="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/";
-var LAYERS=[
- {id:"base",title:"04 · BASE ESTRUCTURAL",subtitle:"DELL / REFRIGERACIÓN"},
- {id:"power",title:"03 · ENERGÍA Y SEGURIDAD",subtitle:"FUENTES / REGULACIÓN / PROTECCIÓN"},
- {id:"modules",title:"02 · ELECTRÓNICA",subtitle:"CONTROL / RADIO / INSTRUMENTOS"},
- {id:"panel",title:"01 · PANEL SUPERIOR",subtitle:"INTERFACES / ACCESIBILIDAD"}
+/* Lilith Explorer 3.0: 3D projected geometry on Canvas 2D. Board art is conceptual, not CAD.
+   Verified bench relations are separated from not-yet-built AUX power connections. */
+const $=id=>document.getElementById(id),canvas=$("scene"),g=canvas.getContext("2d");
+const colors={tested:"#ebbbd0",owned:"#dcba92",planned:"#91899c",power:"#f2b381",i2c:"#d6a4e7",ground:"#9fb5d8"};
+const docs="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/";
+const levels=[["base","04 · BASE ESTRUCTURAL"],["power","03 · ENERGÍA"],["electronics","02 · ELECTRÓNICA"],["panel","01 · PANEL SUPERIOR"]];
+const raw=[
+["dell","Dell Vostro 3405","base","owned","laptop",[-3.5,-2.3,6.9,4.4],"Batería/cargador originales","USB Dell; alimentación independiente","Equipo comprado Ryzen 5 3450U, 12 GB RAM y SSD de 256 GB. No conectado al sistema auxiliar.","Medir cargador Dell e interior del maletín.","hub,dcdell,keyboard"],
+["hub","Hub USB","base","planned","usb",[3.5,-2.3,1.0,1.1],"USB 5 V (por medir)","USB Dell","Hub futuro con protección frente a retorno de corriente. No se ha probado.","Seleccionar hub y validar VBUS.","dell,sdr"],
+["fan","Ventilación AUX","base","planned","fan",[3.5,.55,1.0,1.0],"5/12 V según equipo","Control térmico","No existe ventilación auxiliar validada. El ventilador del Dell se conserva.","Ensayar temperatura dentro del maletín sin perforarlo.","dell,esp32"],
+["battery","LiFePO4 4S","power","planned","battery",[-4.1,-2.5,3.0,2.0],"12,8 V nominal","BMS / fusible / cargador","Pack futuro no comprado; tamaño, capacidad y ubicación aún por decidir.","Dimensionar Wh, BMS y cargador.","mux,dcdell"],
+["xl","XL4015 CC/CV","power","owned","xl",[-.6,-2.3,2.1,1.55],"12 V entrada; 5,00 V objetivo","IN± OUT±","Buck comprado y físicamente disponible, NO probado con la Mean Well ni ajustado todavía.","Ajustar 5 V sin ESP32 conectado; probar con resistencias 10 W.","meanwell,fuse,tps1,tps2"],
+["tps1","TPS2553 / Canal 1","power","owned","tps",[1.85,-2.3,1.1,1.05],"5 V protegidos (objetivo)","EN / FAULT / ILIM / CH1","Chip SOT-23-6 aún SIN SOLDAR a su adaptador. No protege todavía una salida real.","Practicar SMD; inspeccionar cortos y probar protección.","xl,ina,tps2"],
+["tps2","TPS2553 / Canal 2","power","owned","tps",[3.2,-2.3,1.1,1.05],"5 V protegidos (objetivo)","EN / FAULT / ILIM / CH2","Segundo chip SOT-23-6 sin montar ni ensayar.","Soldar adaptador y validar FAULT y límite de corriente.","xl,ina,tps1"],
+["fuse","Fusible / jack DC","power","owned","fuse",[-4.1,.15,1.25,1.05],"12 V / fusible 2 A en V0.1","Fuente externa a SW0","Fusible lento 5×20 y jack registrados. Cadena de seguridad sin ensamblar.","Verificar pinout, polaridad y ratings DC.","meanwell,sw0,xl"],
+["mux","Selector AUX seguro","power","planned","generic",[-2.3,.13,1.7,1.2],"Dell USB / LiFePO4 (pendiente)","Selección sin retorno","Se planifica conmutación break-before-make y bloqueo inverso. No está implementada.","Medir salida USB del Dell sin asumir potencia ilimitada.","battery,dcdell"],
+["dcdell","DC-DC Dell","power","planned","generic",[-.35,.13,1.6,1.2],"Por verificar con cargador Dell","Conector e ID","Conversor independiente para alimentar la entrada normal del Dell, no comprado.","Identificar V/A/W y pin de identificación.","dell,battery"],
+["lab","Fuente LAB variable","power","planned","generic",[2.15,.13,2.0,1.2],"CC/CV variable (por definir)","Bornes / medidor V-A-W","Fuente de laboratorio planificada, distinta del XL4015 fijo a 5 V.","Dimensionar rangos y protección por salida.","ports"],
+["esp32","ESP32-S3 N16R8","electronics","tested","esp32",[-3.85,-2.4,2.25,1.38],"3,3 V desde USB (prueba)","GPIO8 SDA / GPIO9 SCL","Placa UICPAL REV1.2 funcionando por USB con OLED e INA3221. Aún no alimentada por el XL4015.","Subir sketch .ino y evitar doble alimentación USB/5 V.","ina,oled,sw1"],
+["ina","INA3221 / R100","electronics","tested","ina",[-1.08,-2.42,2.1,1.35],"3,3 V banco real","I²C 0x40 / A0 soldado GND","Placa morada con tres shunts R100. Corrientes ~32,8 mA CH1 y ~32,4 mA CH2 y CH3.","Integrar CH1/CH2 en salidas protegidas de 5 V, CH3 para supervisor.","esp32,oled,tps1"],
+["lora","LoRa","electronics","owned","lora",[1.65,-2.38,1.28,1.08],"Según placa","SPI/UART + RF","Módulo previsto en compras, aún no probado; banda y antena específicas pendientes.","Confirmar módulo y banda RF.","antenna,esp32"],
+["sdr","RTL-SDR","electronics","planned","usb",[3.23,-2.36,1.12,1.0],"USB 5 V","USB Dell + antena","Receptor SDR planificado, todavía sin integración ni medidas.","Medir consumo y alejamiento de convertidores.","hub,antenna"],
+["cyd","Pantalla ESP32 CYD","electronics","planned","screen",[-3.95,-.30,1.8,1.35],"Según placa CYD","Pantalla auxiliar táctil","Sistema secundario previsto; no forma parte del ensayo validado.","Medir modelo y dimensiones.","esp32"],
+["uart","CP2102 / ADuM1201","electronics","owned","generic",[-1.9,-.25,1.5,1.2],"Dos dominios aislados","UART Dell↔AUX","Aislador SMD aún no soldado ni probado. No unir GND Dell y GND AUX.","Soldar adaptador SOP8 y comprobar aislamiento.","dell,esp32"],
+["tca","TCA9548A / 24C02","electronics","owned","generic",[-.02,-.25,1.5,1.2],"Lógica 3,3 V","I²C IDs de módulos","Multiplexor y EEPROM registrados para identificación, aún sin prueba.","Soldar memorias e identificar direcciones.","esp32"],
+["gps","GNSS / GPS","electronics","planned","generic",[1.85,-.24,1.1,1.0],"Por verificar","USB/UART","Módulo de geolocalización por decidir.","Seleccionar conector y antena.","antenna"],
+["nfc","NFC PN532","electronics","planned","generic",[3.24,-.24,1.12,1.0],"Según breakout","I²C o SPI","Lector NFC previsto para etiquetas propias, sin montaje.","Comprobar nivel lógico.","esp32"],
+["keyboard","Teclado BT + trackpad","panel","owned","keyboard",[-3.32,-.22,6.45,2.3],"Batería del teclado","Bluetooth Dell","Teclado plegable con Ñ previsto. Sus dimensiones exactas dentro del panel no están validadas.","Medir apertura y altura de cierre.","dell,switches"],
+["switches","12 interruptores","panel","owned","switches",[-3.9,-2.7,5.3,1.23],"Rating DC pendiente","6 palancas + 6 basculantes","Comprados 6 SPST y 6 basculantes. SW0/SW1 son dos de sus funciones, NO hay 12 canales protegidos.","Identificar contactos/rating y asignar controles.","sw0,sw1,tps1"],
+["oled","OLED SH1106 1,3″","panel","tested","oled",[1.72,-2.67,1.25,1.08],"3,3 V","I²C 0x3C, GPIO8/9","Pantalla física probada. En el dibujo se sitúa en el panel futuro, sin instalación mecánica validada.","Mejorar menús y montaje accesible.","esp32,ina"],
+["ports","Panel USB / GPIO","panel","planned","ports",[3.28,-2.7,1.28,2.15],"Carriles diversos, por proteger","USB, GPIO, LAB","Conectores futuros; cantidad y posición todavía no definidos.","Dimensionar salidas y separarlas por voltaje.","lab,switches"],
+["antenna","Antenas RF","panel","owned","antenna",[-4.02,.75,.80,1.42],"Pasivas","SMA / RP-SMA","Compradas. Deben quedar dentro del maletín cerrado, sin sobresalir.","Verificar conectores y compatibilidad.","lora,sdr"],
+["sw0","SW0 MASTER AUX","panel","owned","switch",[0,0,.4,.4],"Corte AUX 12 V","Fusible → SW0 → XL4015","Función de uno de los interruptores comprados. Sin cablear.","Comprobar rating y continuidad antes de montar.","switches,fuse,xl"],
+["sw1","SW1 SUPERVISOR","panel","owned","switch",[0,0,.4,.4],"Corte alimentación supervisor","Bus 5 V → SW1 → CH3","Función pendiente de un switch comprado. Sin cablear.","Proteger de doble alimentación USB/AUX.","switches,esp32"],
+["meanwell","Mean Well 12 V / 5 A","external","owned","adapter",[0,0,1,.7],"12 V nominal / 5 A","Jack DC de banco","Fuente externa que ya tienes. No va dentro del maletín ni carga la LiFePO4.","Medir la salida antes de conectar XL4015.","fuse,xl"],
+["r1","Resistencia CH1 / 100 Ω","bench","tested","resistor",[0,0,.7,.3],"3,17 V / 32,8 mA","VIN1− a GND","Carga independiente de ensayo 3,3 V, resistencia ¼ W.","No usar a 5 V continuo.","ina"],
+["r2","Resistencia CH2 / 100 Ω","bench","tested","resistor",[0,0,.7,.3],"3,17 V / 32,4 mA","VIN2− a GND","Segunda carga independiente, retorno por riel GND.","En V0.1 definitiva CH2 medirá Smart Out 2.","ina"],
+["r3","Resistencia CH3 / 100 Ω","bench","tested","resistor",[0,0,.7,.3],"3,17 V / 32,4 mA","VIN3− a GND","Tercera carga independiente, fila 45/40.","En V0.1 definitiva CH3 se reserva supervisor.","ina"]
 ];
-var layerIndex={base:0,power:1,modules:2,panel:3};
-var items=[
- {id:"dell",name:"Dell Vostro 3405",kind:"laptop",floor:"base",status:"owned",x:140,y:106,w:660,h:385,tag:"EQUIPO PRINCIPAL",supply:"Batería/cargador Dell original",io:"USB y periféricos Dell",summary:"Computador principal Ryzen 5 3450U, 12 GB de RAM, SSD de 256 GB. Ya comprado y operativo como notebook. Su integración mecánica con el maletín y la batería principal sigue pendiente.",next:"Medir volumen interior, cargador Dell e interferencias con la ventilación.",related:["usbhub","dcdc","case"],doc:"22-lilith-build-status-2026-10-17.md"},
- {id:"case",name:"Maletín Easy 16″",kind:"case",floor:"base",status:"owned",x:12,y:12,w:190,h:100,tag:"40,6 × 33 × 17,4 CM EXTERIORES",supply:"No aplica",io:"Estructura sin perforaciones",summary:"El maletín define el espacio, alturas, bandejas y ubicación de antenas. Sus medidas exteriores están documentadas; las cotas interiores aún deben levantarse.",next:"Medir el interior real, hacer plantillas de cartón y validar paneles de PVC espumado.",related:["dell","keyboard","antenna"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"cool",name:"Ventilación y térmica",kind:"fan",floor:"base",status:"planned",x:800,y:155,w:147,h:115,tag:"PENDIENTE DE DISEÑO",supply:"5 V o 12 V según ventilador",io:"Sensor térmico/ESP32 previsto",summary:"Refrigeración auxiliar independiente de la del Dell. Sin perforar la carcasa no se puede asumir que habrá suficiente renovación de aire.",next:"Hacer ensayos térmicos con potencia real antes de fijar ventiladores y convertidores.",related:["dell","esp"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"usbhub",name:"Hub USB",kind:"usb",floor:"base",status:"planned",x:56,y:508,w:240,h:103,tag:"BACKBONE USB",supply:"5 V según modelo",io:"USB al Dell",summary:"Distribuidor USB que deberá evitar realimentación hacia el notebook. Los puertos con control individual requieren hardware compatible.",next:"Seleccionar modelo y comprobar consumo y aislamiento de VBUS.",related:["dell","sdr","wifi"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"lifepo",name:"LiFePO4 4S",kind:"battery",floor:"power",status:"planned",x:68,y:150,w:300,h:170,tag:"BATERÍA PRINCIPAL V1 PRO",supply:"12,8 V nominal · 10 Ah objetivo",io:"BMS / cargador / fusible por seleccionar",summary:"Batería principal futura. Aún no consta adquirida. La capacidad y la ubicación no están aprobadas hasta medir autonomía, masa y medidas interiores.",next:"Elegir pack comercial con BMS integrado, fusible próximo a batería y cargador compatible.",related:["dcdc","mux","buck"],doc:"21-portable-power-architecture.md"},
- {id:"meanwell",name:"Mean Well 12 V",kind:"adapter",floor:"power",status:"owned",x:32,y:363,w:218,h:132,tag:"FUENTE EXTERNA · BANCO",supply:"12 V DC / 5 A nominal",io:"Jack 5,5 × 2,1 mm, centro + previsto",summary:"Fuente GST60A12-P1J físicamente disponible. Solo se usa para pruebas de banco; no estará montada como batería dentro del Cyberdeck ni sirve para cargar LiFePO4.",next:"Medir polaridad y tensión antes de conectar XL4015. La fuente AC permanece cerrada.",related:["fuse","sw0","buck"],doc:"17-v0.1-final-bom-checklist.md"},
- {id:"fuse",name:"Fusible y entrada",kind:"fuse",floor:"power",status:"owned",x:286,y:367,w:145,h:97,tag:"5×20 · 2 A LENTO",supply:"12 V, protección de banco",io:"Jack y portafusible",summary:"Jack DC y portafusibles registrados en compras. El fusible lento de 2 A solo está dimensionado para el banco V0.1, no para toda la V1 Pro.",next:"Confirmar valor del fusible, terminales jack y ratings de cables/conectores.",related:["meanwell","sw0","buck"],doc:"17-v0.1-final-bom-checklist.md"},
- {id:"buck",name:"XL4015 CC/CV",kind:"xl4015",floor:"power",status:"owned",x:468,y:115,w:226,h:149,tag:"BUCK 12 V → 5,00 V",supply:"Entrada 12 V de banco",io:"Bus AUX 5 V",summary:"Convertidor reductor comprado y físicamente presente, todavía no integrado en el circuito. No puede elevar directamente los 5 V del USB de emergencia Dell.",next:"Identificar terminales y ajustar 5,00 V sin conectar ESP32; ensayar cargas de potencia y temperatura.",related:["meanwell","fuse","tps1","tps2"],doc:"22-lilith-build-status-2026-10-17.md"},
- {id:"tps1",name:"TPS2553 · salida 1",kind:"tps",floor:"power",status:"owned",x:742,y:102,w:165,h:113,tag:"SOT-23-6 / ADAPTADOR VACÍO",supply:"Rama protegida prevista de 5 V",io:"EN · FAULT · ILIM · INA CH1",summary:"El IC minúsculo fue comprado SUELTO. El dibujo muestra el chip junto al adaptador, no un componente ya soldado. La limitación/corte aún no está validada.",next:"Practicar soldadura SMD y montar el chip, inspeccionar pin 1/puentes y probar EN/FAULT con carga resistiva.",related:["buck","ina","tps2"],doc:"24-lilith-smd-assembly.md"},
- {id:"tps2",name:"TPS2553 · salida 2",kind:"tps",floor:"power",status:"owned",x:742,y:255,w:165,h:113,tag:"SOT-23-6 / SIN SOLDAR",supply:"Rama protegida prevista de 5 V",io:"EN · FAULT · ILIM · INA CH2",summary:"Segundo canal protegido de la V0.1. Tenemos cinco TPS2553 en el inventario de compras, pero ninguna salida final está montada o probada todavía.",next:"Montar y probar individualmente el segundo TPS2553; no conectar RF/SDR antes de verificar las protecciones.",related:["buck","ina","tps1"],doc:"24-lilith-smd-assembly.md"},
- {id:"mux",name:"Selector AUX / respaldo",kind:"mux",floor:"power",status:"planned",x:437,y:445,w:185,h:109,tag:"DOS FUENTES / SIN RETORNO",supply:"LiFePO4 / USB Dell (potencia por medir)",io:"Break-before-make + bloqueo inverso",summary:"Selector futuro para respaldar AUX con el Dell sin paralelizar baterías ni permitir que Dell cargue LiFePO4. La corriente real disponible en USB Dell sigue sin medirse.",next:"Medir presupuesto USB, diseñar selector con interbloqueo hardware y conversión apropiada.",related:["lifepo","dcdc","buck"],doc:"21-portable-power-architecture.md"},
- {id:"dcdc",name:"DC-DC del Dell",kind:"dcdc",floor:"power",status:"planned",x:686,y:456,w:197,h:99,tag:"ENTRADA NORMAL DELL",supply:"LiFePO4 4S → valor por medir",io:"Conector, potencia y pin de ID Dell",summary:"Convertidor independiente que alimentará al notebook por su entrada normal y no por su puerto USB. No está comprado ni configurado.",next:"Leer el cargador original Dell: V/A/W, polaridad, conector e identificación antes de comprar.",related:["dell","lifepo","mux"],doc:"21-portable-power-architecture.md"},
- {id:"esp",name:"ESP32-S3 N16R8",kind:"esp32",floor:"modules",status:"tested",x:120,y:148,w:240,h:153,tag:"SUPERVISOR REV1.2 · PROBADO",supply:"3,3 V por regulador USB, solo prueba",io:"SDA GPIO8 · SCL GPIO9",summary:"Supervisor UICPAL ESP32-S3 N16R8 REV1.2 funcionando. Alimenta/consulta OLED e INA en un montaje USB a 3,3 V. El regulador de la placa no está identificado por su marcación.",next:"Exportar sketch Arduino exacto; después diseñar la alimentación externa segura y salidas EN/FAULT.",related:["oled","ina","sw1"],doc:"22-lilith-build-status-2026-10-17.md"},
- {id:"ina",name:"INA3221 · R100",kind:"ina",floor:"modules",status:"tested",x:427,y:151,w:202,h:144,tag:"MONITOR 3 CANALES · 0x40",supply:"VS 3,3 V en banco probado",io:"I²C 0x40, A0 soldado a GND",summary:"Breakout morado con tres shunts R100. Comprobado con tres resistencias separadas a ~32,4–32,8 mA/canal y 3,17 V bajo carga. Todavía no mide salidas TPS de 5 V.",next:"Reutilizar CH1/CH2 para Smart Out 1/2 y CH3 para supervisor tras validar el rail y las corrientes reales.",related:["esp","oled","tps1","tps2"],doc:"22-lilith-build-status-2026-10-17.md"},
- {id:"oled",name:"OLED SH1106 1,3″",kind:"oled",floor:"modules",status:"tested",x:672,y:139,w:216,h:135,tag:"128×64 I²C · 0x3C",supply:"3,3 V desde ESP32",io:"I²C GPIO8/GPIO9",summary:"Pantalla real de prueba, controlada desde ESP32 usando U8g2. Dirección I²C confirmada 0x3C.",next:"Mantener cableado probado mientras incorporamos estados, errores y control del futuro power manager.",related:["esp","ina"],doc:"22-lilith-build-status-2026-10-17.md"},
- {id:"lora",name:"Módulo LoRa",kind:"lora",floor:"modules",status:"owned",x:90,y:368,w:168,h:112,tag:"RF / FRECUENCIA POR VERIFICAR",supply:"Según breakout real",io:"SPI/UART por verificar",summary:"LoRa y antenas constan en componentes del proyecto, pero no se ha validado una conexión definitiva, banda ni lectura real de hardware en Lilith.",next:"Identificar referencia exacta, frecuencia, tipo de conector y tensión; no asumir compatibilidad de antena.",related:["antenna","esp"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"cyd",name:"ESP32 CYD táctil",kind:"display",floor:"modules",status:"planned",x:298,y:362,w:204,h:137,tag:"DISPLAY DE LABORATORIO",supply:"5 V/3,3 V según placa elegida",io:"USB/SPI internos según modelo",summary:"Pantalla táctil de experimentos independiente del supervisor. No hay montaje del CYD validado en la protoboard actual.",next:"Confirmar modelo, medidas y espacio junto al panel principal.",related:["esp","panel"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"sdr",name:"RTL-SDR",kind:"sdr",floor:"modules",status:"planned",x:583,y:389,w:176,h:87,tag:"RECEPCIÓN RF · USB",supply:"5 V por USB según modelo",io:"USB al Dell / antena",summary:"Receptor SDR previsto para radio/mediciones. Modelo y montaje no verificados; posición mostrada es ilustrativa.",next:"Elegir hardware, medir consumo y planificar conectores/ruido RF.",related:["antenna","dell"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"antenna",name:"Antenas RF",kind:"antenna",floor:"modules",status:"owned",x:775,y:389,w:154,h:105,tag:"SMA / RP-SMA · SIN SALIENTES",supply:"Sin alimentación directa",io:"Radiofrecuencia LoRa/Wi-Fi/SDR",summary:"Se compraron antenas. Deben quedar alojadas al cerrar el maletín impermeable, sin sobresalir ni perforar la carcasa.",next:"Inspeccionar conectores, longitudes, frecuencias y distribución RF real.",related:["lora","sdr","case"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"keyboard",name:"Teclado Bluetooth",kind:"keyboard",floor:"panel",status:"owned",x:100,y:248,w:606,h:259,tag:"TECLADO PLEGABLE + TRACKPAD",supply:"Batería interna del teclado",io:"Bluetooth al Dell",summary:"Teclado plegable con Ñ y trackpad para el plano de trabajo. El modelo dibujado es referencial; aún falta medirlo para asegurar el cierre.",next:"Medir teclado abierto/cerrado y definir guardado sin sobresalir.",related:["dell","case"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"sws",name:"6 palancas + 6 basculantes",kind:"switches",floor:"panel",status:"owned",x:116,y:80,w:430,h:124,tag:"PANEL MANUAL · 12 SWITCHES",supply:"Corte/control DC; rating por verificar",io:"SW0 MASTER / SW1 SUP / canales",summary:"Doce interruptores físicos comprados: 6 de palanca SPST y 6 basculantes ON/OFF. Todavía no se han asignado ni cableado; no equivalen a doce canales protegidos.",next:"Verificar contactos y rating DC de cada switch; luego reservar SW0/SW1 y asignar controles restantes.",related:["sw0","sw1","tps1"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"ports",name:"Panel de conexiones",kind:"ports",floor:"panel",status:"planned",x:733,y:90,w:173,h:282,tag:"USB / GPIO / DC / LAB",supply:"Varios rails protegidos, por diseñar",io:"USB, GPIO, fuente LAB",summary:"Puertos de laboratorio previstos. No hay pinout/posición final validada. Evitaremos perforaciones en el cuerpo impermeable del maletín.",next:"Diseñar espaciado y cargas de cada puerto después de levantar medidas reales.",related:["case","sws","esp"],doc:"23-lilith-power-budget-and-pending-parts.md"},
- {id:"sw0",name:"SW0 MASTER AUX",kind:"toggle",floor:"panel",status:"owned",x:741,y:414,w:75,h:81,tag:"FUNCIÓN POR CABLEAR",supply:"Corte 12 V AUX",io:"Fusible → SW0 → XL4015",summary:"La función SW0 NO se montó aún. Deberá realizar corte físico de todo AUX, con rating DC comprobado.",next:"Verificar continuidad con multímetro sin alimentación y cablear tras fusible.",related:["fuse","buck","sws"],doc:"20-v0.1-wiring-netlist.md"},
- {id:"sw1",name:"SW1 SUPERVISOR",kind:"toggle",floor:"panel",status:"owned",x:835,y:414,w:75,h:81,tag:"FUNCIÓN POR CABLEAR",supply:"Corte rail supervisor 5 V",io:"Bus 5 V → SW1 → INA CH3",summary:"SW1 tampoco se ha instalado. Debe permitir cortar físicamente ESP32/OLED/INA (según arquitectura) sin intervenir el Dell.",next:"Definir fuente del supervisor y evitar USB + 5 V externo simultáneo.",related:["esp","ina","sws"],doc:"20-v0.1-wiring-netlist.md"}
-];
-var part={};items.forEach(function(m){part[m.id]=m;});
-var benchItems=[
- {id:"esp",x:97,y:164,w:245,h:155},
- {id:"ina",x:418,y:153,w:223,h:156},
- {id:"oled",x:709,y:150,w:205,h:142},
- {id:"r1",x:198,y:385,w:132,h:66},
- {id:"r2",x:429,y:385,w:132,h:66},
- {id:"r3",x:656,y:385,w:132,h:66}
-];
-var diagramItems=[
- {id:"meanwell",x:32,y:153,w:180,h:108},
- {id:"fuse",x:251,y:158,w:126,h:94},
- {id:"sw0",x:410,y:163,w:87,h:91},
- {id:"buck",x:538,y:144,w:185,h:128},
- {id:"tps1",x:740,y:130,w:133,h:99},
- {id:"tps2",x:744,y:293,w:133,h:99},
- {id:"sw1",x:534,y:368,w:87,h:86},
- {id:"ina",x:376,y:466,w:195,h:127},
- {id:"esp",x:115,y:439,w:203,h:123},
- {id:"oled",x:670,y:473,w:190,h:109}
-];
-// Records: from,to,type,verified,label.
-// Verified means the corresponding electrical relationship was checked at 3V3 bench.
-var benchNets=[
- ["esp","ina","power",true,"3V3 → FILA 5"],["esp","oled","power",true,"3V3 · 0x3C"],
- ["esp","ina","ground",true,"GND · FILA 2"],["esp","oled","ground",true,"GND"],
- ["esp","ina","i2c",true,"SDA GPIO8 / FILA 10"],["esp","ina","i2c",true,"SCL GPIO9 / FILA 15"],
- ["esp","oled","i2c",true,"I²C 8/9"],["ina","r1","power",true,"VIN1− → R1"],["ina","r2","power",true,"VIN2− → R2"],["ina","r3","power",true,"VIN3− → R3"]
-];
-var designNets=[
- ["meanwell","fuse","power",false,"12 V"],["fuse","sw0","power",false,"12 V / FUSIBLE"],
- ["sw0","buck","power",false,"12 V DC"],["buck","tps1","power",false,"5 V"],
- ["buck","tps2","power",false,"5 V"],["buck","sw1","power",false,"5 V"],
- ["tps1","ina","power",false,"CH1"],["tps2","ina","power",false,"CH2"],
- ["sw1","ina","power",false,"CH3"],["ina","esp","power",false,"5 V SUP."],
- ["esp","ina","i2c",true,"I²C · PROBADO A 3,3 V"],["esp","oled","i2c",true,"I²C · PROBADO"],
- ["esp","ina","ground",true,"GND · BANCO"]
-];
-var MODE_LABEL={physical:"MAQUETA FÍSICA",bench:"BANCO PROBADO",wiring:"CABLEADO OBJETIVO"};
-var COLORS={power:"#e7ac84",i2c:"#dca0d3",ground:"#a6a4c7"};
-var state={mode:"physical",layer:"modules",status:"all",query:"",selected:"esp",rx:54,rz:-25,zoom:1,net:"all"};
-var $=function(id){return document.getElementById(id);};
-var stack=$("stack"),stage=$("stage"),viewport=$("viewport"),camera=$("camera"),overlay=$("netOverlay");
-function esc(v){return String(v).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];});}
-function srect(x,y,w,h,color,stroke,r){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+(r||3)+'" fill="'+color+'"'+(stroke?' stroke="'+stroke+'" stroke-width="1.8"':'')+'/>';}
-function stxt(x,y,str,size,color,weight){return '<text x="'+x+'" y="'+y+'" fill="'+(color||"#e8e1e8")+'" font-family="monospace" font-weight="'+(weight||"600")+'" font-size="'+(size||10)+'">'+esc(str)+'</text>';}
-function circles(x,y,num,dx,dy,color){var o="";for(var i=0;i<num;i++)o+='<circle cx="'+(x+dx*i)+'" cy="'+(y+dy*i)+'" r="3.5" fill="'+(color||"#d7a678")+'" stroke="#372831" stroke-width="1"/>';return o;}
-function pinsTop(bottom){var o="";for(var i=0;i<12;i++){o+=srect(25+i*23,bottom?158:11,12,13,"#c2a17b","#74513d",2);}return o;}
-function traceLines(){var p="";for(var i=0;i<8;i++){p+='<path d="M '+(40+i*25)+' 27 V '+(50+i*4)+' H '+(72+i*22)+' V 143" stroke="#a5b978" opacity=".19" stroke-width="1.4" fill="none"/>';}return p;}
-function centralChip(x,y,w,h,label){var r=srect(x,y,w,h,"#171a20","#6a6d76",3);for(var k=0;k<6;k++){var yy=y+5+k*((h-10)/6);r+=srect(x-6,yy,6,3,"#c3b9ad")+" "+srect(x+w,yy,6,3,"#c3b9ad");}return r+stxt(x+5,y+h/2,label,Math.max(7,Math.min(11,w/7)),"#d3d8df");}
-function pcb(col,stroke){return srect(6,6,308,168,col,stroke,9)+'<rect x="14" y="14" width="292" height="152" rx="7" fill="none" stroke="#ffffff" stroke-opacity=".10"/>'+traceLines()+circles(18,18,1,0,0,"#e4cc91")+circles(299,18,1,0,0,"#e4cc91")+circles(18,161,1,0,0,"#e4cc91")+circles(299,161,1,0,0,"#e4cc91");}
-function boardSVG(kind,id){
- var a="",base="",body="",label="",palette="#16292a";
- if(kind==="esp32"){base=pcb("#152123","#557a77")+pinsTop(false)+pinsTop(true);body=srect(73,33,167,112,"#bec6c6","#dfe3e1",7)+srect(83,44,148,87,"#a7afb3","#58666d",5)+centralChip(114,65,77,44,"ESP32-S3")+stxt(96,53,"ESPRESSIF",10,"#262f39")+stxt(99,122,"N16R8 / Wi-Fi BLE",9,"#26343c")+srect(10,58,52,61,"#717780","#c6cbd1",9)+srect(17,70,40,34,"#181c23","#b4b9bd",7)+stxt(15,140,"USB-C",9,"#c2cad2")+stxt(251,49,"BOOT",9,"#e0e9e6")+stxt(244,140,"GPIO",10,"#dedac4");}
- else if(kind==="ina"){base=pcb("#49266d","#a77cca")+pinsTop(false)+pinsTop(true);body=stxt(26,42,"INA3221",18,"#f0e3ff")+stxt(25,56,"3-CHANNEL HIGH SIDE",9,"#bda6d1");for(var i=0;i<3;i++){body+=srect(34+i*92,87,73,34,"#d9d7d7","#f4ffff",3)+stxt(43+i*92,108,"R100",16,"#292326")+stxt(47+i*92,138,"CH"+(i+1),11,"#d4beec");}body+=stxt(25,70,"VS GND SCL SDA",9,"#d9c9ff")+stxt(225,69,"A0=GND",9,"#e2c6f7");}
- else if(kind==="oled"){base=pcb("#1e2734","#687e9f");body=srect(34,16,252,146,"#030409","#747681",10)+srect(45,27,230,124,"#08111b","#18283e",6)+stxt(61,53,"LILITH",21,"#c8a1c6")+stxt(61,84,"3.17 V",22,"#c2b7d9")+stxt(61,109,"CH1  32.8mA",13,"#e7a8bb")+stxt(61,131,"INA3221  0x40",10,"#a4b1c6")+circles(26,83,1,0,0,"#e5ad87")+circles(296,83,1,0,0,"#e5ad87");}
- else if(kind==="xl4015"){base=pcb("#174e88","#4f9cc1");body=stxt(29,34,"XL4015  CC / CV",16,"#dce8ff")+srect(30,62,73,72,"#283641","#7b9eac",7)+'<circle cx="67" cy="97" r="30" fill="#333d44" stroke="#85959d" stroke-width="4"/>'+'<circle cx="67" cy="97" r="22" fill="#af875b" stroke="#6e5144" stroke-width="9"/>'+srect(127,72,65,42,"#192c39","#98b0bc",4)+stxt(137,96,"XL4015",10,"#c6d7ec");for(var z=0;z<2;z++){body+=srect(222+z*38,46,28,65,"#353b4a","#aab8c6",6)+srect(226+z*38,42,20,6,"#d1cfd0");}for(var n=0;n<2;n++){body+=srect(127+n*57,132,37,28,"#276788","#83a6ba",3)+'<circle cx="'+(145+n*57)+'" cy="146" r="9" fill="#e7cc73" stroke="#cb9a41" stroke-width="3"/>';}body+=stxt(31,157,"IN+  IN-",9,"#e6effc")+stxt(223,156,"OUT+ -",9,"#e6effc");}
- else if(kind==="tps"){base=pcb("#205b48","#69ac91");body=stxt(20,37,"TPS2553",18,"#dbf0df")+stxt(20,54,"BREAKOUT · SOT23-6",10,"#cfdfd8");body+=srect(100,75,117,77,"#326952","#a8c4ad",4);for(var u=0;u<6;u++){body+=srect(108+(u%3)*40,80+Math.floor(u/3)*56,19,13,"#b7a896","#e6d4b8",2);}body+=srect(242,72,47,42,"#15171c","#aeb1b5",5)+stxt(248,94,"IC",15,"#eee")+stxt(226,134,"SUELTO",10,"#e4c8b2")+stxt(102,166,"SIN SOLDAR",13,"#f0dcba");}
- else if(kind==="battery"){base=srect(6,6,308,168,"#383840","#9894a3",13);body=srect(20,20,280,140,"#253436","#536869",9)+srect(35,41,250,62,"#9ba6a0","#c2d4bf",4)+stxt(53,66,"LiFePO4",25,"#233b35")+stxt(54,85,"12.8V   4S / BMS",12,"#34564f")+stxt(42,133,"PACK OBJETIVO · NO COMPRADO",10,"#d9ddd2")+srect(80,5,38,22,"#2b2b34","#c07f6a",4)+srect(235,5,38,22,"#2b2b34","#c07f6a",4);}
- else if(kind==="adapter"){base=srect(20,25,276,118,"#232329","#85858a",19);body=srect(38,42,242,83,"#17191d","#303b41",9)+stxt(53,67,"MEAN WELL",18,"#e8ebea")+stxt(53,87,"GST60A12-P1J",13,"#bcc9c9")+stxt(53,105,"OUTPUT: 12V --- 5A",12,"#b6c0c1")+'<path d="M 19 82 C -7 60 -8 42 -4 29" stroke="#1e1d20" stroke-width="10" fill="none"/>'+'<path d="M 296 84 C 332 84 334 70 345 71" stroke="#202326" stroke-width="10" fill="none"/>'+stxt(27,155,"FUENTE EXTERNA / BANCO",12,"#d9b49d");}
- else if(kind==="laptop"){base=srect(10,16,300,151,"#34353b","#9b9c9b",11);body=srect(25,29,270,123,"#14171c","#737b83",5);for(var row=0;row<5;row++){for(var col=0;col<13;col++){body+=srect(33+col*19,36+row*15,15,11,(row+col)%6===0?"#38404c":"#242933","#5a6069",2);}}body+=srect(120,117,84,28,"#424652","#a1a5ac",5)+stxt(32,162,"DELL VOSTRO 3405",10,"#d7d7d9");}
- else if(kind==="keyboard"){base=srect(13,13,294,146,"#24222c","#8d8290",12);body="";for(var i=0;i<5;i++)for(var j=0;j<12;j++){var x=25+j*18.4,y=27+i*22;body+=srect(x,y,15.6,17,(j+i)%11===0?"#493541":"#33323d","#7b6e7f",3);}body+=srect(247,43,42,90,"#141921","#777b84",5)+stxt(40,148,"TECLADO + TRACKPAD",10,"#d8b7ca");}
- else if(kind==="switches"){base=srect(6,5,308,168,"#302a33","#9b8190",12);body=stxt(18,24,"PANEL 6 PALANCAS + 6 BASCULANTES",12,"#e8cbdb");for(var j=0;j<6;j++){var x=26+j*46;body+='<circle cx="'+(x+12)+'" cy="64" r="18" fill="#46454e" stroke="#ada4ac" stroke-width="4"/><circle cx="'+(x+12)+'" cy="64" r="7" fill="#d1cdd1"/><path d="M '+(x+12)+' 64 l 8 -19" stroke="#dedee0" stroke-width="6" stroke-linecap="round"/>'+srect(x-2,101,40,43,"#171b24","#69616c",5)+srect(x+5,106,25,15,"#3c4853","#848c98",3);}body+=stxt(19,160,"SWITCHES SIN CABLEAR",11,"#dcbdc9");}
- else if(kind==="fuse"){base=srect(8,31,304,119,"#493b2c","#987b5b",11);body=srect(24,69,182,52,"#181b20","#b5a59c",14)+srect(42,80,148,31,"#bac0c5","#eee",15)+srect(42,80,20,31,"#afb2b7","#fafafa",3)+srect(171,80,20,31,"#afb2b7","#fafafa",3)+stxt(71,101,"2A 5×20",13,"#3c3b40")+srect(231,65,61,65,"#181b20","#a69a91",7)+'<circle cx="261" cy="96" r="20" fill="#0e0f11" stroke="#dfc69d" stroke-width="5"/>'+stxt(40,54,"FUSIBLE / JACK",14,"#e8d5bb");}
- else if(kind==="fan"){base=srect(22,4,276,170,"#232630","#727987",14)+srect(36,17,250,145,"#14151c","#727c8b",10);body="";for(var i=0;i<6;i++){body+='<ellipse cx="160" cy="91" rx="30" ry="65" transform="rotate('+(i*60)+' 160 91)" fill="#363e4c" stroke="#5b6573" stroke-width="3"/>';}body+='<circle cx="160" cy="91" r="26" fill="#22242c" stroke="#8f9097" stroke-width="5"/>'+stxt(125,94,"FAN",16,"#b7bfc8");}
- else if(kind==="lora"){base=pcb("#155445","#419b70")+pinsTop(false)+pinsTop(true);body=srect(80,33,167,120,"#bbc5c1","#e8efe5",5)+srect(91,43,145,96,"#929e9b","#bcc6c3",4)+stxt(103,66,"LoRa RADIO",16,"#263d39")+stxt(104,88,"RF FRONTEND",11,"#284c42")+srect(21,60,44,39,"#c5b887","#d4d0b7",5)+'<circle cx="43" cy="79" r="12" fill="#151c20" stroke="#e0d6a4" stroke-width="6"/>'+stxt(257,131,"ANT",10,"#cfe8d5");}
- else if(kind==="sdr"){base=srect(25,44,247,95,"#2c2c35","#92909a",11);body=srect(42,56,209,72,"#141822","#72737e",4)+stxt(71,86,"RTL-SDR",24,"#d6cedd")+stxt(72,110,"USB RADIO",12,"#969aae")+srect(0,71,28,35,"#b9c3c9","#d8dde0",4)+srect(271,72,35,34,"#a6abae","#d4dcdd",10);}
- else if(kind==="antenna"){base=srect(90,144,140,22,"#26282e","#bbb6b6",5);body="";for(var k=0;k<3;k++){body+='<path d="M '+(108+k*48)+' 144 Q '+(95+k*48)+' 85 '+(94+k*48)+' 18" stroke="#17191e" stroke-width="10" fill="none"/><path d="M '+(108+k*48)+' 144 Q '+(95+k*48)+' 85 '+(94+k*48)+' 18" stroke="#777e86" stroke-width="2" fill="none"/>'+srect(97+k*48,126,22,27,"#bcbec0","#eeeeea",5);}body+=stxt(97,161,"SMA",10,"#dcdfe3");}
- else if(kind==="display"){base=pcb("#27406d","#758dbe");body=srect(38,20,243,137,"#080b12","#91a2b7",9)+srect(52,32,213,112,"#192033","#455876",5)+srect(62,48,193,20,"#452943","#9b5883",3)+stxt(82,63,"LILITH",16,"#efbdd7")+srect(65,80,75,49,"#314756","#728ea0",6)+srect(150,80,101,49,"#253a4c","#728ea0",6)+stxt(162,110,"CYD",22,"#e0b0be");}
- else if(kind==="ports"){base=srect(12,9,296,163,"#252431","#9c889c",11);body=stxt(27,30,"INTERFACES AUX",15,"#dec3d2");for(var k=0;k<4;k++){body+=srect(23+k*69,51,53,33,"#101820","#b4a7a9",4)+srect(29+k*69,59,42,16,"#53657c","#6f94b6",2);}for(var v=0;v<4;v++){body+='<circle cx="'+(53+v*67)+'" cy="125" r="16" fill="#090d13" stroke="#b1a295" stroke-width="5"/>';}body+=stxt(38,158,"USB / DC / GPIO / LAB",12,"#ccbdc9");}
- else if(kind==="toggle"){base=srect(42,13,236,151,"#2b2730","#aaa3a9",16);body='<circle cx="160" cy="81" r="51" fill="#45404b" stroke="#a69faa" stroke-width="9"/><circle cx="160" cy="81" r="19" fill="#dad5d3" stroke="#8c838a" stroke-width="4"/><path d="M 162 77 l 34 -43" stroke="#e0ddda" stroke-width="15" stroke-linecap="round"/>'+stxt(126,151,id.toUpperCase(),22,"#dfb6c7");}
- else if(kind==="mux"||kind==="dcdc"){base=pcb("#293c50","#788fa3");body=stxt(35,43,kind==="mux"?"SOURCE SELECTOR":"DC-DC DELL",16,"#d6ebfc")+centralChip(71,59,125,73,kind==="mux"?"POWER MUX":"DC CONVERTER")+srect(234,64,41,65,"#abb8c2","#e4dfea",5)+stxt(223,152,kind==="mux"?"A / B":"DC-IN",12,"#cfdcde");}
- else if(kind==="usb"){base=srect(16,36,273,108,"#292a30","#8b929c",9);body=stxt(39,77,"USB HUB",22,"#c6d0d6");for(var k=0;k<3;k++)body+=srect(35+k*82,97,60,28,"#151a20","#929ca5",4);body+=srect(288,82,30,29,"#a5afb7","#f0e8e8",3);}
- else if(kind==="case"){base=srect(12,12,295,151,"#25212a","#8e838a",18);body=srect(24,24,271,126,"#181620","#4b4650",12)+stxt(53,72,"EASY 16″",26,"#cfb1bf")+stxt(52,96,"40.6 × 33 × 17.4",13,"#b8a4b1")+stxt(55,118,"MEDIDAS EXTERIORES",10,"#9c879c");}
- else {base=pcb("#223b47","#79a0a8");body=centralChip(74,52,170,80,id.toUpperCase());}
- a='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" preserveAspectRatio="none" role="img" aria-label="'+esc(id)+' ilustración vectorial referencial">'+base+body+'</svg>';
- return a;
+const items=raw.map(r=>({id:r[0],name:r[1],floor:r[2],status:r[3],kind:r[4],box:r[5],v:r[6],io:r[7],desc:r[8],next:r[9],links:r[10].split(","),doc:r[2]==="power"?"21-portable-power-architecture.md":"22-lilith-build-status-2026-10-17.md"}));
+const index=Object.fromEntries(items.map(i=>[i.id,i]));
+const bench={esp32:[-3.7,-1.1,2.24,1.32],ina:[-.77,-1.1,2.1,1.35],oled:[2.38,-1.0,1.45,1.1],r1:[-2.55,1.35,.87,.4],r2:[-.32,1.35,.87,.4],r3:[1.91,1.35,.87,.4]};
+const circuit={meanwell:[-4.45,-2.1,1.5,.95],fuse:[-2.62,-2.1,1.07,.87],sw0:[-1.18,-2.1,.81,.87],xl:[.08,-2.05,1.58,1.18],tps1:[2.23,-2.14,1.06,.91],tps2:[3.65,-2.14,1.04,.91],sw1:[.14,.27,.80,.79],ina:[-1.05,.59,1.54,1.10],esp32:[-4.0,.70,1.89,1.05],oled:[2.32,.60,1.58,1.02]};
+const benchN=[["esp32","ina","power","3V3 fila 5",true],["esp32","oled","power","3V3",true],["esp32","ina","ground","GND fila 2",true],["esp32","ina","i2c","GPIO8 SDA fila 10",true],["esp32","ina","i2c","GPIO9 SCL fila 15",true],["esp32","oled","i2c","I²C GPIO8/9",true],["ina","r1","power","VIN1−",true],["ina","r2","power","VIN2−",true],["ina","r3","power","VIN3−",true]];
+const designN=[["meanwell","fuse","power","12 V",false],["fuse","sw0","power","12 V",false],["sw0","xl","power","12 V",false],["xl","tps1","power","5 V",false],["xl","tps2","power","5 V",false],["xl","sw1","power","5 V",false],["tps1","ina","power","CH1",false],["tps2","ina","power","CH2",false],["sw1","ina","power","CH3",false],["ina","esp32","power","SUP 5 V",false],["esp32","ina","i2c","GPIO8/9 probado",true],["esp32","oled","i2c","GPIO8/9 probado",true],["esp32","ina","ground","GND banco",true]];
+const S={mode:"model",floor:"all",exploded:true,status:"all",q:"",selected:"esp32",net:"all",yaw:-.55,pitch:.62,zoom:1};
+let W=0,H=0,dpr=1,scale=1,hits=[],lab=[],scheduled=false,drag=false,startDist=0;
+const ptr=new Map();
+const lim=(v,a,b)=>Math.max(a,Math.min(b,v));
+function proj(x,y,z){let co=Math.cos(S.yaw),si=Math.sin(S.yaw),p=Math.sin(S.pitch),q=Math.cos(S.pitch),u=x*co-y*si,v=x*si+y*co,depth=v*q+z*p,f=25/(25-depth);return{x:W*.5+u*scale*f,y:H*.54+(v*p-z*q)*scale*f};}
+function poly(pts,fill,stroke,width=1){let a=pts.map(v=>proj(...v));g.beginPath();g.moveTo(a[0].x,a[0].y);a.slice(1).forEach(v=>g.lineTo(v.x,v.y));g.closePath();if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=width;g.stroke();}return a;}
+function path(pts,color="#cdb2be",w=1,dash=[]){let a=pts.map(v=>proj(...v));g.beginPath();g.moveTo(a[0].x,a[0].y);a.slice(1).forEach(v=>g.lineTo(v.x,v.y));g.strokeStyle=color;g.lineWidth=w;g.setLineDash(dash);g.stroke();g.setLineDash([]);}
+function block(x,y,z,w,d,h,col){poly([[x,y,z],[x+w,y,z],[x+w,y,z+h],[x,y,z+h]],"#14141b","#4a4251");poly([[x+w,y,z],[x+w,y+d,z],[x+w,y+d,z+h],[x+w,y,z+h]],"#14141b","#4a4251");poly([[x,y+d,z],[x+w,y+d,z],[x+w,y+d,z+h],[x,y+d,z+h]],"#14141b","#4a4251");return poly([[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]],col,"#8b7d8b");}
+function ring(x,y,z,r,col,fill){let p=[];for(let i=0;i<22;i++){let a=i*Math.PI*2/22;p.push([x+Math.cos(a)*r,y+Math.sin(a)*r,z]);}poly(p,fill,col,1.4);}
+function text(x,y,z,t,size=8,color="#e5dce7"){let p=proj(x,y,z);g.font="700 "+size+"px 'Space Grotesk',sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillStyle=color;g.fillText(t,p.x,p.y);g.textAlign="left";}
+function light(x,y,z,c){let p=proj(x,y,z);g.beginPath();g.arc(p.x,p.y,Math.max(2.0,scale*.05),0,Math.PI*2);g.fillStyle=c;g.fill();}
+function paintBoard(m,b,z){let [x,y,w,d]=b,k=m.kind,base=z+.08;let colorsBoard={esp32:"#173d3b",ina:"#653881",oled:"#1b2a3e",xl:"#1c5d92",tps:"#216a53",laptop:"#474752",keyboard:"#33323d",switches:"#33313e",battery:"#42514d",lora:"#235d47",fuse:"#4e4238",usb:"#333b45",resistor:"#725444",antenna:"#36303c",fan:"#343941",screen:"#263d62",ports:"#394053"};let area=block(x,y,z,w,d,.075,colorsBoard[k]||"#284d58");
+let add=(a,b,c,dd,h,color)=>block(x+a*w,y+b*d,base,c*w,dd*d,h,color),loc=(a,b,h=.1)=>[x+a*w,y+b*d,base+h];
+if(k==="laptop"||k==="keyboard"){add(.04,.06,.91,.84,.05,"#343a43");for(let i=0;i<5;i++)for(let j=0;j<13;j++)add(.08+j*.057,.12+i*.116,.044,.086,.018,i+j===15?"#4c3b4f":"#242a34");add(.34,.73,.28,.11,.01,"#929098");}
+else if(k==="switches"){for(let i=0;i<6;i++){let xx=x+w*(.08+i*.15),yy=y+d*.29;ring(xx,yy,base+.08,w*.031,"#c1c1c7","#494852");path([[xx,yy,base+.12],[xx+.06,yy-.06,base+.34]],"#e1dadf",3);}for(let j=0;j<6;j++)add(.045+j*.15,.61,.12,.20,.07,"#1a202b");}
+else if(k==="esp32"){for(let i=0;i<10;i++){add(.07+i*.082,.00,.047,.07,.01,"#d2ac72");add(.07+i*.082,.93,.047,.07,.01,"#d2ac72");}add(.02,.38,.16,.24,.12,"#bcc7c9");add(.26,.14,.61,.73,.14,"#b6c3c6");add(.38,.32,.38,.35,.10,"#303b45");text(...loc(.56,.49,.28),"S3",9);}
+else if(k==="ina"){for(let i=0;i<3;i++){let xx=.10+i*.29;add(xx,.33,.23,.33,.10,"#e6e0dc");text(...loc(xx+.115,.50,.13),"R100",8,"#33313c");}for(let i=0;i<8;i++)add(.07+i*.11,.02,.04,.07,.01,"#d4ab76");text(...loc(.48,.18),"INA3221",8);}
+else if(k==="xl"){let xx=x+w*.35,yy=y+d*.54;ring(xx,yy,base+.14,w*.17,"#d5a678","#424b54");ring(xx,yy,base+.16,w*.085,"#bb8856","#2c3541");add(.58,.21,.18,.29,.22,"#283846");add(.79,.20,.14,.37,.26,"#3a4754");add(.58,.67,.13,.18,.13,"#2c7fb8");add(.79,.67,.13,.18,.13,"#2c7fb8");text(...loc(.48,.11),"XL4015",8);}
+else if(k==="tps"){for(let i=0;i<3;i++){add(.10+i*.25,.10,.15,.20,.02,"#cfab76");add(.10+i*.25,.70,.15,.20,.02,"#cfab76");}add(.75,.40,.16,.17,.14,"#121620");text(...loc(.43,.51),"SMD",7);}
+else if(k==="oled"||k==="screen"){add(.09,.10,.82,.79,.16,"#080e1a");add(.16,.18,.68,.61,.02,"#092036");text(...loc(.5,.42,.21),"LILITH",9,"#d6a6c2");text(...loc(.5,.64,.21),k==="oled"?"0x3C":"CYD",8,"#a6b2d7");}
+else if(k==="battery"){add(.04,.06,.92,.87,.22,"#3e5350");for(let i=0;i<4;i++)add(.10+i*.215,.18,.17,.65,.14,i%2?"#83948b":"#6e847a");text(...loc(.50,.49,.32),"4S",8,"#22342e");}
+else if(k==="fuse"){add(.11,.25,.62,.45,.13,"#20242c");add(.24,.36,.38,.22,.08,"#d0cccc");ring(...loc(.85,.47,.13),w*.09,"#d0b18b","#22242a");}
+else if(k==="antenna"){for(let i=0;i<3;i++){let p=loc(.20+i*.28,.25,.1);path([p,[p[0],p[1],p[2]+.78]],"#c6c4c6",2.6);}}
+else if(k==="fan"){add(.06,.08,.88,.84,.07,"#1c2732");ring(...loc(.50,.49,.08),w*.35,"#b3b5bc","#394251");for(let i=0;i<6;i++){let a=i*Math.PI/3;path([loc(.50,.49,.12),loc(.50+.30*Math.cos(a),.49+.30*Math.sin(a),.12)],"#8494a1",3);}}
+else if(k==="resistor"){add(.27,.34,.47,.30,.08,"#dbc4a8");for(let i=0;i<3;i++)add(.33+i*.12,.35,.05,.29,.013,i===1?"#24232c":"#815537");}
+else if(k==="lora"){add(.13,.18,.60,.64,.12,"#c1c8c6");add(.22,.27,.42,.40,.09,"#38464b");ring(...loc(.82,.50,.11),w*.085,"#ddbc87","#20363a");}
+else if(k==="usb"){add(.08,.19,.80,.60,.13,"#242b36");add(.82,.37,.17,.24,.11,"#d2d1d1");}
+else if(k==="ports"){for(let i=0;i<3;i++){add(.13,.10+i*.27,.57,.18,.12,"#141e2b");ring(...loc(.84,.20+i*.27,.09),w*.09,"#d5b38a","#1d202a");}}
+else{add(.10,.14,.81,.74,.045,"#203443");add(.29,.30,.41,.39,.12,"#141b25");for(let i=0;i<5;i++)add(.10+i*.17,.03,.06,.09,.015,"#dab27e");}
+light(x+w*.88,y+d*.13,base+.20,colors[m.status]);
+if(S.selected===m.id)poly([[x,y,base+.2],[x+w,y,base+.2],[x+w,y+d,base+.2],[x,y+d,base+.2]],null,"#f8cee2",2.4);
+hit.push({id:m.id,poly:area});let q=proj(x+w/2,y+d/2,base+.22);lab.push({id:m.id,x:q.x,y:q.y,t:m.name,c:colors[m.status],selected:S.selected===m.id});
 }
-function resistorSVG(id){
- return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" preserveAspectRatio="none" role="img" aria-label="Resistencia de prueba 100 ohm"><path d="M 10 92 H 106 M 213 92 H 309" stroke="#c6c9c9" stroke-width="9"/><rect x="96" y="60" width="128" height="65" rx="30" fill="#d8c0a0" stroke="#b18d6c" stroke-width="4"/><path d="M 121 62 V 124" stroke="#734426" stroke-width="16"/><path d="M 155 62 V 124" stroke="#161618" stroke-width="15"/><path d="M 190 62 V 124" stroke="#734426" stroke-width="14"/><text x="119" y="152" fill="#dec5a1" font-size="23" font-family="monospace">100 Ω</text></svg>';
+function floor(f,z){block(-5,-3.35,z,10,6.7,.15,"#332b3d99");for(let i=-4;i<=4;i++)path([[i,-3.3,z+.16],[i,3.3,z+.16]],"#d9a8bc16",.5);let a=proj(-4.4,-3.5,z+.23);lab.push({id:"floor",x:a.x,y:a.y,t:f[1],c:"#ab8fa2",selected:false});}
+function drawingModel(){for(const f of lv){if(S.floor!=="all"&&S.floor!==f[0])continue;const idx=lv.indexOf(f),z=S.floor==="all"?.11+idx*(S.exploded?.98:.18):.60;floor(f,z);
+ const group=items.filter(m=>m.floor===f[0]&&!["sw0","sw1"].includes(m.id));
+ group.sort((a,b)=>(a.box[0]+a.box[2]/2)*Math.sin(S.yaw)+(a.box[1]+a.box[3]/2)*Math.cos(S.yaw)-(b.box[0]+b.box[2]/2)*Math.sin(S.yaw)-(b.box[1]+b.box[3]/2)*Math.cos(S.yaw));
+ group.forEach(m=>paintBoard(m,m.box,z+.19));
+ if(f[0]==="panel"){let p=index.switches.box;for(let i=0;i<2;i++){let x=p[0]+p[2]*(.05+i*.15),y=p[1]+p[3]*.15,z1=z+.40;hit.push({id:i?"sw1":"sw0",poly:[[x,y,z1],[x+.35,y,z1],[x+.35,y+.36,z1],[x,y+.36,z1]].map(q=>proj(...q))});}}
+}}
+function wires(nets,placement,z){nets.forEach(([aa,bb,kind,label,ok],i)=>{if(S.net!=="all"&&kind!==S.net)return;let a=placement[aa],b=placement[bb];if(!a||!b)return;const p=[a[0]+a[2]/2,a[1]+a[3]/2,z],q=[b[0]+b[2]/2,b[1]+b[3]/2,z],mid=[(p[0]+q[0])/2,(p[1]+q[1])/2,z+.11+(i%4)*.11];
+ path([p,[(p[0]+mid[0])/2,(p[1]+mid[1])/2,mid[2]],mid,[(q[0]+mid[0])/2,(q[1]+mid[1])/2,mid[2]],q],colors[kind],S.selected===aa||S.selected===bb?3.6:2.4,ok?[]:[6,5]);
+ if(S.selected===aa||S.selected===bb||S.net!=="all"){let sp=proj(...mid);g.font="600 9px 'DM Sans'";g.fillStyle="#201828ee";g.fillRect(sp.x-56,sp.y-15,112,18);g.fillStyle="#f4e2ed";g.textAlign="center";g.fillText(label.slice(0,26),sp.x,sp.y-3);g.textAlign="left";}
+});}
+function diagram(which){let p=which==="bench"?bench:circuit,z=.19;floor(["bench",which==="bench"?"BANCO REAL 3,3 V":"ARQUITECTURA V0.1"],z);for(const [id,b] of Object.entries(p))paintBoard(index[id],b,z+.15);wires(which==="bench"?benchN:designN,p,z+.40);}
+function labels(){let used=[];const small=W<560;let arr=lab.slice().sort((a,b)=>Number(b.selected)-Number(a.selected));for(const t of arr){if(S.mode==="model"&&S.floor==="all"&&!t.selected&&!["esp32","ina","xl","oled","dell","battery","switches","tps1"].includes(t.id))continue;let w=Math.min(small?145:200,18+t.t.length*(small?5.4:6)),h=22,x=lim(t.x-w/2,4,W-w-4),y=lim(t.y-36,42,H-92);
+ if(!t.selected&&used.some(r=>x<r.x+r.w+4&&x+w>r.x-4&&y<r.y+r.h+4&&y+h>r.y-4))continue;used.push({x,y,w,h});g.fillStyle=t.selected?"#5d3950f2":"#201827e5";g.strokeStyle=t.selected?"#eec4d7":"#745569";g.beginPath();g.roundRect(x,y,w,h,6);g.fill();g.lineWidth=1;g.stroke();g.fillStyle=t.c;g.beginPath();g.arc(x+9,y+11,3,0,Math.PI*2);g.fill();g.fillStyle="#f6e9f0";g.font="600 "+(small?9:10)+"px 'DM Sans'";g.textAlign="left";g.textBaseline="middle";g.fillText(t.t.length>(small?22:30)?t.t.slice(0,small?20:28)+"…":t.t,x+17,y+11);}g.textBaseline="alphabetic";}
+function draw(){scheduled=false;g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);let bg=g.createRadialGradient(W*.52,H*.50,10,W*.5,H*.49,Math.max(W,H)*.8);bg.addColorStop(0,"#423044");bg.addColorStop(.6,"#17131f");bg.addColorStop(1,"#0e0c16");g.fillStyle=bg;g.fillRect(0,0,W,H);g.strokeStyle="#dcb8c51a";for(let x=0;x<W;x+=30){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+ scale=Math.min(W/14.8,H/11.5)*1.17*S.zoom;hit=[];lab=[];if(S.mode==="model")drawingModel();else diagram(S.mode);labels();}
+function render(){if(!scheduled){scheduled=true;requestAnimationFrame(draw);}}
+function resize(){let r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;W=r.width;H=r.height;dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);render();}
+function inside(v,a){let ok=false;for(let i=0,j=a.length-1;i<a.length;j=i++){let p=a[i],q=a[j];if((p.y>v.y)!==(q.y>v.y)&&v.x<(q.x-p.x)*(v.y-p.y)/(q.y-p.y)+p.x)ok=!ok;}return ok;}
+function pick(v){for(let i=hit.length-1;i>=0;i--)if(inside(v,hit[i].poly))return hit[i].id;for(let i=hit.length-1;i>=0;i--){let a=hit[i].poly,p={x:a.reduce((s,v)=>s+v.x,0)/4,y:a.reduce((s,v)=>s+v.y,0)/4};if(Math.hypot(v.x-p.x,v.y-p.y)<(W<600?21:13))return hit[i].id;}return null;}
+function statusText(s){return s==="tested"?"PROBADO EN BANCO":s==="owned"?"COMPRADO / POR VERIFICAR":"PLANIFICADO / SIN PROBAR";}
+function select(id){if(!index[id])return;S.selected=id;if(id==="meanwell")S.mode="circuit";if(["r1","r2","r3"].includes(id))S.mode="bench";if(S.mode==="model"&&S.floor!=="all"&&index[id].floor!=="external")S.floor=index[id].floor;update();}
+function inventory(){let el=$("inventory");el.replaceChildren();let all=items.filter(m=>(S.status==="all"||m.status===S.status)&&(!S.q||(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q))&&(!["r1","r2","r3"].includes(m.id)||S.mode==="bench"));$("resultCount").textContent=all.length;
+ all.forEach(m=>{let b=document.createElement("button"),dot=document.createElement("i"),wrap=document.createElement("span"),n=document.createElement("b"),sub=document.createElement("small");b.className="inv-item"+(S.selected===m.id?" active":"");dot.className="state-dot "+m.status;n.textContent=m.name;sub.textContent=m.floor.toUpperCase();wrap.append(n,sub);b.append(dot,wrap);b.addEventListener("click",()=>select(m.id));el.append(b);});}
+function inspector(){let m=index[S.selected];if(!m)return;let el=$("inspectorBody");el.replaceChildren();let top=document.createElement("div");top.className="inspector-topblock";let p=document.createElement("div");p.className="inspect-code";p.textContent="LILITH / "+m.floor.toUpperCase()+" / "+m.id.toUpperCase();top.append(p);
+ let fig=document.createElement("div");fig.className="inspect-picture";let tile=document.createElement("div");tile.style.cssText="width:78%;height:60%;border:2px solid #b7a2b1;border-radius:9px;background:"+({ina:"#633583",xl:"#285f8a",esp32:"#235043",tps:"#2a6c56",oled:"#182c44"}[m.kind]||"#344b59")+";box-shadow:10px 12px 12px #0007;transform:rotate(-7deg);display:grid;place-items:center;text-align:center;font:700 15px 'Space Grotesk';padding:9px";tile.textContent=({ina:"INA3221 · R100 ×3",xl:"XL4015 · CC/CV",esp32:"ESP32-S3 · USB-C",tps:"TPS2553 · SOT-23-6",oled:"OLED · SH1106"}[m.kind]||m.name);fig.append(tile);top.append(fig);
+ let title=document.createElement("h3");title.className="inspect-title";title.textContent=m.name;top.append(title);
+ let badge=document.createElement("div");badge.className="inspect-state "+m.status;badge.textContent=statusText(m.status);top.append(badge);
+ let desc=document.createElement("p");desc.className="inspect-desc";desc.textContent=m.desc;top.append(desc);el.append(top);
+ let sect=document.createElement("section");sect.className="detail-section";let h=document.createElement("h4");h.textContent="ESPECIFICACIONES";sect.append(h);
+ [["TENSIÓN",m.v],["CONECTORES / DATOS",m.io],["ÁREA",m.floor.toUpperCase()]].forEach(([k,v])=>{let row=document.createElement("div");row.className="spec";let a=document.createElement("span"),b=document.createElement("b");a.textContent=k;b.textContent=v;row.append(a,b);sect.append(row);});el.append(sect);
+ sect=document.createElement("section");sect.className="detail-section";h=document.createElement("h4");h.textContent="SIGUIENTE PASO";sect.append(h);p=document.createElement("div");p.className="nextstep";p.textContent=m.next;sect.append(p);el.append(sect);
+ sect=document.createElement("section");sect.className="detail-section";h=document.createElement("h4");h.textContent="MÓDULOS RELACIONADOS";sect.append(h);let group=document.createElement("div");group.className="related-list";m.links.forEach(id=>{if(!index[id])return;let b=document.createElement("button");b.textContent=index[id].name;b.addEventListener("click",()=>select(id));group.append(b);});sect.append(group);el.append(sect);
+ p=document.createElement("div");p.className="detail-warning";p.textContent="Los dibujos son referenciales: no son fotografías de tus piezas ni planos CAD validados.";el.append(p);$("inspectorDoc").href=docs+m.doc;}
+function update(){
+ $("modeCrumb").textContent=S.mode==="model"?"MODELO 3D":S.mode==="bench"?"BANCO REAL":"CABLEADO";
+ $("viewTitle").innerHTML=(S.mode==="model"?"El interior, pieza por pieza":S.mode==="bench"?"Lo que ya funciona":"Conexiones y seguridad")+"<span>.</span>";
+ $("viewSubtitle").textContent=S.mode==="model"?"Gira con un dedo, pellizca para ampliar y toca los componentes.":S.mode==="bench"?"ESP32, OLED, INA3221 y tres resistencias independientes de 100 Ω.":"Las líneas discontinuas son rutas aún sin montar ni probar.";
+ $("floorCaption").innerHTML=(S.mode==="model"?(S.floor==="all"?"CUATRO NIVELES":lv.find(x=>x[0]===S.floor)?.[1]||"PISO"):(S.mode==="bench"?"BANCO REAL 3,3 V":"V0.1 PENDIENTE"))+"<small>"+(S.mode==="model"?(S.exploded?"DESPIECE · MEDIDAS ILUSTRATIVAS":"ENSAMBLADO · MEDIDAS ILUSTRATIVAS"):S.mode==="bench"?"ENSAYO COMPROBADO":"12 V → 5 V NO CONECTADOS")+"</small>";
+ $("sceneInfoText").textContent=S.mode==="model"?"GIRAR / AMPLIAR / INSPECCIONAR":S.mode==="bench"?"I²C 0x40 / 0x3C · GPIO8/9":"RUTAS FUTURAS Y DATOS PROBADOS";
+ $("netFilter").hidden=S.mode==="model";$("explodeControls").style.display=S.mode==="model"&&S.floor==="all"?"flex":"none";
+ $("modeNav").querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===S.mode));
+ $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";});
+ $("statusFilters").querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("active",b.dataset.status===S.status));
+ $("netFilter").querySelectorAll("[data-net]").forEach(b=>b.classList.toggle("active",b.dataset.net===S.net));
+ $("assembledBtn").classList.toggle("active",!S.exploded);$("explodedBtn").classList.toggle("active",S.exploded);
+ $("selectedMiniText").textContent=index[S.selected]?.name||"";$("selectedMini").hidden=!(W<760);
+ inventory();inspector();render();
 }
-function benchBackground(){
- var holes="",tracks="";
- for(var row=0;row<28;row++){
-  var yy=76+row*16;
-  if(yy>530)break;
-  for(var col=0;col<42;col++){var xx=78+col*20;if(xx>900)break; if(col===20||col===21)continue;holes+='<circle cx="'+xx+'" cy="'+yy+'" r="3.3" fill="#a7a39d" stroke="#70706e" stroke-width=".5"/>';}
- }
- var markers=[[2,94],[5,144],[10,224],[15,304],[20,384],[25,464],[30,528]];
- markers.forEach(function(p){tracks+=stxt(16,p[1]+4,String(p[0]),13,"#b6a7a0");});
- return '<div class="bench-substrate" style="position:absolute;inset:32px 25px;background:linear-gradient(165deg,#e0ddd2,#9c9992);border-radius:14px;border:9px solid #484149;box-shadow:0 15px 35px #000b"></div>'+
- '<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 980 650">'+holes+tracks+
- '<path d="M 470 68 V 530" stroke="#5d5555" stroke-width="20" opacity=".32"/>'+
- '<path d="M 40 55 H 932" stroke="#c15467" stroke-width="4" opacity=".55"/>'+
- '<path d="M 40 585 H 932" stroke="#4066a3" stroke-width="4" opacity=".55"/>'+
- stxt(70,45,"V0.1 / PROTOBOARD · DISTRIBUCIÓN ILUSTRATIVA",15,"#453846")+
- stxt(62,613,"FILAS REALES REGISTRADAS: 2, 5, 10, 15, 20/25, 30/35, 40/45",13,"#42343f")+'</svg>';
-}
-function makeFloor(key){
- var entry=LAYERS.filter(function(x){return x.id===key;})[0];
- var floor=document.createElement("div");floor.className="floor";floor.dataset.floor=key;floor.style.setProperty("--z","0px");
- var head=document.createElement("div");head.className="floor-name";head.textContent=entry.title;var small=document.createElement("small");small.textContent=entry.subtitle;head.append(small);floor.append(head);
- var btn=document.createElement("button");btn.className="floor-button";btn.textContent="INSPECCIONAR PISO ↗";btn.addEventListener("click",function(e){e.stopPropagation();state.layer=key;render();});floor.append(btn);
- var inner=document.createElement("div");inner.className="floor-inner";floor.append(inner);stack.append(floor);return floor;
-}
-var floors={};LAYERS.forEach(function(l){floors[l.id]=makeFloor(l.id);});
-function makeHardware(id,placement,container){
- var m=part[id],btn=document.createElement("button");btn.className="hardware";btn.type="button";btn.dataset.part=id;btn.style.left=placement.x+"px";btn.style.top=placement.y+"px";btn.style.width=placement.w+"px";btn.style.height=placement.h+"px";btn.title=m.name;
- btn.innerHTML=boardSVG(m.kind,id)+'<span class="state-light '+m.status+'"></span><span class="hard-label">'+esc(m.name)+'</span>';
- btn.addEventListener("click",function(e){e.stopPropagation();state.selected=id;if(state.mode==="physical"&&state.layer!=="all"&&m.floor!==state.layer)state.layer=m.floor;render();});
- container.append(btn);return btn;
-}
-items.forEach(function(m){makeHardware(m.id,m,floors[m.floor].querySelector(".floor-inner"));});
-var benchLayer=document.createElement("div");benchLayer.className="floor bench-floor";benchLayer.dataset.floor="bench";benchLayer.innerHTML=benchBackground();stack.append(benchLayer);
-benchItems.forEach(function(p){if(part[p.id])makeHardware(p.id,p,benchLayer);else{
- var b=document.createElement("button");b.className="hardware";b.type="button";b.dataset.part=p.id;b.style.left=p.x+"px";b.style.top=p.y+"px";b.style.width=p.w+"px";b.style.height=p.h+"px";b.innerHTML=resistorSVG(p.id)+'<span class="state-light tested"></span><span class="hard-label">'+p.id.toUpperCase()+' · 100 Ω</span>';
- b.addEventListener("click",function(e){e.stopPropagation();state.selected=p.id;render();});benchLayer.append(b);
-}});
-var wiringLayer=document.createElement("div");wiringLayer.className="floor wiring-floor";wiringLayer.dataset.floor="wiring";wiringLayer.innerHTML='<div class="floor-name">ARQUITECTURA 5 V · NO CABLEADA<small>RUTAS PREVISTAS / CABLES DISCONTINUOS</small></div>';stack.append(wiringLayer);
-diagramItems.forEach(function(p){makeHardware(p.id,p,wiringLayer);});
-function model(id){
- if(part[id])return part[id];
- var n={r1:1,r2:2,r3:3}[id]||1;
- return {id:id,name:"Resistencia "+n+" · 100 Ω",kind:"res",floor:"bench",status:"tested",tag:"CARGA DE ENSAYO / CH"+n,supply:"3,3 V · 100 Ω · ¼ W",io:"INA VIN"+n+"− → resistencia → GND",summary:"Resistencia real de prueba de 100 Ω, una por cada canal del INA3221. No es un módulo definitivo. A 5 V disiparía 0,25 W, justo su potencia nominal: no usarla como carga de 5 V.",next:"Conservar para banco 3,3 V y emplear resistencias de potencia de 10 W en ensayo 5 V.",related:["ina","esp"],doc:"22-lilith-build-status-2026-10-17.md"};
-}
-function statusName(s){return s==="tested"?"PROBADO EN BANCO":s==="owned"?"COMPRADO / SIN MONTAR":"PLANIFICADO / SIN PROBAR";}
-function isVisible(m){
- var statusOk=state.status==="all"||m.status===state.status;
- var q=(m.name+" "+m.tag+" "+m.summary+" "+m.io).toLowerCase();
- return statusOk&&(!state.query||q.indexOf(state.query)>=0);
-}
-function listItems(){
- var lst=$("inventory");lst.replaceChildren();
- var all=items.filter(isVisible);
- $("listCount").textContent=all.length;
- all.forEach(function(m){var btn=document.createElement("button");btn.className="inv-item"+(state.selected===m.id?" active":"");var led=document.createElement("i");led.className="state-dot "+m.status;var contents=document.createElement("span");var name=document.createElement("b");name.textContent=m.name;var desc=document.createElement("small");desc.textContent=m.tag;contents.append(name,desc);btn.append(led,contents);btn.addEventListener("click",function(){state.selected=m.id;if(state.mode==="bench"&&m.status!=="tested")state.mode="physical";if(state.mode==="physical")state.layer=m.floor;render();});lst.append(btn);});
- if(!all.length){var empty=document.createElement("p");empty.style.color="#b49da9";empty.textContent="Ningún módulo coincide con el filtro.";lst.append(empty);}
-}
-function inspector(){
- var m=model(state.selected),el=$("inspectorContent");el.replaceChildren();
- var top=document.createElement("div");top.className="inspect-topblock";
- var eye=document.createElement("div");eye.className="inspect-eyebrow";eye.textContent="LILITH / "+(m.floor||"BANCO").toUpperCase()+" / "+m.id.toUpperCase();top.append(eye);
- var preview=document.createElement("div");preview.className="inspect-preview";preview.innerHTML=m.kind==="res"?resistorSVG(m.id):boardSVG(m.kind,m.id);top.append(preview);
- var name=document.createElement("h3");name.className="inspect-name";name.textContent=m.name;top.append(name);
- var stat=document.createElement("div");stat.className="inspect-state "+m.status;stat.textContent=statusName(m.status);top.append(stat);
- var para=document.createElement("p");para.className="inspect-desc";para.textContent=m.summary;top.append(para);el.append(top);
- var sections=[
- {title:"DATOS FÍSICOS / ELÉCTRICOS",data:[["FUNCIÓN",m.tag],["ALIMENTACIÓN",m.supply],["SEÑALES / CONEXIONES",m.io],["UBICACIÓN",m.floor==="bench"?"Banco de pruebas":m.floor==="base"?"Nivel 4 · Base":m.floor==="power"?"Nivel 3 · Energía":m.floor==="modules"?"Nivel 2 · Electrónica":"Nivel 1 · Panel"]]},
- ];
- sections.forEach(function(s){var wrap=document.createElement("section");wrap.className="inspect-section";var h=document.createElement("h4");h.textContent=s.title;wrap.append(h);s.data.forEach(function(pair){var row=document.createElement("div");row.className="spec";var x=document.createElement("span");x.textContent=pair[0];var y=document.createElement("b");y.textContent=pair[1];row.append(x,y);wrap.append(row);});el.append(wrap);});
- var wrap=document.createElement("section");wrap.className="inspect-section";var h=document.createElement("h4");h.textContent="SIGUIENTE ACCIÓN REAL";wrap.append(h);var line=document.createElement("div");line.className="next";var i=document.createElement("i");i.textContent="01";var txt=document.createElement("span");txt.textContent=m.next;line.append(i,txt);wrap.append(line);el.append(wrap);
- wrap=document.createElement("section");wrap.className="inspect-section";h=document.createElement("h4");h.textContent="MÓDULOS RELACIONADOS";wrap.append(h);var grid=document.createElement("div");grid.className="connections";
- (m.related||[]).forEach(function(id){var other=part[id];if(!other)return;var b=document.createElement("button");b.className="conn";b.textContent=other.name;var s=document.createElement("small");s.textContent=statusName(other.status);b.append(s);b.addEventListener("click",function(){state.selected=other.id;if(state.mode==="bench")state.mode="physical";if(state.mode==="physical")state.layer=other.floor;render();});grid.append(b);});wrap.append(grid);el.append(wrap);
- var dis=document.createElement("div");dis.className="disclaimer";dis.textContent="La placa es una ilustración física referencial; no sustituye fotografía, huella CAD, comprobación de pines ni el esquema eléctrico aprobado.";el.append(dis);
- $("docLink").href=DOC+m.doc;
-}
-function currentMode(){
- var mode=state.mode;
- $("crumb").textContent=MODE_LABEL[mode];
- var title=mode==="physical"?"Lilith por dentro":mode==="bench"?"Lo que ya funciona":"Cada conexión importa";
- $("sceneTitle").textContent=title+".";var red=$("sceneTitle");var last=document.createElement("span");last.textContent=""; 
- $("sceneCaption").textContent=mode==="physical"?"Desarma el maletín por pisos, rota la maqueta y abre las placas para inspeccionar sus detalles.":mode==="bench"?"Reconstrucción lógica del ensayo ESP32 / OLED / INA · filas documentadas y tres resistencias.":"Arquitectura V0.1: líneas discontinuas = todavía no conectadas/probadas.";
- $("stageNote").textContent=mode==="bench"?"Cableado basado en filas y nets probados; distribución visual aproximada (no es una foto).":mode==="wiring"?"Ninguna rama TPS2553 o alimentación XL4015 ha sido verificada todavía.":"Dibujos físicos referenciales. Ni medidas ni posición de montaje están congeladas.";
- $("viewHint").textContent=mode==="bench"?"3 cargas reales de 100 Ω · sin reinicios reportados":mode==="wiring"?"Potencia 12/5 V pendiente · I²C probado en banco":"4 pisos · ESP32, OLED e INA3221 ya probados";
- $("extraHint").textContent=mode==="bench"?"I²C 0x40 / 0x3C · GPIO8 / GPIO9":mode==="wiring"?"Sólido = ensayo 3,3 V; discontinuo = plan":"Acerca y selecciona una placa para sus detalles";
- $("netTools").classList.toggle("is-hidden",mode==="physical");
- ["modeNav","layerNav"].forEach(function(area){$(area).querySelectorAll("button").forEach(function(b){var on=area==="modeNav"?b.dataset.mode===mode:b.dataset.layer===state.layer;b.classList.toggle("active",on);b.setAttribute("aria-pressed",on?"true":"false");});});
- $("layerNav").style.opacity=mode==="physical"?"1":".45";
- $("layerNav").style.pointerEvents=mode==="physical"?"auto":"none";
- $("statusFilters").querySelectorAll("button").forEach(function(b){b.classList.toggle("active",b.dataset.status===state.status);});
- $("netTools").querySelectorAll("button").forEach(function(b){b.classList.toggle("active",b.dataset.net===state.net);});
-}
-function setFloors(){
- var mode=state.mode;
- LAYERS.forEach(function(l){var f=floors[l.id],index=layerIndex[l.id],selected=state.layer==="all"||state.layer===l.id;
- var z=state.layer==="all"?index*105:0;
- f.style.setProperty("--z",z+"px");
- f.style.setProperty("--dx",state.layer==="all"?((index-1.5)*65)+"px":"0px");
- f.style.setProperty("--dy",state.layer==="all"?((1.5-index)*60)+"px":"0px");
- f.style.display=(mode==="physical"&&selected)?"block":"none";
- f.classList.toggle("dimmed",!selected);
- f.classList.toggle("selected",state.layer===l.id);
- f.querySelectorAll(".hardware").forEach(function(b){var p=part[b.dataset.part];b.classList.toggle("dimmed",!isVisible(p));b.classList.toggle("active",state.selected===p.id);});
- });
- benchLayer.style.display=mode==="bench"?"block":"none";
- wiringLayer.style.display=mode==="wiring"?"block":"none";
- [benchLayer,wiringLayer].forEach(function(f){f.style.setProperty("--z","0px");f.querySelectorAll(".hardware").forEach(function(b){b.classList.toggle("active",b.dataset.part===state.selected);});});
- overlay.style.setProperty("transform","translateZ(25px)");
- overlay.classList.toggle("enabled",mode!=="physical");
-}
-function wirePaths(){
- var nets=state.mode==="bench"?benchNets:designNets;
- if(state.mode==="physical"){overlay.replaceChildren();return;}
- var coords={},layout=state.mode==="bench"?benchItems:diagramItems;
- layout.forEach(function(x){coords[x.id]=[x.x+x.w/2,x.y+x.h/2];});
- overlay.replaceChildren();
- nets.forEach(function(net,n){
- var filter=state.net;if(filter!=="all"&&net[2]!==filter)return;
- var a=coords[net[0]],b=coords[net[1]];if(!a||!b)return;
- var type=net[2],color=COLORS[type];
- // Repeated parallel nets are separated for legibility.
- var parallel=nets.slice(0,n).filter(function(t){return t[0]===net[0]&&t[1]===net[1];}).length;
- var offset=parallel*13;
- var y1=a[1]+offset,y2=b[1]+offset;
- var mid=(a[0]+b[0])/2;
- var path=document.createElementNS("http://www.w3.org/2000/svg","path");
- path.setAttribute("d","M"+a[0]+" "+y1+" C"+mid+" "+y1+","+mid+" "+y2+","+b[0]+" "+y2);
- path.setAttribute("stroke",color);
- path.setAttribute("class",net[3]?"tested":"planned");
- path.setAttribute("opacity",state.selected===net[0]||state.selected===net[1]?"1":".73");
- overlay.append(path);
- if(filter!=="all"||state.selected===net[0]||state.selected===net[1]){
- var label=document.createElementNS("http://www.w3.org/2000/svg","text");label.setAttribute("x",mid);label.setAttribute("y",(y1+y2)/2-7);label.setAttribute("text-anchor","middle");label.textContent=net[4];overlay.append(label);
- }
- });
-}
-function updateCamera(){
- // React to container width but don't allow huge overflow.
- var area=viewport.getBoundingClientRect(),scale=Math.min((area.width-40)/1100,(area.height-70)/900,1);
- scale=Math.max(.29,scale);
- camera.style.setProperty("--rx",state.rx+"deg");
- camera.style.setProperty("--rz",state.rz+"deg");
- camera.style.setProperty("--scale",scale*state.zoom);
- $("zoomValue").textContent=Math.round(state.zoom*100)+"%";
- $("orbitValue").textContent="ÓRBITA "+Math.round(state.rx)+"° / "+Math.round(state.rz)+"°";
-}
-function render(){
- currentMode();setFloors();listItems();inspector();wirePaths();updateCamera();
-}
-$("modeNav").addEventListener("click",function(e){var b=e.target.closest("[data-mode]");if(!b)return;state.mode=b.dataset.mode;if(state.mode==="bench")state.selected="ina";if(state.mode==="wiring"){state.selected="buck";state.net="all";}render();});
-$("layerNav").addEventListener("click",function(e){var b=e.target.closest("[data-layer]");if(!b||state.mode!=="physical")return;state.layer=b.dataset.layer;render();});
-$("statusFilters").addEventListener("click",function(e){var b=e.target.closest("[data-status]");if(!b)return;state.status=b.dataset.status;render();});
-$("netTools").addEventListener("click",function(e){var b=e.target.closest("[data-net]");if(!b)return;state.net=b.dataset.net;render();});
-$("searchInput").addEventListener("input",function(e){state.query=e.target.value.trim().toLowerCase();render();});
-$("goBench").addEventListener("click",function(){state.mode="bench";state.net="all";state.selected="ina";render();stage.scrollIntoView({behavior:"smooth",block:"center"});});
-$("zoomIn").addEventListener("click",function(){state.zoom=Math.min(1.85,state.zoom+.12);updateCamera();});
-$("zoomOut").addEventListener("click",function(){state.zoom=Math.max(.55,state.zoom-.12);updateCamera();});
-$("resetCamera").addEventListener("click",function(){state.rx=54;state.rz=-25;state.zoom=1;updateCamera();});
-viewport.addEventListener("wheel",function(e){e.preventDefault();state.zoom=Math.max(.55,Math.min(1.85,state.zoom+(e.deltaY>0?-.09:.09)));updateCamera();},{passive:false});
-var drag=null;
-viewport.addEventListener("pointerdown",function(e){if(e.target.closest(".hardware,.floor-button"))return;drag={x:e.clientX,y:e.clientY,rx:state.rx,rz:state.rz};viewport.setPointerCapture(e.pointerId);viewport.classList.add("dragging");});
-viewport.addEventListener("pointermove",function(e){if(!drag)return;state.rx=Math.max(13,Math.min(80,drag.rx-(e.clientY-drag.y)*.2));state.rz=drag.rz+(e.clientX-drag.x)*.27;updateCamera();});
-["pointerup","pointercancel","lostpointercapture"].forEach(function(t){viewport.addEventListener(t,function(){drag=null;viewport.classList.remove("dragging");});});
-window.addEventListener("resize",updateCamera);
-$("moduleCount").textContent=items.length;
-$("testedCount").textContent=String(items.filter(function(m){return m.status==="tested";}).length).padStart(2,"0");
-render();
+let dragMoved=false,lastPinch=0;
+const activeTouches=new Map(),at=e=>{let r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+canvas.addEventListener("pointerdown",e=>{let p=at(e);canvas.setPointerCapture(e.pointerId);activeTouches.set(e.pointerId,{...p,start:p});dragMoved=false;lastPinch=0;canvas.classList.add("dragging");});
+canvas.addEventListener("pointermove",e=>{if(!activeTouches.has(e.pointerId))return;let a=activeTouches.get(e.pointerId),p=at(e),dx=p.x-a.x,dy=p.y-a.y;if(Math.hypot(p.x-a.start.x,p.y-a.start.y)>7)dragMoved=true;a.x=p.x;a.y=p.y;
+ if(activeTouches.size===1){S.yaw+=dx*.008;S.pitch=lim(S.pitch-dy*.006,.20,1.28);}
+ if(activeTouches.size===2){let s=[...activeTouches.values()],d=Math.hypot(s[0].x-s[1].x,s[0].y-s[1].y);if(lastPinch)S.zoom=lim(S.zoom*d/lastPinch,.55,2.4);lastPinch=d;}render();});
+canvas.addEventListener("pointerup",e=>{let a=activeTouches.get(e.pointerId);if(a&&!dragMoved&&activeTouches.size===1){let id=pick(at(e));if(id)select(id);}activeTouches.delete(e.pointerId);if(!activeTouches.size)canvas.classList.remove("dragging");});
+["pointercancel","lostpointercapture"].forEach(k=>canvas.addEventListener(k,e=>{activeTouches.delete(e.pointerId);if(!activeTouches.size)canvas.classList.remove("dragging");}));
+canvas.addEventListener("wheel",e=>{e.preventDefault();S.zoom=lim(S.zoom+(e.deltaY>0?-.09:.09),.55,2.4);render();},{passive:false});
+$("modeNav").addEventListener("click",e=>{let b=e.target.closest("[data-mode]");if(!b)return;S.mode=b.dataset.mode;S.selected=S.mode==="bench"?"ina":S.mode==="circuit"?"xl":"esp32";update();});
+$("floorNav").addEventListener("click",e=>{let b=e.target.closest("[data-floor]");if(!b||S.mode!=="model")return;S.floor=b.dataset.floor;update();});
+$("statusFilters").addEventListener("click",e=>{let b=e.target.closest("[data-status]");if(!b)return;S.status=b.dataset.status;update();});
+$("netFilter").addEventListener("click",e=>{let b=e.target.closest("[data-net]");if(!b)return;S.net=b.dataset.net;update();});
+$("searchInput").addEventListener("input",e=>{S.q=e.target.value.trim().toLowerCase();inventory();});
+$("assembledBtn").addEventListener("click",()=>{S.exploded=false;update();});$("explodedBtn").addEventListener("click",()=>{S.exploded=true;update();});
+$("zoomIn").addEventListener("click",()=>{S.zoom=lim(S.zoom+.13,.55,2.4);render();});$("zoomOut").addEventListener("click",()=>{S.zoom=lim(S.zoom-.13,.55,2.4);render();});
+$("resetCamera").addEventListener("click",()=>{S.yaw=-.55;S.pitch=.62;S.zoom=1;render();});
+$("openBench").addEventListener("click",()=>{S.mode="bench";S.selected="ina";update();$("viewer").scrollIntoView({behavior:"smooth",block:"center"});});
+$("mobileInventoryToggle").addEventListener("click",()=>{let yes=$("inventorySection").classList.toggle("open");$("mobileInventoryToggle").setAttribute("aria-expanded",String(yes));});
+$("openInspector").addEventListener("click",()=>$("inspector").scrollIntoView({behavior:"smooth",block:"start"}));
+$("moduleTotal").textContent=items.length-3;
+new ResizeObserver(resize).observe(canvas);update();resize();
 })();

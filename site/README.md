@@ -1,31 +1,29 @@
-# Lilith Explorer V2 — explorador físico por capas
+# Lilith Explorer 3.0 — modelo 3D por pisos
 
-**Versión:** 2026-10-17. Sitio independiente sin build ni dependencias JS. GitHub Pages publica solo `site/`.
+## Estado de este visor
 
-## Navegación interactiva
+Actualización de interfaz orientada primero al **celular**, 17-10-2026. Sitio estático HTML/CSS/Canvas, sin dependencias de JavaScript externas.
 
-- **Maqueta por pisos:** panel superior, electrónica, energía y base Dell. Selección individual de placas; vista explotada / pisos seleccionables; giro con arrastre y zoom con rueda o botones.
-- **Banco real a 3,3 V:** diagrama físico ilustrado de la protoboard con ESP32-S3, INA3221, OLED y 3 resistencias 100 Ω; rutas de prueba con identificación de filas y GPIO.
-- **Rutas eléctricas:** muestra la arquitectura propuesta 12 V → fusible → SW0 → XL4015 5 V → ramas TPS2553, supervisor e INA. **Líneas discontinuas = pendientes; líneas continuas = relación I²C/masa validada solo durante la prueba de 3,3 V**.
-- Filtro por estado, búsqueda, inspector técnico con ficha, voltajes, conexiones, próximos pasos y enlaces a documentación.
-- Placas dibujadas con SVG local: representación técnica del hardware conocido, **NO fotografías reales ni CAD 1:1**.
+- Vista adaptativa real, sin lienzos HTML de 980×650 recortados. La geometría espacial se proyecta con cámara y perspectiva en un **Canvas responsivo**, en vez de apilar capas rotadas con CSS.
+- Giro con un dedo o ratón, zoom con gesto de pellizcar/dedos, rueda o botones; reinicio de cámara.
+- Cuatro estratos visibles en vista explotada o ensamblada: base Dell, energía, electrónica y panel superior; selección aislada por nivel.
+- Placas ilustradas con volumen (PCB, cobre, chips, puertos, tapas, resistencias y bobina según tipo); selección clic/tap mediante áreas proyectadas y fichas de conexiones.
+- Modo banco 3,3 V con ESP32, INA3221, OLED y tres resistencias 100Ω + líneas **ya comprobadas**.
+- Modo cableado futuro V0.1 con 12V → fusible → SW0 → XL4015 → TPS2553/SW1/INA; **trazos discontinuos: no montados**. Filtros por energía/I²C/GND.
+- Controles de móvil compactados, inventario plegable, inspector debajo del visor y botón para llegar a su ficha.
 
-## Estado: no confundir render con instalación
+## Límites de fidelidad
 
-Probado: ESP32-S3 por USB, OLED SH1106, INA3221 0x40 / 3×100 Ω y ~32,4–32,8 mA por canal.
+El visor contiene **ilustraciones técnicas** de placas, no fotografías originales, escaneos 3D, CAD 1:1 ni posiciones físicas medidas. Hay componentes reales presentes, comprados aún por verificar, y piezas de la V1 Pro **planificadas y no adquiridas**.
 
-En inventario pero **sin montar/probar en conjunto**: Mean Well, XL4015, chips TPS2553 SOT23-6 en adaptadores vacíos, seis palancas y seis basculantes.
+No se ha integrado la Mean Well con XL4015, fusible, SW0/SW1 ni TPS2553. No se ha conectado el backup USB Dell ni batería LiFePO4. Los valores mostrados en tarjetas son históricos: 3,17 V multímetro y ~32,8/32,4/32,4 mA de las tres resistencias a 3,3 V. No hay control de hardware ni telemetría en tiempo real.
 
-Pendiente futuro: LiFePO4/BMS/cargador, power-path, DC-DC Dell, reparto completo 5V/12V, RF y LAB.
+**Fuentes documentales:** [bitácora real](../docs/22-lilith-build-status-2026-10-17.md), [netlist](../docs/20-v0.1-wiring-netlist.md), [arquitectura de respaldo](../docs/21-portable-power-architecture.md), [plan SMD](../docs/24-lilith-smd-assembly.md).
 
-La representación 3D por niveles es **conceptual**: la asignación física de zonas, huecos, conectores y alturas necesita mediciones internas y la verificación del maletín de 40,6×33×17,4 cm exteriores. Los módulos marcados «comprados» todavía pueden necesitar corroboración de recepción y modelo exacto.
+## Deploy
 
-## Publicación
+GitHub Actions `.github/workflows/lilith-pages.yml` publica únicamente `site/` en la misma URL:
 
-El workflow `.github/workflows/lilith-pages.yml` publica `site/` en GitHub Pages al hacer push a `main`.
+https://jesus-medina.github.io/Cyberdeck-R5-ESP32/
 
-URL: https://jesus-medina.github.io/Cyberdeck-R5-ESP32/
-
-Archivos: `index.html`, `styles.css`, `app.js`. Sin telemetría ni acceso a hardware.
-
-Documentos fuente: [estado de banco](../docs/22-lilith-build-status-2026-10-17.md), [netlist V0.1](../docs/20-v0.1-wiring-netlist.md), [energía portátil](../docs/21-portable-power-architecture.md).
+Archivos: `site/index.html`, `site/styles.css` y `site/app.js`.
