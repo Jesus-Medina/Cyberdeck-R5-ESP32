@@ -1,5 +1,8 @@
 # Lilith — plan de energía V1 Pro e inventario pendiente (17-10-2026)
 
+> **Matriz P1–P6/B1–B6 (propuesta, NO ejecutada):** [26 — matriz de 12 interruptores, arneses RF de tapa y pruebas](26-lilith-switch-matrix-and-antenna-routing.md). SW0 y SW1 son las únicas funciones de switch canónicas V0.1. P3/P4 proponen inhibición en serie de EN1/EN2 distinta del netlist original, que requiere aprobación; P5/P6 y B1–B6 quedan sin cablear hasta instalar circuitos protegidos. Ningún interruptor extra genera una nueva salida protegida.
+
+
 ## ¿Alcanza lo comprado?
 
 **Para prototipar V0.1:** en principio sí, sujeto a comprobar llegada, calidad y montaje SMD. **Para la V1 Pro completa:** no. La BOM V0.1 cubre dos salidas 5 V protegidas y supervisor, NO la alimentación completa del Dell, LiFePO4, múltiples rails y los aproximadamente 29 bloques funcionales previstos.
