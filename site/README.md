@@ -1,4 +1,7 @@
-# Lilith Explorer 3.3 — catálogo de módulos por pisos
+# Lilith Explorer 3.4 — catálogo de módulos por pisos
+
+> **Diseño operativo actual, 17-10-2026:** se añade una **quinta zona de visualización: tapa/pantalla**. Tapa y panel son las únicas superficies de operación; electrónica, energía y placa Dell desnuda con cooler son internas y no necesitan abrirse durante el uso normal. Los 12 interruptores tienen una zona reservada de 216×78 mm (6×2, paso orientativo 36 mm), sin validar espacio neto ni profundidad. Wi-Fi/LoRa/SDR se conectan a antenas despejadas en tapa/panel abierto con coax apropiado. Se incluye plano ilustrativo en mm para panel 371×258 y tapa con LCD activo aprox. 309×174; no es plan de corte. Véase [especificación actual](../docs/25-lilith-panel-lid-interface.md).
+
 
 ## Estado de este visor
 
