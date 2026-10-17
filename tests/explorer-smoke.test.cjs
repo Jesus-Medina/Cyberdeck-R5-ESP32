@@ -31,6 +31,7 @@ function boot(width = 900, height = 600) {
       setPointerCapture() {},
       scrollIntoView() {},
       querySelectorAll() { return []; },
+      querySelector() { return null; },
       setAttribute() {},
       append(...args) { this.children.push(...args); },
       replaceChildren(...args) { this.children = args; }
@@ -52,7 +53,7 @@ function boot(width = 900, height = 600) {
     window: { addEventListener() {} },
     requestAnimationFrame(fn) { frames.push(fn); }
   };
-  vm.runInNewContext(script.replace("const S={", "const S=globalThis.__testCamera={"), runtime, { filename: 'site/app.js', timeout: 4000 });
+  vm.runInNewContext(script.replace("const S={", "const S=globalThis.__testCamera={").replace("const items=raw.map", "const items=globalThis.__testItems=raw.map"), runtime, { filename: 'site/app.js', timeout: 4000 });
   function flush() {
     let runs = 0;
     while (frames.length) {
@@ -67,7 +68,7 @@ function boot(width = 900, height = 600) {
     flush();
   }
   flush();
-  return { nodes, painted, click, flush, camera: runtime.__testCamera };
+  return { nodes, painted, click, flush, camera: runtime.__testCamera, items: runtime.__testItems };
 }
 
 test('el 3D dibuja componentes reales al abrir escritorio', () => {
@@ -164,4 +165,33 @@ test('rueda y teclado ofrecen zoom y navegación sin recargar', () => {
   app.flush();
   assert.equal(c.zoom,1);
   assert.equal(c.yaw,-.55);
+});
+
+test('catálogo expandido representa módulos de RF, redes, electrónica, panel y energía',()=>{
+ const a=boot(900,600),idSet=new Set(a.items.map(v=>v.id));
+ assert.ok(a.items.length>=55,'El catálogo no contiene los módulos expandidos');
+ for(const id of ['lora','sdr','wifilab','ue306','arduino','fnirsi','gm328','logic','bme','rtc','irpanel','tca','eeprom','adum','backplane','smartports','lab','regservo','cyd','antenna','switches']){
+  assert.ok(idSet.has(id),'Falta el componente '+id);
+ }
+ assert.equal(idSet.size,a.items.length,'IDs duplicados');
+ for(const floor of ['panel','electronics','power']){
+  const parts=a.items.filter(x=>x.floor===floor);
+  assert.ok(parts.length>=15,'Pocos módulos para '+floor);
+  for(const p of parts){
+   assert.ok(p.box[0]>=-5&&p.box[1]>=-3.35&&p.box[0]+p.box[2]<=5&&p.box[1]+p.box[3]<=3.35,'Componente fuera del piso: '+p.id);
+  }
+  // El layout en rejilla solo es ilustrativo, pero no puede superponer componentes.
+  for(let i=0;i<parts.length;i++)for(let j=i+1;j<parts.length;j++){
+   const x=parts[i].box,y=parts[j].box;
+   const overlap=x[0]<y[0]+y[2]&&x[0]+x[2]>y[0]&&x[1]<y[1]+y[3]&&x[1]+x[3]>y[1];
+   assert.ok(!overlap,'Piezas superpuestas en '+floor+': '+parts[i].id+', '+parts[j].id);
+  }
+ }
+});
+test('desde el inventario se abre el piso exacto del módulo seleccionado',()=>{
+ const a=boot(),btn=a.nodes.get('inventory').children.find(e=>e.children?.[1]?.children?.[0]?.textContent==='LoRa');
+ assert.ok(btn,'LoRa debe estar en inventario');
+ btn.listeners.click();a.flush();
+ assert.equal(a.camera.floor,'electronics');
+ assert.equal(a.camera.selected,'lora');
 });
