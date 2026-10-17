@@ -14,7 +14,7 @@ fuse|energia|Proteger entrada de 12 V|Fusible y jack DC para protección primari
 mux|energia|Seleccionar fuentes sin retornos|Evitar que el Dell y la batería se alimenten entre sí; multiplexor inexistente.
 dcdell|energia|Regular suministro del Dell|Adaptar una alimentación futura a la entrada original; tensión, corriente e ID por estudiar.
 lab|laboratorio|Fuente de laboratorio CC/CV|Probar placas con voltaje/corriente limitados; módulo regulable aún no comprado.
-esp32|automatizacion|Supervisor y automatización|Leer sensores, registrar eventos, disparar alarmas y secuencias; solo está probada la lectura de INA/OLED a 3,3 V.
+esp32|automatizacion|Supervisor y automatización|Leer sensores, registrar eventos, disparar alarmas, automatizar tareas y estudiar anuncios BLE de equipos propios con firmware adecuado. En Lilith solo está probado el banco INA/OLED a 3,3 V; ESP32-S3 no ofrece Bluetooth Classic.
 ina|laboratorio|Medir tres canales eléctricos|Detectar cambios de consumo y comparar cargas; verificado solo con tres resistencias de banco.
 lora|radio|Comunicaciones LoRa|Telemetría de sensores propios y recepción de paquetes compatibles; no es analizador SDR genérico, banda por definir.
 sdr|radio|Explorar y analizar espectro recibido|Detección de señales, identificación de bandas y demodulación compatible; RTL-SDR es SOLO receptor, no transmite ni inyecta RF.
@@ -22,7 +22,7 @@ cyd|interfaces|Pantalla táctil secundaria|Elegir herramientas, configurar modos
 uart|interfaces|Consola USB-UART|Leer logs y depurar placas propias; el aislamiento Dell/AUX requiere un ADuM montado.
 tca|automatizacion|Multiplexar buses I²C|Gestionar periféricos y EEPROM con direcciones compartidas; sin montar.
 gps|radio|Posición y hora GNSS|Georreferenciar registros de campo propios; falta módulo y antena con vista al cielo.
-nfc|identidad|Leer y experimentar con NFC|Inventariar etiquetas propias y estudiar emulación soportada por PN532; leer UID NO implica clonar credenciales protegidas.
+nfc|identidad|Leer y experimentar con NFC|Leer UID y datos permitidos de etiquetas propias, explorar emulación de laboratorio o clonación de etiquetas simples compatibles; PN532 no clona credenciales cifradas ni garantiza emulación universal. Módulo no integrado.
 keyboard|interfaces|Teclado y trackpad portátiles|Operar Linux sin teclado original Dell; fijación por dimensionar.
 switches|interfaces|Doce mandos físicos|Gestionar energía y funciones futuras; solo 2 de 12 tienen función V0.1 definida.
 oled|interfaces|Mostrar estado del supervisor|Presentar mediciones del banco y futuros avisos; probado a 3,3 V sin integración mecánica.
@@ -35,8 +35,8 @@ r1|laboratorio|Carga resistiva CH1|Comprobar medición de 32,8 mA a 3,3 V; es ca
 r2|laboratorio|Carga resistiva CH2|Contrastar lectura de ~32,4 mA; es carga de banco.
 r3|laboratorio|Carga resistiva CH3|Verificar tercer canal del INA; no representa tercer SMART OUT.
 arduino|automatizacion|Control experimental adicional|Ejecutar programas de sensores, pruebas GPIO o automatización local; placa exacta por confirmar.
-ue306|redes|Segunda interfaz Ethernet|Separar red de gestión y red de pruebas; captura/diagnóstico de tráfico propio según configuración.
-wifilab|redes|Auditoría inalámbrica 802.11|Detectar redes/canales, capturar tramas y probar inyección de tramas solo en laboratorio autorizado; modo monitor e inyección exigen chipset y drivers compatibles, aún no validados.
+ue306|redes|Segunda interfaz Ethernet|Separar red de gestión y laboratorio, detectar nuevos dispositivos en segmentos propios y registrar paquetes si la topología permite observarlos; requiere software y conexión adecuados.
+wifilab|redes|Auditoría inalámbrica 802.11|Detección de puntos de acceso y dispositivos, estudio de canales, captura y ensayos de inyección de tramas solo en red de laboratorio autorizada; requiere adaptador específico con modo monitor, chipset y driver compatibles, ninguno validado.
 adum|interfaces|Aislar datos UART|Separar dominios eléctricos Dell y AUX; no funciona hasta soldar y validar ambas alimentaciones.
 eeprom|automatizacion|Identificar módulos de expansión|Leer IDs/configuración y automatizar detección de accesorios; falta firmware.
 logic|laboratorio|Inspeccionar buses digitales|Depurar I²C, SPI, UART y temporización de placas propias; analizador sin instalar.
@@ -64,7 +64,7 @@ gm328|laboratorio|Comprobar componentes pasivos|Identificar resistencias, transi
 gpio|interfaces|Exponer buses y pines seguros|Conectar sensores y microcontroladores propios; proteger niveles y corriente.
 usbpanel|interfaces|Exponer puertos de servicio|Conectar dispositivos sin abrir pisos; ruta física pendiente.
 networkpanel|redes|Conectar LAN y video del host|Cablear RJ45/HDMI/audio al panel para redes autorizadas; extensores futuros.
-irpanel|identidad|Recepción y repetición IR|Aprender códigos compatibles de mandos propios para automatización; no copia cualquier protocolo.
+irpanel|identidad|Recepción y repetición IR|Registrar y reproducir señales de mandos propios de código fijo para automatización. No implica clonación de protocolos seguros ni reproducción de códigos rotativos; hardware futuro.
 ledpanel|automatizacion|Señalizar eventos y alarmas|LED/buzzer para fallo de rail, temperatura o tareas; circuitos pendientes.
 smartout|energia|Dos salidas de 5 V protegidas|Alimentar módulos de prueba con TPS e INA; no existen 12 salidas protegidas.
 lcd|interfaces|Pantalla principal Dell 14 pulgadas|Consultar herramientas y datos en tapa; cable eDP y bisagra por verificar.
