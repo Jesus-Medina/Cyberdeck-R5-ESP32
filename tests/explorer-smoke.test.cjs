@@ -255,3 +255,28 @@ test('el visor ofrece un acceso directo al mapa de funciones',()=>{
  a.click('floorNav',{floor:'lid'});
  assert.match(jump.textContent,/8 accesos/);
 });
+
+test('auditoría de la página distingue 6 palancas, 6 basculantes y solo 2 conexiones canónicas',()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../site/index.html'),'utf8');
+ const rows=[...html.matchAll(/<tr data-switch="(P[1-6]|B[1-6])" data-maturity="(canonical|proposed|blocked)">/g)];
+ assert.equal(rows.length,12,'La matriz debe contener doce interruptores físicos, no 24');
+ assert.equal(rows.filter(x=>x[1].startsWith('P')).length,6);
+ assert.equal(rows.filter(x=>x[1].startsWith('B')).length,6);
+ assert.equal(rows.filter(x=>x[2]==='canonical').length,2,'Solo SW0 y SW1 se cablean en V0.1');
+ assert.equal(rows.filter(x=>x[2]!=='canonical').length,10,'Diez propuestas sin montar');
+ assert.ok(html.includes('Coaxial RF 50 Ω'),'Debe estar dibujado el arnés coaxial');
+ assert.ok(html.includes('Sin perforar carcasa ni soldar nada al LCD'),'Debe bloquearse soldar a la pantalla');
+ assert.ok(html.includes('¿100 % de rendimiento?'),'Prohibido prometer rendimiento perfecto');
+ assert.ok(html.includes('LoRa SPI/UART → ESP32'),'Datos LoRa separados de radio');
+});
+test('la especificación RF no convierte la propuesta en cableado oficial V0.1',()=>{
+ const engineering=fs.readFileSync(path.join(__dirname,'../docs/26-lilith-switch-matrix-and-antenna-routing.md'),'utf8');
+ const netlist=fs.readFileSync(path.join(__dirname,'../docs/20-v0.1-wiring-netlist.md'),'utf8');
+ for(const id of ['P1 = SW0','P2 = SW1','**P3**','**P4**','**P5**','**P6**','**B1**','**B2**','**B3**','**B4**','**B5**','**B6**']){
+   assert.ok(engineering.includes(id),'Sin justificación técnica para '+id);
+ }
+ assert.ok(engineering.includes('CAMBIO PROPUESTO'));
+ assert.ok(engineering.includes('NO se cablea todavía'));
+ assert.ok(engineering.includes('no se puede prometer este recorrido'));
+ assert.ok(netlist.includes('GPIO4 -> EN1 -> U2 pin 3'),'La V0.1 sigue con GPIO→EN directo');
+});
