@@ -216,3 +216,42 @@ test('inventario distingue las zonas operativas del montaje interior',()=>{
  lid.listeners.click();a.flush();
  assert.equal(a.camera.floor,'lid');
 });
+
+test('el mapa funcional presenta 22 accesos en panel y 8 alrededor de la pantalla',()=>{
+ const a=boot();
+ const panel=a.nodes.get('panelAccessGrid').children.filter(e=>e.dataset?.part);
+ const lid=a.nodes.get('lidAccessGrid').children.filter(e=>e.dataset?.part);
+ assert.equal(panel.length,22,'Deben verse los 22 accesos del panel');
+ assert.equal(lid.length,8,'Deben verse 8 accesos adicionales de la tapa');
+ assert.equal(new Set(panel.map(e=>e.dataset.part)).size,22);
+ assert.equal(new Set(lid.map(e=>e.dataset.part)).size,8);
+ for(const id of ['fnirsi','gm328','gpio','smartout','labout','logic','uart','irpanel','nfc','cyd']){
+  assert.ok(panel.some(p=>p.dataset.part===id),'El panel operativo no muestra '+id);
+ }
+ for(const id of ['lcd','wifilab','lora','sdr','gps']){
+  assert.ok(lid.some(p=>p.dataset.part===id),'La tapa no muestra '+id);
+ }
+ assert.equal(a.nodes.get('panelAccessCount').textContent,22);
+ assert.equal(a.nodes.get('lidAccessCount').textContent,8);
+ assert.equal(a.nodes.get('operatingCount').textContent,30);
+});
+test('desde un acceso de tapa se abre la ficha sin exigir acceso a piso inferior',()=>{
+ const a=boot(),btn=a.nodes.get('lidAccessGrid').children.find(e=>e.dataset?.part==='lora');
+ assert.ok(btn);
+ btn.listeners.click();a.flush();
+ assert.equal(a.camera.mode,'model');
+ assert.equal(a.camera.floor,'lid','Seleccionar antena LoRa debe mantener la superficie operativa');
+ assert.equal(a.camera.selected,'lora','La ficha enseña el módulo LoRa interior');
+});
+test('el visor ofrece un acceso directo al mapa de funciones',()=>{
+ const a=boot();
+ const jump=a.nodes.get('accessJump');
+ assert.equal(jump.hidden,false);
+ assert.match(jump.textContent,/30 accesos/);
+ jump.listeners.click();
+ assert.ok(a.nodes.get('operatingOverview'));
+ a.click('floorNav',{floor:'panel'});
+ assert.match(jump.textContent,/22 accesos/);
+ a.click('floorNav',{floor:'lid'});
+ assert.match(jump.textContent,/8 accesos/);
+});
