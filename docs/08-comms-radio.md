@@ -1,5 +1,7 @@
 # 08 — Comunicaciones, radio y RF
 
+**ACTUALIZACIÓN DE INGENIERÍA 17-10-2026:** el recorrido físico aprobado a nivel de arquitectura es **módulo RF en bandeja interna → coaxial de 50 Ω → conector/soporte sobre subpanel interno en la tapa → antena despejada con tapa abierta**. No se suelda RF al LCD/eDP ni se perfora el maletín impermeable. No garantiza rendimiento al 100%; SKU de antenas, extremos, banda, longitud, pérdidas y sujeción por bisagra siguen pendientes. Ver [matriz y cableado RF 26](26-lilith-switch-matrix-and-antenna-routing.md).
+
 ## Objetivo
 
 El cyberdeck tendrá interfaces independientes para que cada tecnología tenga un trabajo claro.
@@ -50,7 +52,7 @@ Montaje:
 
 - módulo dentro de zona RF;
 - uno o dos pigtails cortos;
-- conectores RP-SMA bulkhead externos.
+- conectores RP-SMA bulkhead **en subpanel interno de la tapa**, no a través de la carcasa impermeable. **Dos trayectos RF separados** solo si el adaptador real dispone de dos puertos (no dividir uno por splitter).
 
 ## Ethernet
 
@@ -77,7 +79,7 @@ Función: recepción RF de propósito general.
 Arquitectura:
 
 ```text
-Antena -> SMA bulkhead -> coaxial corto -> RTL-SDR -> USB -> Linux
+Antena en tapa -> SMA subpanel interno -> coaxial 50 Ω flexible/medido -> RTL-SDR (bandeja) -> USB -> Linux
 ```
 
 Software previsto:
@@ -98,7 +100,7 @@ Hardware preferido:
 
 - módulo basado en SX1262 o SX127x;
 - interfaz SPI/UART según placa;
-- antena externa;
+- antena desacoplada físicamente del módulo, en subpanel interno de tapa, desplegada al usarlo;
 - conector SMA dedicado.
 
 Usos:
@@ -114,7 +116,7 @@ Arquitectura:
 ```mermaid
 flowchart LR
     ESP["ESP32-S3"] -->|SPI/UART| LORA["Módulo LoRa"]
-    LORA --> SMA["SMA panel"]
+    LORA --> SMA["SMA subpanel interno de tapa mediante coax 50Ω"]
     SMA --> ANT["Antena"]
 ```
 
