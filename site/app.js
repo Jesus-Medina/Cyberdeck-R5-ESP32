@@ -140,6 +140,8 @@ const panelPlan=[
  ["labreserve",[261,195,101,55]]
 ];
 for(const [id,rect] of panelPlan){const item=raw.find(r=>r[0]===id);if(!item)throw Error("Plano sin elemento "+id);item[2]="panel";item[5]=mmBox(...rect);}
+for(const item of raw.filter(r=>r[2]==="panel"&&!panelPlan.some(v=>v[0]===r[0]))){item[5]=[0,0,0,0];}
+// Elementos no posicionados: siguen en catálogo con ficha, pero NO se dibujan como si ya cupiesen.
 const panelPlanIds=new Set(panelPlan.map(v=>v[0]));
 const visualLidIds=new Set(["lcd","lidrf","lidstatus","lid_ir","antenna"]);
 raw.find(r=>r[0]==="dell")[5]=[-4.52,-2.57,7.35,4.65]; // ENVOLVENTE CONCEPTUAL, NO MEDIDA REAL PCB
@@ -160,17 +162,35 @@ const S={mode:"model",floor:"all",exploded:true,status:"all",q:"",selected:"esp3
 let W=0,H=0,dpr=1,scale=1,hit=[],lab=[],scheduled=false,drag=false,startDist=0;
 const ptr=new Map();
 const lim=(v,a,b)=>Math.max(a,Math.min(b,v));
-function proj(x,y,z){let co=Math.cos(S.yaw),si=Math.sin(S.yaw),p=Math.sin(S.pitch),q=Math.cos(S.pitch),u=x*co-y*si,v=x*si+y*co,depth=v*q+z*p,f=25/(25-depth);return{x:W*.5+S.panX+u*scale*f,y:H*.54+S.panY+(v*p-z*q)*scale*f};}
+function proj(x,y,z){let co=Math.cos(S.yaw),si=Math.sin(S.yaw),p=Math.sin(S.pitch),q=Math.cos(S.pitch),u=x*co-y*si,v=x*si+y*co,depth=v*q+z*p,f=25/(25-depth);return{x:W*.5+S.panX+u*scale*f,y:H*(S.mode==="model"&&S.floor==="all"?.70:.54)+S.panY+(v*p-z*q)*scale*f};}
 function poly(pts,fill,stroke,width=1){let a=pts.map(v=>proj(...v));g.beginPath();g.moveTo(a[0].x,a[0].y);a.slice(1).forEach(v=>g.lineTo(v.x,v.y));g.closePath();if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=width;g.stroke();}return a;}
 function path(pts,color="#cdb2be",w=1,dash=[]){let a=pts.map(v=>proj(...v));g.beginPath();g.moveTo(a[0].x,a[0].y);a.slice(1).forEach(v=>g.lineTo(v.x,v.y));g.strokeStyle=color;g.lineWidth=w;g.setLineDash(dash);g.stroke();g.setLineDash([]);}
 function block(x,y,z,w,d,h,col){poly([[x,y,z],[x+w,y,z],[x+w,y,z+h],[x,y,z+h]],"#14141b","#4a4251");poly([[x+w,y,z],[x+w,y+d,z],[x+w,y+d,z+h],[x+w,y,z+h]],"#14141b","#4a4251");poly([[x,y+d,z],[x+w,y+d,z],[x+w,y+d,z+h],[x,y+d,z+h]],"#14141b","#4a4251");return poly([[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]],col,"#8b7d8b");}
 function ring(x,y,z,r,col,fill){let p=[];for(let i=0;i<22;i++){let a=i*Math.PI*2/22;p.push([x+Math.cos(a)*r,y+Math.sin(a)*r,z]);}poly(p,fill,col,1.4);}
 function text(x,y,z,t,size=8,color="#e5dce7"){let p=proj(x,y,z);g.font="700 "+size+"px 'Space Grotesk',sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillStyle=color;g.fillText(t,p.x,p.y);g.textAlign="left";}
 function light(x,y,z,c){let p=proj(x,y,z);g.beginPath();g.arc(p.x,p.y,Math.max(2.0,scale*.05),0,Math.PI*2);g.fillStyle=c;g.fill();}
-function paintBoard(m,b,z){let [x,y,w,d]=b,k=m.kind,base=z+.08;let colorsBoard={esp32:"#173d3b",ina:"#653881",oled:"#1b2a3e",xl:"#1c5d92",tps:"#216a53",laptop:"#474752",keyboard:"#33323d",switches:"#33313e",battery:"#42514d",lora:"#235d47",fuse:"#4e4238",usb:"#333b45",resistor:"#725444",antenna:"#36303c",fan:"#343941",screen:"#263d62",ports:"#394053",arduino:"#1c5360",ethernet:"#354b55",wifi:"#315a56",chip:"#385451",logic:"#273b61",rtc:"#395367",sensor:"#37545d",backplane:"#255a50",regulator:"#355c55",meter:"#243e56",encoder:"#4c4254",scope:"#2e3c63",tester:"#385969",ir:"#574148",leds:"#4c4356"};let area=block(x,y,z,w,d,.075,colorsBoard[k]||"#284d58");
+function paintBoard(m,b,z){let [x,y,w,d]=b,k=m.kind,base=z+.08;let colorsBoard={esp32:"#173d3b",ina:"#653881",oled:"#1b2a3e",xl:"#1c5d92",tps:"#216a53",laptop:"#474752",motherboard:"#1b554d",zones:"#423747",keyboard:"#33323d",switches:"#33313e",battery:"#42514d",lora:"#235d47",fuse:"#4e4238",usb:"#333b45",resistor:"#725444",antenna:"#36303c",fan:"#343941",screen:"#263d62",ports:"#394053",arduino:"#1c5360",ethernet:"#354b55",wifi:"#315a56",chip:"#385451",logic:"#273b61",rtc:"#395367",sensor:"#37545d",backplane:"#255a50",regulator:"#355c55",meter:"#243e56",encoder:"#4c4254",scope:"#2e3c63",tester:"#385969",ir:"#574148",leds:"#4c4356"};let area=block(x,y,z,w,d,.075,colorsBoard[k]||"#284d58");
 let add=(a,b,c,dd,h,color)=>block(x+a*w,y+b*d,base,c*w,dd*d,h,color),loc=(a,b,h=.1)=>[x+a*w,y+b*d,base+h];
-if(k==="laptop"||k==="keyboard"){add(.04,.06,.91,.84,.05,"#343a43");for(let i=0;i<5;i++)for(let j=0;j<13;j++)add(.08+j*.057,.12+i*.116,.044,.086,.018,i+j===15?"#4c3b4f":"#242a34");add(.34,.73,.28,.11,.01,"#929098");}
-else if(k==="switches"){for(let i=0;i<6;i++){let xx=x+w*(.08+i*.15),yy=y+d*.29;ring(xx,yy,base+.08,w*.031,"#c1c1c7","#494852");path([[xx,yy,base+.12],[xx+.06,yy-.06,base+.34]],"#e1dadf",3);}for(let j=0;j<6;j++)add(.045+j*.15,.61,.12,.20,.07,"#1a202b");}
+if(k==="keyboard"){add(.04,.06,.91,.84,.05,"#343a43");for(let i=0;i<5;i++)for(let j=0;j<13;j++)add(.08+j*.057,.12+i*.116,.044,.086,.018,i+j===15?"#4c3b4f":"#242a34");add(.34,.73,.28,.11,.01,"#929098");}
+else if(k==="motherboard"){
+ for(let i=0;i<14;i++){add(.02+i*.067,.02,.038,.06,.02,"#c5ad86");add(.02+i*.067,.92,.038,.06,.02,"#c5ad86");}
+ add(.10,.14,.28,.33,.14,"#233441");add(.42,.18,.24,.38,.13,"#9fa4a6");
+ add(.71,.18,.20,.20,.10,"#343b43");add(.12,.58,.23,.26,.09,"#232a34");
+ for(let i=0;i<4;i++)path([loc(.53,.36,.23),loc(.53+i*.055,.72,.18)],"#b97b55",2);
+ text(...loc(.50,.81,.25),"PLACA DELL",9,"#f1d3dd");
+}
+else if(k==="zones"){
+ add(.03,.08,.94,.84,.025,"#2a2433");text(...loc(.50,.47,.15),"RESERVA",9,"#dcb9cc");
+}
+else if(k==="switches"){
+ for(let i=0;i<6;i++){
+  let xx=x+w*(i+.5)/6,yy=y+d*.26;
+  ring(xx,yy,base+.08,Math.min(w/6,d*.48)*.23,"#c1c1c7","#494852");
+  path([[xx,yy,base+.12],[xx+.05,yy-.05,base+.29]],"#e1dadf",2.5);
+  add((i+.5)/6-.055,.67,.11,.18,.07,"#131927");
+ }
+ text(...loc(.5,.51,.17),"6 PALANCAS + 6 BASCULANTES",7,"#e9bbd0");
+}
 else if(k==="esp32"){for(let i=0;i<10;i++){add(.07+i*.082,.00,.047,.07,.01,"#d2ac72");add(.07+i*.082,.93,.047,.07,.01,"#d2ac72");}add(.02,.38,.16,.24,.12,"#bcc7c9");add(.26,.14,.61,.73,.14,"#b6c3c6");add(.38,.32,.38,.35,.10,"#303b45");text(...loc(.56,.49,.28),"S3",9);}
 else if(k==="ina"){for(let i=0;i<3;i++){let xx=.10+i*.29;add(xx,.33,.23,.33,.10,"#e6e0dc");text(...loc(xx+.115,.50,.13),"R100",8,"#33313c");}for(let i=0;i<8;i++)add(.07+i*.11,.02,.04,.07,.01,"#d4ab76");text(...loc(.48,.18),"INA3221",8);}
 else if(k==="xl"){let xx=x+w*.35,yy=y+d*.54;ring(xx,yy,base+.14,w*.17,"#d5a678","#424b54");ring(xx,yy,base+.16,w*.085,"#bb8856","#2c3541");add(.58,.21,.18,.29,.22,"#283846");add(.79,.20,.14,.37,.26,"#3a4754");add(.58,.67,.13,.18,.13,"#2c7fb8");add(.79,.67,.13,.18,.13,"#2c7fb8");text(...loc(.48,.11),"XL4015",8);}
@@ -194,7 +214,7 @@ text(...loc(.50,.78,.22),k==="arduino"?"ARDUINO":k==="logic"?"LOGIC":"BACKPLANE"
 }
 else if(k==="wifi"||k==="ethernet"){
 add(.08,.16,.72,.61,.15,"#b5bbc4");add(.15,.25,.56,.42,.05,"#314050");
-if(k==="wifi"){for(let i=0;i<2;i++){let p=loc(.83,.28+i*.42,.12);path([p,[p[0],p[1],p[2]+.48]],"#e0b887",2.5);}}
+if(k==="wifi"){ring(...loc(.85,.34,.13),Math.min(w,d)*.07,"#e0b887","#36404a");ring(...loc(.85,.66,.13),Math.min(w,d)*.07,"#e0b887","#36404a");}
 else add(.80,.32,.19,.36,.08,"#a8adae");
 text(...loc(.42,.76,.24),k==="wifi"?"WI-FI":"LAN",8,"#eee0ed");
 }
@@ -220,12 +240,61 @@ if(S.selected===m.id)poly([[x,y,base+.2],[x+w,y,base+.2],[x+w,y+d,base+.2],[x,y+
 hit.push({id:m.id,poly:area});let q=proj(x+w/2,y+d/2,base+.22);lab.push({id:m.id,x:q.x,y:q.y,t:m.name,c:colors[m.status],selected:S.selected===m.id});
 }
 function floor(f,z){block(-5,-3.35,z,10,6.7,.15,"#332b3d99");for(let i=-4;i<=4;i++)path([[i,-3.3,z+.16],[i,3.3,z+.16]],"#d9a8bc16",.5);let a=proj(-4.4,-3.5,z+.23);lab.push({id:"floor",x:a.x,y:a.y,t:f[1],c:"#ab8fa2",selected:false});}
-function drawingModel(){for(const f of levels){if(S.floor!=="all"&&S.floor!==f[0])continue;const idx=levels.indexOf(f),z=S.floor==="all"?.11+idx*(S.exploded?.98:.18):.60;floor(f,z);
- const group=items.filter(m=>m.floor===f[0]&&!["sw0","sw1"].includes(m.id)&&(S.status==="all"||m.status===S.status)&&(!S.q||(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q)));
- group.sort((a,b)=>(a.box[0]+a.box[2]/2)*Math.sin(S.yaw)+(a.box[1]+a.box[3]/2)*Math.cos(S.yaw)-(b.box[0]+b.box[2]/2)*Math.sin(S.yaw)-(b.box[1]+b.box[3]/2)*Math.cos(S.yaw));
- group.forEach(m=>paintBoard(m,m.box,z+.19));
- if(f[0]==="panel"){let p=index.switches.box;for(let i=0;i<2;i++){let x=p[0]+p[2]*(.05+i*.15),y=p[1]+p[3]*.15,z1=z+.40;hit.push({id:i?"sw1":"sw0",poly:[[x,y,z1],[x+.35,y,z1],[x+.35,y+.36,z1],[x,y+.36,z1]].map(q=>proj(...q))});}}
-}}
+function drawLid(z){
+ const rearY=3.45,frontY=3.36;
+ poly([[-5,rearY,z],[5,rearY,z],[5,rearY,z+6.7],[-5,rearY,z+6.7]],"#342b38","#a47791",1.8);
+ // La tapa se muestra abierta; huecos disponibles brutos, pendiente bisagras/marco/eDP.
+ const rects=[
+  ["lcd",-4.17,1.08,8.34,4.52],
+  ["antenna",-4.57,5.76,1.15,.60],
+  ["lidrf",-3.22,5.76,1.65,.60],
+  ["lidstatus",-.95,5.76,2.05,.60],
+  ["lid_ir",2.15,5.76,1.75,.60]
+ ];
+ // Las franjas superiores e inferiores solo ilustran espacio potencial.
+ const a=poly([[-4.25,frontY,z+1.04],[4.25,frontY,z+1.04],[4.25,frontY,z+5.65],[-4.25,frontY,z+5.65]],"#11131d","#8b7287",1.3);
+ poly([[-4.03,frontY-.01,z+1.20],[4.03,frontY-.01,z+1.20],[4.03,frontY-.01,z+5.49],[-4.03,frontY-.01,z+5.49]],"#102235","#536675",.9);
+ for(const [id,x,y,w,h] of rects){
+  const m=index[id];if(!m)continue;
+  if(S.status!=="all"&&S.status!==m.status)continue;
+  if(S.q&&!(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q))continue;
+  const isScreen=id==="lcd",isSelected=S.selected===id;
+  const polygon=poly([[x,frontY-.02,z+y],[x+w,frontY-.02,z+y],[x+w,frontY-.02,z+y+h],[x,frontY-.02,z+y+h]],
+    isScreen?"#122538":id==="antenna"?"#34414e":id==="lidrf"?"#333848":id==="lidstatus"?"#493044":"#4d3442",
+    isSelected?"#f8cee2":"#b58aa2",isSelected?2.6:1);
+  hit.push({id,poly:polygon});
+  const centre=proj(x+w/2,frontY-.06,z+y+h/2);
+  lab.push({id,x:centre.x,y:centre.y,t:m.name,c:colors[m.status],selected:isSelected});
+  if(isScreen){text(0,frontY-.07,z+3.43,"LCD DELL 14″",Math.min(11,7+W/240),"#f0d9e7");}
+  else if(id==="lidstatus"){text(x+w/2,frontY-.08,z+y+h/2,"LED",8,"#ffe0ee");}
+  else if(id==="lidrf"){text(x+w/2,frontY-.08,z+y+h/2,"RF",8,"#edc4d9");}
+  else if(id==="antenna"){text(x+w/2,frontY-.08,z+y+h/2,"ANT",8,"#e0c29a");}
+  else{text(x+w/2,frontY-.08,z+y+h/2,"IR",8,"#ecd3e1");}
+ }
+ const position=proj(-4.8,rearY,z+6.73);
+ lab.push({id:"floor",x:position.x,y:position.y,t:"TAPA · MARCO DEL LCD / ACCESO SUPERIOR",c:"#e9bdd3",selected:false});
+}
+function drawingModel(){
+ for(const f of levels){
+  if(S.floor!=="all"&&S.floor!==f[0])continue;
+  const idx=levels.indexOf(f),z=S.floor==="all"?.11+Math.min(idx,3)*(S.exploded?.98:.18):.60;
+  if(f[0]==="lid"){drawLid(z+.28);continue;}
+  floor(f,z);
+  const group=items.filter(m=>m.floor===f[0]&&!["sw0","sw1"].includes(m.id)
+   &&(f[0]!=="panel"||panelPlanIds.has(m.id))
+   &&(S.status==="all"||m.status===S.status)
+   &&(!S.q||(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q)));
+  group.sort((a,b)=>(a.box[0]+a.box[2]/2)*Math.sin(S.yaw)+(a.box[1]+a.box[3]/2)*Math.cos(S.yaw)-(b.box[0]+b.box[2]/2)*Math.sin(S.yaw)-(b.box[1]+b.box[3]/2)*Math.cos(S.yaw));
+  group.forEach(m=>paintBoard(m,m.box,z+.19));
+  if(f[0]==="panel"&&(!S.q||"interruptor sw0 sw1".includes(S.q))){
+   const p=index.switches.box;
+   for(let i=0;i<2;i++){
+    const x=p[0]+p[2]*(i+.5)/6-p[2]/12,y=p[1]+p[3]*.08,z1=z+.40;
+    hit.push({id:i?"sw1":"sw0",poly:[[x,y,z1],[x+p[2]/6,y,z1],[x+p[2]/6,y+p[3]*.39,z1],[x,y+p[3]*.39,z1]].map(q=>proj(...q))});
+   }
+  }
+ }
+}
 function wires(nets,placement,z){nets.forEach(([aa,bb,kind,label,ok],i)=>{if(S.net!=="all"&&kind!==S.net)return;let a=placement[aa],b=placement[bb];if(!a||!b)return;const p=[a[0]+a[2]/2,a[1]+a[3]/2,z],q=[b[0]+b[2]/2,b[1]+b[3]/2,z],mid=[(p[0]+q[0])/2,(p[1]+q[1])/2,z+.11+(i%4)*.11];
  path([p,[(p[0]+mid[0])/2,(p[1]+mid[1])/2,mid[2]],mid,[(q[0]+mid[0])/2,(q[1]+mid[1])/2,mid[2]],q],colors[kind],S.selected===aa||S.selected===bb?3.6:2.4,ok?[]:[6,5]);
  if(S.selected===aa||S.selected===bb||S.net!=="all"){let sp=proj(...mid);g.font="600 9px 'DM Sans'";g.fillStyle="#201828ee";g.fillRect(sp.x-56,sp.y-15,112,18);g.fillStyle="#f4e2ed";g.textAlign="center";g.fillText(label.slice(0,26),sp.x,sp.y-3);g.textAlign="left";}
@@ -234,7 +303,7 @@ function diagram(which){let p=which==="bench"?bench:circuit,z=.19;floor(["bench"
 function labels(){let used=[];const small=W<560;let arr=lab.slice().sort((a,b)=>Number(b.selected)-Number(a.selected));for(const t of arr){if(S.mode==="model"&&S.floor==="all"&&!t.selected&&!["esp32","ina","xl","oled","dell","battery","switches","tps1","lora","arduino","fnirsi","wifilab"].includes(t.id))continue;let w=Math.min(small?145:200,18+t.t.length*(small?5.4:6)),h=22,x=lim(t.x-w/2,4,W-w-4),y=lim(t.y-36,42,H-92);
  if(!t.selected&&used.some(r=>x<r.x+r.w+4&&x+w>r.x-4&&y<r.y+r.h+4&&y+h>r.y-4))continue;used.push({x,y,w,h});g.fillStyle=t.selected?"#5d3950f2":"#201827e5";g.strokeStyle=t.selected?"#eec4d7":"#745569";g.beginPath();g.roundRect(x,y,w,h,6);g.fill();g.lineWidth=1;g.stroke();g.fillStyle=t.c;g.beginPath();g.arc(x+9,y+11,3,0,Math.PI*2);g.fill();g.fillStyle="#f6e9f0";g.font="600 "+(small?9:10)+"px 'DM Sans'";g.textAlign="left";g.textBaseline="middle";g.fillText(t.t.length>(small?22:30)?t.t.slice(0,small?20:28)+"…":t.t,x+17,y+11);}g.textBaseline="alphabetic";}
 function draw(){scheduled=false;g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);let bg=g.createRadialGradient(W*.52,H*.50,10,W*.5,H*.49,Math.max(W,H)*.8);bg.addColorStop(0,"#423044");bg.addColorStop(.6,"#17131f");bg.addColorStop(1,"#0e0c16");g.fillStyle=bg;g.fillRect(0,0,W,H);g.strokeStyle="#dcb8c51a";for(let x=0;x<W;x+=30){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
- scale=Math.min(W/14.8,H/11.5)*1.17*S.zoom;hit=[];lab=[];if(S.mode==="model")drawingModel();else diagram(S.mode);labels();}
+ scale=Math.min(W/14.8,H/(S.mode==="model"&&S.floor==="all"?15.8:11.5))*1.17*S.zoom;hit=[];lab=[];if(S.mode==="model")drawingModel();else diagram(S.mode);labels();}
 function render(){if(!scheduled){scheduled=true;requestAnimationFrame(draw);}}
 function resize(){let r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;W=r.width;H=r.height;dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);render();}
 function inside(v,a){let ok=false;for(let i=0,j=a.length-1;i<a.length;j=i++){let p=a[i],q=a[j];if((p.y>v.y)!==(q.y>v.y)&&v.x<(q.x-p.x)*(v.y-p.y)/(q.y-p.y)+p.x)ok=!ok;}return ok;}
