@@ -1,5 +1,8 @@
 # 19 — Dimensiones físicas maestras y envolventes mecánicas
 
+> **CORRECCIÓN OBLIGATORIA 2026-10-17:** el montaje actual ya NO conserva el Dell Vostro 3405 completo ni su teclado/touchpad, solo placa madre y conjunto de refrigeración. Las dimensiones 328,7×239,5×19,9 mm descritas más abajo corresponden al **portátil original** y NO deben aplicarse al contorno de la motherboard desnuda. El contorno y altura de placa/heatpipe siguen **SIN MEDIR**. Panel principal y tapa (con pantalla) son ambos accesibles durante operación; reserva de 12 interruptores **216×78 mm, no cota para cortar**. Ver [regla y plano preliminar 25](25-lilith-panel-lid-interface.md).
+
+
 Actualizado: **2026-10-04**.
 
 Este documento reúne las dimensiones físicas del cyberdeck y separa explícitamente:
