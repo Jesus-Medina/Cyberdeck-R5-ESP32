@@ -367,3 +367,60 @@ body{background:#0d1014;color:var(--white);font-family:'DM Sans',system-ui,sans-
  .camera-controls button{min-width:33px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+
+/* Lilith: catálogo profesional de capacidades, sin hardware ficticio */
+.capabilities{background:#141a20;border:1px solid #334047;border-radius:6px;margin:20px 0;padding:22px}
+.capabilities-heading{display:flex;gap:18px;justify-content:space-between;align-items:center}
+.capabilities-heading h3{font:600 clamp(23px,2.7vw,33px)/1.18 'Space Grotesk',sans-serif;letter-spacing:-.04em;color:#eee6df;margin:8px 0}
+.capabilities-heading p{font-size:12px;color:#acb9be;line-height:1.7;margin:0;max-width:820px}
+.capabilities-heading strong{color:#d3b9a5}
+.capabilities-counter{flex:0 0 96px;border-left:1px solid #4c5559;text-align:center;padding:8px}
+.capabilities-counter strong{font:600 31px 'Space Grotesk';display:block;color:#e4c9b4}
+.capabilities-counter span{font:700 9px 'Space Grotesk';letter-spacing:.10em;color:#a3afb5}
+.capabilities-warning{border-left:2px solid #a38871;background:#22292c;color:#b4bec3;line-height:1.65;font-size:11px;padding:12px 15px;margin:18px 0}
+.capabilities-warning strong{color:#edddd0}
+.capabilities-keytopics{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+.capabilities-keytopics span{background:#20292e;border:1px solid #3d4d53;color:#c7b5a3;font-size:10px;padding:7px 10px}
+.capability-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#5d6568 transparent;padding-bottom:9px}
+.capability-filter{flex:0 0 auto;background:#1d272d;border:1px solid #414f57;border-radius:3px;min-height:39px;padding:9px 12px;white-space:nowrap;color:#aeb9bd;font-size:11px}
+.capability-filter.active,.capability-filter:hover{background:#343532;border-color:#ad917d;color:#eee1d5}
+.capability-search{display:flex;align-items:center;background:#1b242a;border:1px solid #46535a;margin-top:9px;padding:0 12px;border-radius:3px}
+.capability-search:focus-within{border-color:#bb987c}
+.capability-search span{font-size:22px;color:#b7a393;margin-right:8px}
+.capability-search input{font-size:12px;padding:12px 0;min-height:44px;min-width:0;flex:1;border:0;outline:0;background:none;color:#f0ebe8}
+.capability-results{color:#a7b3b8;font-size:10px;margin:12px 0}
+.capability-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.capability-card{min-width:0;border:1px solid #39464d;background:#1c252c;border-radius:4px;padding:16px;display:flex;flex-direction:column}
+.capability-card-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.capability-domain{font:700 9px 'Space Grotesk';letter-spacing:.07em;color:#ccb39d}
+.capability-status{background:transparent!important;box-shadow:none!important;font-size:9px;color:#b4bec1;border:1px solid #55636b;padding:4px 6px}
+.capability-status.tested{color:#ddc0a7;border-color:#977f6b}
+.capability-status.owned{color:#c6b99e;border-color:#736959}
+.capability-status.planned{color:#a7b7c2;border-color:#54616a}
+.capability-card h4{font:600 16px/1.3 'Space Grotesk';letter-spacing:-.022em;color:#f1ebe5;margin:14px 0 5px}
+.capability-role{font-size:12px;color:#d6c0ac;line-height:1.45;margin:0 0 9px}
+.capability-application{font-size:11px;color:#bbc5c7;line-height:1.65;margin:0 0 15px}
+.capability-open{font-weight:700;font-size:11px;color:#cfb49e;border:0;background:none;align-self:flex-start;text-align:left;padding:7px 0 0;margin-top:auto}
+.capability-open:hover{text-decoration:underline}
+.capability-more{display:block;min-height:42px;color:#e9d7c6;background:#252e33;border:1px solid #706b65;border-radius:3px;padding:10px 15px;margin:14px auto 0}
+.capability-more[hidden]{display:none}
+.capabilities-footnote{font-size:11px;line-height:1.7;color:#a7b4b9;margin:17px 0 0}
+.inspector-purpose>strong{color:#ebd6c3;font-size:13px;display:block}
+.inspector-purpose p{font-size:11px;color:#b8c3c7;line-height:1.7}
+@media(max-width:1260px){.capability-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+ .capabilities{margin:14px 0;padding:14px 11px;border-radius:4px}
+ .capabilities-heading{align-items:flex-start;gap:9px}
+ .capabilities-heading h3{font-size:23px}
+ .capabilities-heading p{font-size:11px}
+ .capabilities-counter{flex-basis:64px;padding:4px}
+ .capabilities-counter strong{font-size:23px}
+ .capabilities-counter span{font-size:8px}
+ .capabilities-warning{padding:11px;font-size:11px}
+ .capabilities-keytopics{gap:5px}
+ .capabilities-keytopics span{font-size:9px}
+ .capability-filter{min-height:42px}
+ .capability-cards{grid-template-columns:1fr;gap:8px}
+ .capability-card{padding:15px}
+}
