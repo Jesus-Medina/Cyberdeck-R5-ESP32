@@ -4,15 +4,15 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0b11"><meta name="description" content="Lilith Cyberdeck — gemelo visual interactivo por pisos, circuito probado y cableado previsto.">
 <title>LILITH — Gemelo visual del Cyberdeck</title>
-<link rel="stylesheet" href="./styles.css?v=3.2-orbit-20261017">
-<script defer src="./app.js?v=3.2-orbit-20261017"></script>
+<link rel="stylesheet" href="./styles.css?v=3.3-modules-20261017">
+<script defer src="./app.js?v=3.3-modules-20261017"></script>
 </head>
 <body>
 <div class="app" id="app">
 <aside class="sidebar">
   <div class="brand"><div class="emblem" aria-hidden="true">☾<span>✦</span></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK · EXPLORER 3.0</small></div><span class="brand-trailing">V0.1</span></div>
   <div class="sidebar-content">
-    <div class="intro"><span class="eyebrow">ESTACIÓN DE INGENIERÍA / 17.10.2026</span><h1>Explora lo que<br><em>estamos construyendo.</em></h1><p>Un mapa físico por niveles. Placas con sus componentes, conexiones verificadas y diseño futuro separados.</p>
+    <div class="intro"><span class="eyebrow">ESTACIÓN DE INGENIERÍA / 17.10.2026</span><h1>Explora lo que<br><em>estamos construyendo.</em></h1><p>Inventario ampliado por capas: módulos de radio, redes, energía, instrumentación y panel. Las posiciones aún son ilustrativas.</p>
     <div class="stat-pair"><div><strong>03</strong><small>bloques probados</small></div><div><strong id="moduleTotal">—</strong><small>elementos del modelo</small></div></div></div>
     <div class="control-section mode-section"><div class="section-heading">MODO DE EXPLORACIÓN</div><nav class="mode-nav" id="modeNav" aria-label="Modos">
       <button class="mode active" data-mode="model"><span class="mode-icon">◈</span><span class="mode-name">Modelo 3D<small>Pisos y placas físicas</small></span></button>
@@ -20,20 +20,20 @@
       <button class="mode" data-mode="circuit"><span class="mode-icon">⌁</span><span class="mode-name">Cableado<small>Rutas y seguridad</small></span></button>
     </nav></div>
     <div class="control-section level-section"><div class="section-heading">CAPAS DEL MALETÍN</div><nav id="floorNav" class="floor-nav" aria-label="Niveles">
-      <button class="floor-choice active" data-floor="all"><span>◈</span><b>Todos</b></button>
-      <button class="floor-choice" data-floor="panel"><span>01</span><b>Panel</b></button>
-      <button class="floor-choice" data-floor="electronics"><span>02</span><b>Electrónica</b></button>
-      <button class="floor-choice" data-floor="power"><span>03</span><b>Energía</b></button>
-      <button class="floor-choice" data-floor="base"><span>04</span><b>Base</b></button>
+      <button class="floor-choice active" data-floor="all"><span>◈</span><b>Todos</b><small>—</small></button>
+      <button class="floor-choice" data-floor="panel"><span>01</span><b>Panel</b><small>—</small></button>
+      <button class="floor-choice" data-floor="electronics"><span>02</span><b>Electrónica</b><small>—</small></button>
+      <button class="floor-choice" data-floor="power"><span>03</span><b>Energía</b><small>—</small></button>
+      <button class="floor-choice" data-floor="base"><span>04</span><b>Base</b><small>—</small></button>
     </nav></div>
-    <button id="mobileInventoryToggle" class="inventory-toggle" aria-expanded="false"><span>⌕</span> Buscar componentes <span class="toggle-chevron">⌄</span></button>
+    <button id="mobileInventoryToggle" class="inventory-toggle" aria-expanded="false"><span>⌕</span> Buscar módulos y componentes <span class="toggle-chevron">⌄</span></button>
     <div id="inventorySection" class="inventory-section">
       <div class="section-heading"><span>COMPONENTES</span><span id="resultCount">—</span></div>
       <label class="search"><span>⌕</span><input id="searchInput" autocomplete="off" placeholder="Chip, módulo, interfaz..." aria-label="Buscar componentes"></label>
       <div id="statusFilters" class="filters">
         <button class="filter active" data-status="all">Todos</button>
         <button class="filter" data-status="tested">Probados</button>
-        <button class="filter" data-status="owned">Comprados</button>
+        <button class="filter" data-status="owned">Registrados</button>
         <button class="filter" data-status="planned">Por instalar</button>
       </div>
       <div id="inventory" class="inventory" aria-label="Lista de componentes"></div>
@@ -44,7 +44,7 @@
 <main class="main">
 <header class="topbar"><span>CYBERDECK <i>/</i> <b>LILITH</b> <i>/</i> <span id="modeCrumb">MODELO 3D</span></span><a href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32" target="_blank" rel="noopener">VER REPOSITORIO ↗</a></header>
 <section class="workspace">
-<div class="section-intro"><div><span class="eyebrow">LILITH / HARDWARE EXPLORER</span><h2 id="viewTitle">El interior, pieza por pieza<span>.</span></h2><p id="viewSubtitle">Gira el maletín, separa los pisos y toca las placas para inspeccionarlas.</p></div><span class="reality-tag">MAQUETA REFERENCIAL <small>NO ES PLANO DE FABRICACIÓN</small></span></div>
+<div class="section-intro"><div><span class="eyebrow">LILITH / HARDWARE EXPLORER</span><h2 id="viewTitle">El interior, pieza por pieza<span>.</span></h2><p id="viewSubtitle">Elige un piso para descubrir sus módulos. Toca cada placa para ver su función y estado real.</p></div><span class="reality-tag">MAQUETA REFERENCIAL <small>NO ES PLANO DE FABRICACIÓN</small></span></div>
 <div id="viewer" class="viewer">
   <canvas id="scene" tabindex="0" role="img" aria-label="Modelo tridimensional interactivo de Lilith Cyberdeck. Arrastra para girar en la dirección del movimiento. Mayús o botón derecho más arrastre para desplazar. Pellizca para ampliar. Usa flechas para girar y Home para restablecer."></canvas>
   <div class="viewer-shade" aria-hidden="true"></div>
@@ -58,7 +58,7 @@
     <div class="camera-controls"><button id="zoomOut" aria-label="Alejar" title="Alejar">−</button><button id="resetCamera" aria-label="Restablecer cámara" title="Restablecer cámara">⟲</button><button id="zoomIn" aria-label="Acercar" title="Acercar">+</button></div>
   </div>
 </div>
-<div id="viewLegend" class="viewer-legend"><span><i class="legend-dot tested"></i> Probado</span><span><i class="legend-dot owned"></i> Comprado/registrado</span><span><i class="legend-dot planned"></i> Planificado</span><span class="legend-side">Arrastra: girar · Mayús + arrastrar: mover · pellizca: zoom</span></div>
+<div id="viewLegend" class="viewer-legend"><span><i class="legend-dot tested"></i> Probado</span><span><i class="legend-dot owned"></i> Comprado o registrado (verificar)</span><span><i class="legend-dot planned"></i> Planificado</span><span class="legend-side">Arrastra: girar · Mayús + arrastrar: mover · pellizca: zoom</span></div>
 <div id="netFilter" class="net-filter" hidden><span>RESALTAR</span><button class="net active" data-net="all">Todas</button><button class="net" data-net="power">Energía</button><button class="net" data-net="i2c">I²C / señales</button><button class="net" data-net="ground">GND</button></div>
 <div class="below">
   <article class="summary"><div class="summary-head"><span>ENSAYO REAL DE LILITH</span><b class="success">FUNCIONAL</b></div><h3>ESP32-S3 + INA3221 + OLED</h3><p>Probamos tres resistencias independientes de 100 Ω, una por canal. Estas son <strong>mediciones históricas</strong>, no datos en vivo.</p><div class="metrics"><div><small>BUS</small><b>3,17 <em>V</em></b></div><div><small>CH1</small><b>32,8 <em>mA</em></b></div><div><small>CH2</small><b>32,4 <em>mA</em></b></div><div><small>CH3</small><b>32,4 <em>mA</em></b></div></div><button id="openBench" class="text-action">EXPLORAR EL BANCO PROBADO ↗</button></article>
