@@ -55,3 +55,24 @@
  .inv-item{flex:0 0 160px;align-self:stretch}
  .floor-choice small{margin-right:2px}
 }
+
+/* 3.4: superficies operativas ilustradas con geometría proporcional a milímetros de reserva. */
+.access-principle{margin:18px 0 22px;border:1px solid #554054;border-radius:15px;background:linear-gradient(160deg,#231824,#15121c);padding:18px;overflow:hidden}
+.access-heading{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:15px}
+.access-heading h3{font:600 clamp(18px,2vw,24px)/1.2 'Space Grotesk';letter-spacing:-.035em;margin:8px 0}
+.access-heading p{max-width:640px;margin:0;color:#c1b2c2;font-size:12px}
+.access-heading a{font:700 9px 'Space Grotesk';letter-spacing:.09em;color:#e3b5cc;flex-shrink:0;border:1px solid #65465b;border-radius:8px;padding:9px 10px}
+.access-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:15px}
+.plan-card{border:1px solid #4d374c;border-radius:10px;background:#17121c;padding:13px;min-width:0}
+.plan-head{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font:700 9px 'Space Grotesk';letter-spacing:.08em;color:#f1c9da}
+.plan-head small{color:#a996ac;font:400 10px 'DM Sans'}
+.dimension-plan{display:block;width:100%;height:auto;aspect-ratio:371 / 258;max-height:none;border-radius:9px;background:#141018;overflow:visible}
+.dimension-plan text{fill:#f1dce7;font-family:'Space Grotesk',sans-serif;pointer-events:none}
+.plan-hit{cursor:pointer;outline:none}
+.plan-hit:hover rect,.plan-hit:focus-visible rect{stroke:#ffddb2;stroke-width:2.2}
+.plan-card p{margin:11px 0 0;font-size:11px;color:#c6b6c3;line-height:1.6}
+.plan-card strong{color:#f0c6d8}
+.plan-disclaimer{margin:12px 2px 0;color:#bdaabd;font-size:11px;line-height:1.6}
+.plan-disclaimer strong{color:#e4bfd1}
+@media(max-width:1100px){.access-layout{grid-template-columns:1fr}.plan-card{max-width:650px;width:100%;margin-inline:auto}}
+@media(max-width:760px){.access-principle{padding:11px;margin:12px 0}.access-heading{display:block}.access-heading a{display:inline-block;margin-top:9px}.access-heading p{font-size:11px}.plan-card{padding:9px}.plan-card p{font-size:10px}}
