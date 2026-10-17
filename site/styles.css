@@ -42,3 +42,16 @@
 }
 @media(max-width:390px){.mode-icon{font-size:15px}.mode-name{font-size:9px}.floor-choice{padding:7px}.viewer{height:430px}.scene-info{display:none}.selected-mini{bottom:60px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics>div:nth-child(2){border-right:0}.metrics>div:nth-child(-n+2){border-bottom:1px solid #4b3647}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* Lilith catálogo completo: recuento de módulos y separación por piso. */
+.floor-choice small{margin-left:auto;color:#c6adbe;font:700 10px 'Space Grotesk';border:1px solid #554052;border-radius:6px;min-width:28px;text-align:center;padding:2px 5px;background:#241a28}
+.floor-choice.active small{color:#f7d5e4;border-color:#95617f}
+.inventory-group{font:700 9px 'Space Grotesk';letter-spacing:.10em;color:#e2b8ce;background:#221924;border-top:1px solid #4d3348;padding:10px 8px 5px;margin:6px 0 2px;position:sticky;top:0;z-index:1}
+.inv-item{position:relative}
+.inv-item:focus-visible{outline:2px solid #e0b88e;outline-offset:-2px}
+@media(max-width:760px){
+ .inventory{max-height:180px;gap:7px}
+ .inventory-group{flex:0 0 126px;position:relative;align-self:stretch;display:grid;align-content:center;white-space:normal;padding:8px;border:1px solid #4d3348;border-radius:7px;margin:0}
+ .inv-item{flex:0 0 160px;align-self:stretch}
+ .floor-choice small{margin-right:2px}
+}
