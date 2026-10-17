@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'site/**'
+      - 'tests/**'
       - 'index.html'
       - '.github/workflows/lilith-pages.yml'
   workflow_dispatch:
@@ -22,6 +23,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Probar renderizado 3D y navegación móvil
+        run: node --test tests/explorer-smoke.test.cjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
