@@ -47,11 +47,12 @@ function boot(width = 900, height = 600) {
     constructor(fn) { this.fn = fn; }
     observe() { this.fn(); }
   }
-  vm.runInNewContext(script, {
+  const runtime = {
     document, ResizeObserver, devicePixelRatio: 1,
     window: { addEventListener() {} },
     requestAnimationFrame(fn) { frames.push(fn); }
-  }, { filename: 'site/app.js', timeout: 4000 });
+  };
+  vm.runInNewContext(script.replace("const S={", "const S=globalThis.__testCamera={"), runtime, { filename: 'site/app.js', timeout: 4000 });
   function flush() {
     let runs = 0;
     while (frames.length) {
@@ -66,7 +67,7 @@ function boot(width = 900, height = 600) {
     flush();
   }
   flush();
-  return { nodes, painted, click, flush };
+  return { nodes, painted, click, flush, camera: runtime.__testCamera };
 }
 
 test('el 3D dibuja componentes reales al abrir escritorio', () => {
@@ -96,4 +97,71 @@ test('banco, cableado, zoom y controles funcionan sin errores', () => {
     app.flush();
   }
   assert.ok(app.painted.polygons > prev);
+});
+
+function pointer(app, action, id, x, y, extras = {}) {
+  const scene = app.nodes.get('scene');
+  const listener = scene.listeners[action];
+  assert.ok(listener, 'Falta evento ' + action);
+  listener({ pointerId: id, clientX: x, clientY: y, pointerType: 'touch', button: 0, ...extras });
+  app.flush();
+}
+
+test('arrastrar sigue la dirección corregida sin invertir los ejes', () => {
+  const app=boot();
+  const y0=app.camera.yaw, p0=app.camera.pitch;
+  pointer(app,'pointerdown',1,250,200);
+  pointer(app,'pointermove',1,350,200);
+  assert.ok(app.camera.yaw < y0, 'El arrastre hacia la derecha debe disminuir yaw');
+  pointer(app,'pointermove',1,350,270);
+  assert.ok(app.camera.pitch > p0, 'Arrastrar hacia abajo debe aumentar inclinación');
+  pointer(app,'pointerup',1,350,270);
+});
+
+test('Mayús + arrastrar desplaza sin rotar, y reset restaura la cámara', () => {
+  const app=boot();
+  const yaw=app.camera.yaw;
+  pointer(app,'pointerdown',1,100,100,{shiftKey:true,pointerType:'mouse'});
+  pointer(app,'pointermove',1,170,135,{shiftKey:true,pointerType:'mouse'});
+  assert.equal(app.camera.panX,70);
+  assert.equal(app.camera.panY,35);
+  assert.equal(app.camera.yaw,yaw);
+  pointer(app,'pointerup',1,170,135,{shiftKey:true,pointerType:'mouse'});
+  app.nodes.get('resetCamera').listeners.click();
+  app.flush();
+  assert.equal(app.camera.panX,0);
+  assert.equal(app.camera.panY,0);
+});
+
+test('pellizco con dos dedos amplía sin rotar ni seleccionar accidentalmente', () => {
+  const app=boot(375,500), z0=app.camera.zoom, yaw=app.camera.yaw;
+  pointer(app,'pointerdown',1,100,200);
+  pointer(app,'pointerdown',2,200,200);
+  pointer(app,'pointermove',2,270,200);
+  assert.ok(app.camera.zoom>z0, 'Separar dedos debe ampliar');
+  assert.equal(app.camera.yaw,yaw,'El gesto de dos dedos no debe orbitar');
+  assert.ok(app.camera.panX>0,'Dos dedos pueden desplazar la vista');
+  pointer(app,'pointerup',2,270,200);
+  pointer(app,'pointermove',1,110,200);
+  assert.equal(app.camera.yaw,yaw,'Dedo residual tras pellizco no debe rotar');
+  pointer(app,'pointerup',1,110,200);
+  pointer(app,'pointerdown',3,140,240);
+  pointer(app,'pointermove',3,240,240);
+  assert.ok(app.camera.yaw<yaw,'Nuevo gesto después de pinch debe volver a orbitar');
+  pointer(app,'pointercancel',3,240,240);
+});
+
+test('rueda y teclado ofrecen zoom y navegación sin recargar', () => {
+  const app=boot(), c=app.camera, canvas=app.nodes.get('scene');
+  const initialZoom=c.zoom, initialYaw=c.yaw;
+  canvas.listeners.wheel({deltaY:-130,deltaMode:0,preventDefault(){}});
+  app.flush();
+  assert.ok(c.zoom>initialZoom);
+  canvas.listeners.keydown({key:'ArrowRight',preventDefault(){}});
+  app.flush();
+  assert.ok(c.yaw<initialYaw);
+  canvas.listeners.keydown({key:'Home',preventDefault(){}});
+  app.flush();
+  assert.equal(c.zoom,1);
+  assert.equal(c.yaw,-.55);
 });
