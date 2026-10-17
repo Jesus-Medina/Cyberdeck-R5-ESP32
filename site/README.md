@@ -1,4 +1,4 @@
-# Lilith Explorer 3.0 — modelo 3D por pisos
+# Lilith Explorer 3.3 — catálogo de módulos por pisos
 
 ## Estado de este visor
 
@@ -11,6 +11,17 @@ Actualización de interfaz orientada primero al **celular**, 17-10-2026. Sitio e
 - Modo banco 3,3 V con ESP32, INA3221, OLED y tres resistencias 100Ω + líneas **ya comprobadas**.
 - Modo cableado futuro V0.1 con 12V → fusible → SW0 → XL4015 → TPS2553/SW1/INA; **trazos discontinuos: no montados**. Filtros por energía/I²C/GND.
 - Controles de móvil compactados, inventario plegable, inspector debajo del visor y botón para llegar a su ficha.
+
+
+## Inventario visual ampliado (17-10-2026)
+
+El visor muestra **58 fichas distribuidas en cuatro niveles ilustrativos** (panel, electrónica/RF/redes, energía y base Dell), y accesos separados al adaptador externo y a las cargas de banco. SW0 y SW1 son funciones de dos de los doce interruptores, no dispositivos adicionales.
+
+- Panel: FNIRSI, GM328A, CYD, OLED, interruptores, encoder, display V/A/W, antenas, IR, GPIO y puertos de servicio.
+- Electrónica: ESP32-S3, INA3221, Arduino, LoRa, RTL-SDR, Wi-Fi LAB, UE306, GNSS, PN532, CP2102, ADuM1201, TCA9548A, EEPROM, analizador lógico, RTC y BME280.
+- Energía: XL4015, TPS2553, reserva, fusibles, backplane, Smart Module Ports, LiFePO4 futura, fuente LAB, selector AUX, rails y USB-C PD.
+
+Los módulos están distribuidos en una rejilla **para encontrarlos e inspeccionarlos**, no según su posición física definitiva. La palabra registrado/comprado no demuestra recepción física, montaje o prueba. El usuario puede buscar, filtrar y pulsar un componente para ir a su piso.
 
 ## Límites de fidelidad
 
