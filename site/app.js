@@ -152,6 +152,47 @@ raw.find(r=>r[0]==="switches")[8]="6 palancas SPST + 6 basculantes. Reserva de 2
 raw.find(r=>r[0]==="cyd")[8]="Pantalla táctil auxiliar futura en panel. El rectángulo de 85 × 60 mm es solo una reserva a validar con la variante física escogida.";
 raw.find(r=>r[0]==="ports")[8]="Conectores y puertos deben estar accesibles en panel o alrededor de pantalla. Por ahora representados mediante zonas reservadas, NO montados.";
 
+// Mapa FUNCIONAL de superficies de operación. No es un packing CAD ni agrega chips duplicados.
+// Cada ficha corresponde a un acceso, control, pantalla, conector o capacidad utilizable desde arriba.
+// Las huellas físicas conocidas siguen apartadas en panelPlan; NO atribuirles tamaño a estas tarjetas.
+const operatingPoints={
+ panel:[
+  ["switches","12 INTERRUPTORES","6 palancas + 6 basculantes","energia"],
+  ["oled","OLED SUPERVISOR","Estado y consumo","pantalla"],
+  ["cyd","PANTALLA TÁCTIL","CYD 2,8″ prevista","pantalla"],
+  ["keyboard","TECLADO + TRACKPAD","Bluetooth; no es del Dell","control"],
+  ["fnirsi","OSCILOSCOPIO","Sondas accesibles","lab"],
+  ["gm328","COMPROBADOR LCR","Zócalo ZIF accesible","lab"],
+  ["gpio","GPIO / I²C / SPI","Cabeceras de laboratorio","datos"],
+  ["usbpanel","USB-A / USB-C","Servicio y conexión","datos"],
+  ["networkpanel","RJ45 / HDMI / AUDIO","Extensores dedicados","datos"],
+  ["smartout","SMART OUT 1 / 2","Bornes 5 V protegidos","energia"],
+  ["labout","FUENTE LAB OUT","Bananas y salida CC/CV","energia"],
+  ["labmeter","MEDIDOR V/A/W","Pantalla de energía","pantalla"],
+  ["encoder","ENCODER CC/CV","Ajuste fuente LAB","control"],
+  ["logic","ANALIZADOR LÓGICO","Conexiones de 8 canales","lab"],
+  ["uart","USB ↔ UART","Consola de servicio","datos"],
+  ["irpanel","IR RX/TX","Control de equipos propios","rf"],
+  ["nfc","NFC / RFID","Área de lectura accesible","rf"],
+  ["ledpanel","LED + BUZZER","Alarmas del sistema","control"],
+  ["fuse","ENTRADA DC","Jack protegido y fusible","energia"],
+  ["pd","USB-C PD","Puerto protegido futuro","datos"],
+  ["regservo","SALIDA SERVO","Regulación 5–6 V futura","energia"],
+  ["reg33","SALIDA 3,3 V","Lógica protegida futura","energia"]
+ ],
+ lid:[
+  ["lcd","PANTALLA DELL 14″","Interfaz principal del host","pantalla"],
+  ["antenna","SOPORTES RF","Antenas internas desplegables","rf"],
+  ["wifilab","ANTENA WI-FI LAB","Adaptador en piso técnico","rf"],
+  ["lora","ANTENA LORA","Módulo conectado por coaxial","rf"],
+  ["sdr","ANTENA SDR","Receptor en bandeja técnica","rf"],
+  ["gps","ANTENA GNSS","Vista al cielo con tapa abierta","rf"],
+  ["lidstatus","INDICADORES DE TAPA","LED de estado opcionales","control"],
+  ["lid_ir","ZONA IR / SENSORES","Solo si hay espacio en marco","control"]
+ ]
+};
+const accessCategories={energia:"ENERGÍA Y SALIDAS",pantalla:"PANTALLAS",control:"CONTROLES",lab:"INSTRUMENTOS",datos:"DATOS Y PUERTOS",rf:"RADIO / SENSORES"};
+
 const items=raw.map(r=>({id:r[0],name:r[1],floor:r[2],status:r[3],kind:r[4],box:r[5],v:r[6],io:r[7],desc:r[8],next:r[9],links:r[10].split(","),doc:["panel","lid","base"].includes(r[2])?"25-lilith-panel-lid-interface.md":r[2]==="power"?"21-portable-power-architecture.md":"22-lilith-build-status-2026-10-17.md"}));
 const index=Object.fromEntries(items.map(i=>[i.id,i]));
 const bench={esp32:[-3.7,-1.1,2.24,1.32],ina:[-.77,-1.1,2.1,1.35],oled:[2.38,-1.0,1.45,1.1],r1:[-2.55,1.35,.87,.4],r2:[-.32,1.35,.87,.4],r3:[1.91,1.35,.87,.4]};
@@ -310,6 +351,40 @@ function inside(v,a){let ok=false;for(let i=0,j=a.length-1;i<a.length;j=i++){let
 function pick(v){for(let i=hit.length-1;i>=0;i--)if(inside(v,hit[i].poly))return hit[i].id;for(let i=hit.length-1;i>=0;i--){let a=hit[i].poly,p={x:a.reduce((s,v)=>s+v.x,0)/4,y:a.reduce((s,v)=>s+v.y,0)/4};if(Math.hypot(v.x-p.x,v.y-p.y)<(W<600?21:13))return hit[i].id;}return null;}
 function statusText(s){return s==="tested"?"PROBADO EN BANCO":s==="owned"?"REGISTRADO / COMPRADO, RECEPCIÓN POR VERIFICAR":"PLANIFICADO / SIN PROBAR";}
 function select(id){if(!index[id])return;S.selected=id;if(id==="meanwell")S.mode="circuit";if(["r1","r2","r3"].includes(id))S.mode="bench";if(S.mode==="model"&&S.floor!=="all"&&index[id].floor!=="external")S.floor=index[id].floor;update();}
+function renderOperatingPoints(){
+ for(const surface of ["panel","lid"]){
+  const wrap=$(surface==="panel"?"panelAccessGrid":"lidAccessGrid");
+  if(!wrap)continue;
+  wrap.replaceChildren();
+  let lastCategory="";
+  for(const [id,label,detail,group] of operatingPoints[surface]){
+   const m=index[id];if(!m)throw Error("Punto operativo sin módulo: "+id);
+   if(group!==lastCategory){
+    lastCategory=group;
+    const category=document.createElement("div");category.className="access-group-label";
+    category.textContent=accessCategories[group];wrap.append(category);
+   }
+   const b=document.createElement("button");b.className="access-point";
+   b.dataset.part=id;b.dataset.surface=surface;
+   const header=document.createElement("span");header.className="access-point-header";
+   const name=document.createElement("strong");name.textContent=label;
+   const state=document.createElement("i");state.className="state-dot "+m.status;
+   header.append(state,name);
+   const desc=document.createElement("small");desc.textContent=detail;
+   const location=document.createElement("em");location.textContent=m.floor===surface?"Reserva en "+(surface==="panel"?"panel":"tapa"):"Módulo interno · acceso arriba";
+   b.append(header,desc,location);
+   b.addEventListener("click",()=>{
+    S.mode="model";S.floor=surface;S.selected=id;update();
+    $("inspector").scrollIntoView({behavior:"smooth",block:"start"});
+   });
+   wrap.append(b);
+  }
+ }
+ const n=$("operatingCount");if(n)n.textContent=operatingPoints.panel.length+operatingPoints.lid.length;
+ const p=$("panelAccessCount");if(p)p.textContent=operatingPoints.panel.length;
+ const l=$("lidAccessCount");if(l)l.textContent=operatingPoints.lid.length;
+}
+
 function inventory(){
  const el=$("inventory");el.replaceChildren();
  const order=["lid","panel","electronics","power","base","external","bench"];
@@ -414,9 +489,13 @@ function update(){
  $("viewSubtitle").textContent=S.mode==="model"?"Panel y marco del LCD son accesibles; los otros pisos son solo infraestructura. Selecciona un nivel para revisar detalles.":S.mode==="bench"?"ESP32, OLED, INA3221 y tres resistencias independientes de 100 Ω.":"Las líneas discontinuas son rutas aún sin montar ni probar.";
  $("floorCaption").innerHTML=(S.mode==="model"?(S.floor==="all"?"PANEL + TAPA + TRES NIVELES INTERNOS":levels.find(x=>x[0]===S.floor)?.[1]||"PISO"):(S.mode==="bench"?"BANCO REAL 3,3 V":"V0.1 PENDIENTE"))+"<small>"+(S.mode==="model"?(S.exploded?"DESPIECE · MEDIDAS ILUSTRATIVAS":"ENSAMBLADO · MEDIDAS ILUSTRATIVAS"):S.mode==="bench"?"ENSAYO COMPROBADO":"12 V → 5 V NO CONECTADOS")+"</small>";
  $("sceneInfoText").textContent=S.mode==="model"?"ARRASTRAR: GIRAR · 2 DEDOS: ZOOM/MOVER":S.mode==="bench"?"I²C 0x40 / 0x3C · GPIO8/9":"RUTAS FUTURAS Y DATOS PROBADOS";
+ const jump=$("accessJump");if(jump){
+  jump.hidden=S.mode!=="model";
+  jump.textContent=S.floor==="panel"?"22 accesos del panel ↓":S.floor==="lid"?"8 accesos de tapa ↓":"30 accesos operativos ↓";
+ }
  $("netFilter").hidden=S.mode==="model";$("explodeControls").style.display=S.mode==="model"&&S.floor==="all"?"flex":"none";
  $("modeNav").querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===S.mode));
- $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";const c=b.querySelector("small");if(c)c.textContent=(b.dataset.floor==="all"?items.filter(m=>["lid","panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length:items.filter(m=>m.floor===b.dataset.floor&&!["sw0","sw1"].includes(m.id)).length);});
+ $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";const c=b.querySelector("small");if(c)c.textContent=b.dataset.floor==="panel"?operatingPoints.panel.length+" accesos":b.dataset.floor==="lid"?operatingPoints.lid.length+" accesos":b.dataset.floor==="all"?items.filter(m=>["lid","panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length:items.filter(m=>m.floor===b.dataset.floor&&!["sw0","sw1"].includes(m.id)).length);});
  $("statusFilters").querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("active",b.dataset.status===S.status));
  $("netFilter").querySelectorAll("[data-net]").forEach(b=>b.classList.toggle("active",b.dataset.net===S.net));
  $("assembledBtn").classList.toggle("active",!S.exploded);$("explodedBtn").classList.toggle("active",S.exploded);
@@ -545,6 +624,9 @@ if(typeof document.querySelectorAll==="function"){
   node.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
  });
 }
+renderOperatingPoints();
+const accessJump=$("accessJump");
+if(accessJump)accessJump.addEventListener("click",()=>{$("operatingOverview").scrollIntoView({behavior:"smooth",block:"start"});});
 $("moduleTotal").textContent=items.filter(m=>["lid","panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length;
 if(typeof ResizeObserver==="function"){new ResizeObserver(resize).observe(canvas);}else{window.addEventListener("resize",resize);}update();resize();
 })();
