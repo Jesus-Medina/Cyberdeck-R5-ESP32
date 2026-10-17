@@ -312,8 +312,8 @@ function statusText(s){return s==="tested"?"PROBADO EN BANCO":s==="owned"?"REGIS
 function select(id){if(!index[id])return;S.selected=id;if(id==="meanwell")S.mode="circuit";if(["r1","r2","r3"].includes(id))S.mode="bench";if(S.mode==="model"&&S.floor!=="all"&&index[id].floor!=="external")S.floor=index[id].floor;update();}
 function inventory(){
  const el=$("inventory");el.replaceChildren();
- const order=["panel","electronics","power","base","external","bench"];
- const title={panel:"01 · PANEL / INSTRUMENTOS",electronics:"02 · ELECTRÓNICA / RF / REDES",power:"03 · ENERGÍA / PROTECCIONES",base:"04 · EQUIPO DELL",external:"EXTERIOR / BANCO",bench:"CARGAS DE PRUEBA"};
+ const order=["lid","panel","electronics","power","base","external","bench"];
+ const title={lid:"TAPA · PANTALLA Y ANTENAS",panel:"01 · INTERFAZ DE USUARIO",electronics:"02 · ELECTRÓNICA INTERNA",power:"03 · ENERGÍA INTERNA",base:"04 · PLACA DELL",external:"EXTERIOR / BANCO",bench:"CARGAS DE PRUEBA"};
  const visible=items.filter(m=>(S.status==="all"||m.status===S.status)&&(!S.q||(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q))&&(!["r1","r2","r3"].includes(m.id)||S.mode==="bench"));
  visible.sort((a,b)=>order.indexOf(a.floor)-order.indexOf(b.floor)||a.name.localeCompare(b.name,"es"));
  $("resultCount").textContent=visible.length;
@@ -330,7 +330,7 @@ function inventory(){
   sub.textContent=m.status==="tested"?"PROBADO":m.status==="owned"?"REGISTRADO / VERIFICAR":"PLANIFICADO";
   wrap.append(n,sub);b.append(dot,wrap);
   b.addEventListener("click",()=>{
-   if(["panel","electronics","power","base"].includes(m.floor)){S.mode="model";S.floor=m.floor;}
+   if(["lid","panel","electronics","power","base"].includes(m.floor)){S.mode="model";S.floor=m.floor;}
    else if(m.floor==="bench")S.mode="bench";
    else if(m.floor==="external")S.mode="circuit";
    select(m.id);
@@ -338,25 +338,85 @@ function inventory(){
   el.append(b);
  });
 }
+const operatingAccess={
+ dell:"LCD Dell en tapa; teclado BT plegable separado sobre panel; conectores e interruptor Dell mediante extensiones/actuadores accesibles (sin integración todavía)",
+ dellcooler:"Diagnóstico y control térmico desde interfaz superior; limpieza/reparación en mantenimiento",
+ esp32:"OLED/indicadores, SW1 y puerto USB de servicio en panel",
+ ina:"Lecturas de corriente en OLED/pantallas del panel cuando se implemente",
+ xl:"SW0, medición y salida protegida desde el panel; potenciómetros internos del XL4015 sólo en mantenimiento",
+ tps1:"Control/estado FAULT y bornes 5 V SMART OUT 1 en panel",tps2:"Control/estado FAULT y bornes 5 V SMART OUT 2 en panel",
+ tca:"Identificación de módulos y diagnóstico por pantalla supervisor",eeprom:"ID de Smart Ports visible desde interfaz del supervisor",
+ adum:"Enlace serial al Dell; conector de servicio en panel, masas Dell/AUX aisladas",
+ uart:"Puerto USB/UART de servicio disponible en panel",
+ battery:"Conmutador/estado de energía, protección y entrada de carga diseñada en panel; SIN montaje",
+ mux:"Selector AUX OFF y estado en panel; sin retorno Dell/LiFePO4",
+ chargepath:"Indicador y conector seguro de carga en el panel; no usar Mean Well como cargador",
+ dcdell:"Conector/control de alimentación Dell visible en panel, sujeto a medir tensión e ID",
+ fan:"Indicador de ventilación/temperatura y acceso de servicio arriba",
+ temp:"Lecturas térmicas por pantalla del supervisor",
+ wifilab:"Antenas por coaxial hacia zona RF de tapa/panel abierto; switch y estado arriba",
+ lora:"Antena correcta en tapa/panel abierto mediante coax; control y estado arriba",
+ sdr:"Antena despejada y acceso USB desde el panel; coaxial apropiado",
+ gps:"Antena GNSS con vista al cielo junto a la pantalla/panel abierto",
+ nfc:"Área de acercamiento de tarjeta identificada en tapa/panel sin metal encima",
+ irctrl:"Receptor/LED IR visibles en el marco de pantalla o panel",
+ rtc:"Hora y configuración mediante pantalla de supervisión",
+ bme:"Mediciones de temperatura/humedad/ambiente visibles arriba; posición de sensor ventilada",
+ ard‌uino:"GPIO y USB de servicio desde panel",arduino:"GPIO/I²C/SPI/UART con protección en panel",
+ logic:"Cabeceras y USB para instrumentos de laboratorio en panel",
+ levelshift:"Interfaces 3V3/5V rotuladas y protegidas arriba",
+ ue306:"RJ45 LAN2 accesible en el panel; adaptador debajo",
+ hub:"USB-A/USB-C accesibles desde panel, sin retorno de 5 V a Dell",
+ backplane:"Puertos SMART OUT / LEDs/FAULT / SW0 desde panel",
+ smartports:"Bornes de Smart Output 1 y 2 en panel con límites señalados",
+ lab:"Perilla, pantalla V/A/W, OUTPUT y bornes desde panel (fuente LAB futura)",
+ labout:"Bananas/bornes de salida regulable, OUTPUT y fusible operable desde panel",
+ labmeter:"V/A/W en panel, módulo LAB todavía no integrado",
+ power_meter:"Display V/A/W montado en panel",
+ pd:"USB-C PD protegido y rotulado en panel",
+ regservo:"Bornes servo 5–6 V / GPIO control desde panel",
+ reg33:"Bornes 3,3 V protegidos y rotulados en panel",
+ aux12:"Bornes 12 V regulados, solo si se valida la necesidad, desde panel",
+ fnirsi:"Pantalla y conexiones de sonda en panel o zona auxiliar alrededor del LCD, según medidas; no aprobado",
+ gm328:"Zócalo ZIF totalmente accesible sobre panel o zona auxiliar de tapa, según medidas; no aprobado",
+ keyboard:"Teclado BT con trackpad independiente, ubicado SOBRE panel accesible",
+ switches:"6 palancas + 6 basculantes en dos filas sobre panel (reserva 216×78 mm)",
+ antenna:"Soportes plegables/expuestos al abrir la tapa, separados de electrónica ruidosa; coax a módulos interiores",
+ oled:"Pantalla SH1106 accesible desde el panel",
+ cyd:"Pantalla táctil accesible en el panel",
+ usbpanel:"Puertos USB de servicio en franja de panel",
+ networkpanel:"Conectores HDMI/RJ45/audio accesibles en panel",
+ ports:"Interfaz de alimentación y datos accesible en superficie operativa",
+ gpio:"Headers y bornes GPIO, I²C, SPI y UART accesibles en panel",
+ irpanel:"Emisor y receptor IR visibles en tapa/panel",
+ ledpanel:"Alarmas visuales/acústicas desde la superficie operativa",
+ lcd:"LCD en la tapa abierta; cableado eDP y bisagra por comprobar",
+ lidrf:"Conectores de antena y soportes RF utilizables con el maletín abierto",
+ lidstatus:"Indicadores junto al LCD, sin tapar la zona activa",
+ lid_ir:"Franja libre alrededor de pantalla para IR/GNSS o indicadores tras medir",
+ meanwell:"Conexión de 12 V DC en panel/borde interno; adaptador Mean Well fuera del maletín"
+};
+const accessFor=m=>operatingAccess[m.id]||"Operación/control/estado a través de interfaz superior o tapa; asignación exacta y calado pendiente de definir y medir. No hace falta abrir los pisos durante uso normal.";
+
 function inspector(){let m=index[S.selected];if(!m)return;let el=$("inspectorBody");el.replaceChildren();let top=document.createElement("div");top.className="inspector-topblock";let p=document.createElement("div");p.className="inspect-code";p.textContent="LILITH / "+m.floor.toUpperCase()+" / "+m.id.toUpperCase();top.append(p);
  let fig=document.createElement("div");fig.className="inspect-picture";let tile=document.createElement("div");tile.style.cssText="width:78%;height:60%;border:2px solid #b7a2b1;border-radius:9px;background:"+({ina:"#633583",xl:"#285f8a",esp32:"#235043",tps:"#2a6c56",oled:"#182c44"}[m.kind]||"#344b59")+";box-shadow:10px 12px 12px #0007;transform:rotate(-7deg);display:grid;place-items:center;text-align:center;font:700 15px 'Space Grotesk';padding:9px";tile.textContent=({ina:"INA3221 · R100 ×3",xl:"XL4015 · CC/CV",esp32:"ESP32-S3 · USB-C",tps:"TPS2553 · SOT-23-6",oled:"OLED · SH1106"}[m.kind]||m.name);fig.append(tile);top.append(fig);
  let title=document.createElement("h3");title.className="inspect-title";title.textContent=m.name;top.append(title);
  let badge=document.createElement("div");badge.className="inspect-state "+m.status;badge.textContent=statusText(m.status);top.append(badge);
  let desc=document.createElement("p");desc.className="inspect-desc";desc.textContent=m.desc;top.append(desc);el.append(top);
  let sect=document.createElement("section");sect.className="detail-section";let h=document.createElement("h4");h.textContent="ESPECIFICACIONES";sect.append(h);
- [["TENSIÓN",m.v],["CONECTORES / DATOS",m.io],["ÁREA",m.floor.toUpperCase()]].forEach(([k,v])=>{let row=document.createElement("div");row.className="spec";let a=document.createElement("span"),b=document.createElement("b");a.textContent=k;b.textContent=v;row.append(a,b);sect.append(row);});el.append(sect);
+ [["TENSIÓN",m.v],["CONECTORES / DATOS",m.io],["UBICACIÓN INTERNA",m.floor.toUpperCase()],["ACCESO OPERATIVO ARRIBA",accessFor(m)]].forEach(([k,v])=>{let row=document.createElement("div");row.className="spec";let a=document.createElement("span"),b=document.createElement("b");a.textContent=k;b.textContent=v;row.append(a,b);sect.append(row);});el.append(sect);
  sect=document.createElement("section");sect.className="detail-section";h=document.createElement("h4");h.textContent="SIGUIENTE PASO";sect.append(h);p=document.createElement("div");p.className="nextstep";p.textContent=m.next;sect.append(p);el.append(sect);
  sect=document.createElement("section");sect.className="detail-section";h=document.createElement("h4");h.textContent="MÓDULOS RELACIONADOS";sect.append(h);let group=document.createElement("div");group.className="related-list";m.links.forEach(id=>{if(!index[id])return;let b=document.createElement("button");b.textContent=index[id].name;b.addEventListener("click",()=>select(id));group.append(b);});sect.append(group);el.append(sect);
- p=document.createElement("div");p.className="detail-warning";p.textContent="Los dibujos son referenciales: no son fotografías de tus piezas ni planos CAD validados.";el.append(p);$("inspectorDoc").href=docs+m.doc;}
+ p=document.createElement("div");p.className="detail-warning";p.textContent="En uso normal se opera desde PANEL o TAPA, sin levantar pisos. El visor solo reserva superficies; posiciones, separación RF y huellas reales requieren medición antes de fabricar.";el.append(p);$("inspectorDoc").href=docs+m.doc;}
 function update(){
  $("modeCrumb").textContent=S.mode==="model"?"MODELO 3D":S.mode==="bench"?"BANCO REAL":"CABLEADO";
- $("viewTitle").innerHTML=(S.mode==="model"?"El interior, pieza por pieza":S.mode==="bench"?"Lo que ya funciona":"Conexiones y seguridad")+"<span>.</span>";
- $("viewSubtitle").textContent=S.mode==="model"?"Selecciona un piso para ver sus módulos. Arrastra para girar y toca cada pieza para inspeccionarla.":S.mode==="bench"?"ESP32, OLED, INA3221 y tres resistencias independientes de 100 Ω.":"Las líneas discontinuas son rutas aún sin montar ni probar.";
- $("floorCaption").innerHTML=(S.mode==="model"?(S.floor==="all"?"CUATRO NIVELES":levels.find(x=>x[0]===S.floor)?.[1]||"PISO"):(S.mode==="bench"?"BANCO REAL 3,3 V":"V0.1 PENDIENTE"))+"<small>"+(S.mode==="model"?(S.exploded?"DESPIECE · MEDIDAS ILUSTRATIVAS":"ENSAMBLADO · MEDIDAS ILUSTRATIVAS"):S.mode==="bench"?"ENSAYO COMPROBADO":"12 V → 5 V NO CONECTADOS")+"</small>";
+ $("viewTitle").innerHTML=(S.mode==="model"?"Panel, pantalla e interior":S.mode==="bench"?"Lo que ya funciona":"Conexiones y seguridad")+"<span>.</span>";
+ $("viewSubtitle").textContent=S.mode==="model"?"Panel y marco del LCD son accesibles; los otros pisos son solo infraestructura. Selecciona un nivel para revisar detalles.":S.mode==="bench"?"ESP32, OLED, INA3221 y tres resistencias independientes de 100 Ω.":"Las líneas discontinuas son rutas aún sin montar ni probar.";
+ $("floorCaption").innerHTML=(S.mode==="model"?(S.floor==="all"?"PANEL + TAPA + TRES NIVELES INTERNOS":levels.find(x=>x[0]===S.floor)?.[1]||"PISO"):(S.mode==="bench"?"BANCO REAL 3,3 V":"V0.1 PENDIENTE"))+"<small>"+(S.mode==="model"?(S.exploded?"DESPIECE · MEDIDAS ILUSTRATIVAS":"ENSAMBLADO · MEDIDAS ILUSTRATIVAS"):S.mode==="bench"?"ENSAYO COMPROBADO":"12 V → 5 V NO CONECTADOS")+"</small>";
  $("sceneInfoText").textContent=S.mode==="model"?"ARRASTRAR: GIRAR · 2 DEDOS: ZOOM/MOVER":S.mode==="bench"?"I²C 0x40 / 0x3C · GPIO8/9":"RUTAS FUTURAS Y DATOS PROBADOS";
  $("netFilter").hidden=S.mode==="model";$("explodeControls").style.display=S.mode==="model"&&S.floor==="all"?"flex":"none";
  $("modeNav").querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===S.mode));
- $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";const c=b.querySelector("small");if(c)c.textContent=(b.dataset.floor==="all"?items.filter(m=>["panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length:items.filter(m=>m.floor===b.dataset.floor&&!["sw0","sw1"].includes(m.id)).length);});
+ $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";const c=b.querySelector("small");if(c)c.textContent=(b.dataset.floor==="all"?items.filter(m=>["lid","panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length:items.filter(m=>m.floor===b.dataset.floor&&!["sw0","sw1"].includes(m.id)).length);});
  $("statusFilters").querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("active",b.dataset.status===S.status));
  $("netFilter").querySelectorAll("[data-net]").forEach(b=>b.classList.toggle("active",b.dataset.net===S.net));
  $("assembledBtn").classList.toggle("active",!S.exploded);$("explodedBtn").classList.toggle("active",S.exploded);
@@ -472,6 +532,6 @@ $("resetCamera").addEventListener("click",resetView);
 $("openBench").addEventListener("click",()=>{S.mode="bench";S.selected="ina";update();$("viewer").scrollIntoView({behavior:"smooth",block:"center"});});
 $("mobileInventoryToggle").addEventListener("click",()=>{let yes=$("inventorySection").classList.toggle("open");$("mobileInventoryToggle").setAttribute("aria-expanded",String(yes));});
 $("openInspector").addEventListener("click",()=>$("inspector").scrollIntoView({behavior:"smooth",block:"start"}));
-$("moduleTotal").textContent=items.filter(m=>["panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length;
+$("moduleTotal").textContent=items.filter(m=>["lid","panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length;
 if(typeof ResizeObserver==="function"){new ResizeObserver(resize).observe(canvas);}else{window.addEventListener("resize",resize);}update();resize();
 })();
