@@ -3,6 +3,7 @@
 /* Lilith Explorer 3.0: 3D projected geometry on Canvas 2D. Board art is conceptual, not CAD.
    Verified bench relations are separated from not-yet-built AUX power connections. */
 const $=id=>document.getElementById(id),canvas=$("scene"),g=canvas.getContext("2d");
+if(!g){$("sceneInfoText").textContent="Este navegador no admite el visor Canvas 2D.";return;}
 const colors={tested:"#ebbbd0",owned:"#dcba92",planned:"#91899c",power:"#f2b381",i2c:"#d6a4e7",ground:"#9fb5d8"};
 const docs="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/";
 const levels=[["base","04 · BASE ESTRUCTURAL"],["power","03 · ENERGÍA"],["electronics","02 · ELECTRÓNICA"],["panel","01 · PANEL SUPERIOR"]];
@@ -46,7 +47,7 @@ const circuit={meanwell:[-4.45,-2.1,1.5,.95],fuse:[-2.62,-2.1,1.07,.87],sw0:[-1.
 const benchN=[["esp32","ina","power","3V3 fila 5",true],["esp32","oled","power","3V3",true],["esp32","ina","ground","GND fila 2",true],["esp32","ina","i2c","GPIO8 SDA fila 10",true],["esp32","ina","i2c","GPIO9 SCL fila 15",true],["esp32","oled","i2c","I²C GPIO8/9",true],["ina","r1","power","VIN1−",true],["ina","r2","power","VIN2−",true],["ina","r3","power","VIN3−",true]];
 const designN=[["meanwell","fuse","power","12 V",false],["fuse","sw0","power","12 V",false],["sw0","xl","power","12 V",false],["xl","tps1","power","5 V",false],["xl","tps2","power","5 V",false],["xl","sw1","power","5 V",false],["tps1","ina","power","CH1",false],["tps2","ina","power","CH2",false],["sw1","ina","power","CH3",false],["ina","esp32","power","SUP 5 V",false],["esp32","ina","i2c","GPIO8/9 probado",true],["esp32","oled","i2c","GPIO8/9 probado",true],["esp32","ina","ground","GND banco",true]];
 const S={mode:"model",floor:"all",exploded:true,status:"all",q:"",selected:"esp32",net:"all",yaw:-.55,pitch:.62,zoom:1};
-let W=0,H=0,dpr=1,scale=1,hits=[],lab=[],scheduled=false,drag=false,startDist=0;
+let W=0,H=0,dpr=1,scale=1,hit=[],lab=[],scheduled=false,drag=false,startDist=0;
 const ptr=new Map();
 const lim=(v,a,b)=>Math.max(a,Math.min(b,v));
 function proj(x,y,z){let co=Math.cos(S.yaw),si=Math.sin(S.yaw),p=Math.sin(S.pitch),q=Math.cos(S.pitch),u=x*co-y*si,v=x*si+y*co,depth=v*q+z*p,f=25/(25-depth);return{x:W*.5+u*scale*f,y:H*.54+(v*p-z*q)*scale*f};}
@@ -79,7 +80,7 @@ if(S.selected===m.id)poly([[x,y,base+.2],[x+w,y,base+.2],[x+w,y+d,base+.2],[x,y+
 hit.push({id:m.id,poly:area});let q=proj(x+w/2,y+d/2,base+.22);lab.push({id:m.id,x:q.x,y:q.y,t:m.name,c:colors[m.status],selected:S.selected===m.id});
 }
 function floor(f,z){block(-5,-3.35,z,10,6.7,.15,"#332b3d99");for(let i=-4;i<=4;i++)path([[i,-3.3,z+.16],[i,3.3,z+.16]],"#d9a8bc16",.5);let a=proj(-4.4,-3.5,z+.23);lab.push({id:"floor",x:a.x,y:a.y,t:f[1],c:"#ab8fa2",selected:false});}
-function drawingModel(){for(const f of lv){if(S.floor!=="all"&&S.floor!==f[0])continue;const idx=lv.indexOf(f),z=S.floor==="all"?.11+idx*(S.exploded?.98:.18):.60;floor(f,z);
+function drawingModel(){for(const f of levels){if(S.floor!=="all"&&S.floor!==f[0])continue;const idx=levels.indexOf(f),z=S.floor==="all"?.11+idx*(S.exploded?.98:.18):.60;floor(f,z);
  const group=items.filter(m=>m.floor===f[0]&&!["sw0","sw1"].includes(m.id));
  group.sort((a,b)=>(a.box[0]+a.box[2]/2)*Math.sin(S.yaw)+(a.box[1]+a.box[3]/2)*Math.cos(S.yaw)-(b.box[0]+b.box[2]/2)*Math.sin(S.yaw)-(b.box[1]+b.box[3]/2)*Math.cos(S.yaw));
  group.forEach(m=>paintBoard(m,m.box,z+.19));
@@ -116,7 +117,7 @@ function update(){
  $("modeCrumb").textContent=S.mode==="model"?"MODELO 3D":S.mode==="bench"?"BANCO REAL":"CABLEADO";
  $("viewTitle").innerHTML=(S.mode==="model"?"El interior, pieza por pieza":S.mode==="bench"?"Lo que ya funciona":"Conexiones y seguridad")+"<span>.</span>";
  $("viewSubtitle").textContent=S.mode==="model"?"Gira con un dedo, pellizca para ampliar y toca los componentes.":S.mode==="bench"?"ESP32, OLED, INA3221 y tres resistencias independientes de 100 Ω.":"Las líneas discontinuas son rutas aún sin montar ni probar.";
- $("floorCaption").innerHTML=(S.mode==="model"?(S.floor==="all"?"CUATRO NIVELES":lv.find(x=>x[0]===S.floor)?.[1]||"PISO"):(S.mode==="bench"?"BANCO REAL 3,3 V":"V0.1 PENDIENTE"))+"<small>"+(S.mode==="model"?(S.exploded?"DESPIECE · MEDIDAS ILUSTRATIVAS":"ENSAMBLADO · MEDIDAS ILUSTRATIVAS"):S.mode==="bench"?"ENSAYO COMPROBADO":"12 V → 5 V NO CONECTADOS")+"</small>";
+ $("floorCaption").innerHTML=(S.mode==="model"?(S.floor==="all"?"CUATRO NIVELES":levels.find(x=>x[0]===S.floor)?.[1]||"PISO"):(S.mode==="bench"?"BANCO REAL 3,3 V":"V0.1 PENDIENTE"))+"<small>"+(S.mode==="model"?(S.exploded?"DESPIECE · MEDIDAS ILUSTRATIVAS":"ENSAMBLADO · MEDIDAS ILUSTRATIVAS"):S.mode==="bench"?"ENSAYO COMPROBADO":"12 V → 5 V NO CONECTADOS")+"</small>";
  $("sceneInfoText").textContent=S.mode==="model"?"GIRAR / AMPLIAR / INSPECCIONAR":S.mode==="bench"?"I²C 0x40 / 0x3C · GPIO8/9":"RUTAS FUTURAS Y DATOS PROBADOS";
  $("netFilter").hidden=S.mode==="model";$("explodeControls").style.display=S.mode==="model"&&S.floor==="all"?"flex":"none";
  $("modeNav").querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===S.mode));
@@ -148,5 +149,5 @@ $("openBench").addEventListener("click",()=>{S.mode="bench";S.selected="ina";upd
 $("mobileInventoryToggle").addEventListener("click",()=>{let yes=$("inventorySection").classList.toggle("open");$("mobileInventoryToggle").setAttribute("aria-expanded",String(yes));});
 $("openInspector").addEventListener("click",()=>$("inspector").scrollIntoView({behavior:"smooth",block:"start"}));
 $("moduleTotal").textContent=items.length-3;
-new ResizeObserver(resize).observe(canvas);update();resize();
+if(typeof ResizeObserver==="function"){new ResizeObserver(resize).observe(canvas);}else{window.addEventListener("resize",resize);}update();resize();
 })();
