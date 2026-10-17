@@ -76,3 +76,33 @@
 .plan-disclaimer strong{color:#e4bfd1}
 @media(max-width:1100px){.access-layout{grid-template-columns:1fr}.plan-card{max-width:650px;width:100%;margin-inline:auto}}
 @media(max-width:760px){.access-principle{padding:11px;margin:12px 0}.access-heading{display:block}.access-heading a{display:inline-block;margin-top:9px}.access-heading p{font-size:11px}.plan-card{padding:9px}.plan-card p{font-size:10px}}
+
+/* v3.5: catálogo de 30 ACCESOS funcionales distinto del plano de huellas de fabricación */
+.access-jump{position:absolute;right:17px;top:58px;z-index:3;background:#44283bdf;border:1px solid #d7a3bc;color:#f9e4ed;font:700 10px 'Space Grotesk';letter-spacing:.04em;border-radius:9px;padding:10px 13px;box-shadow:0 4px 15px #0008;cursor:pointer}
+.access-jump:hover{background:#61364f}
+.access-jump[hidden]{display:none}
+.operating-overview{margin:20px 0 18px;padding:20px;border:1px solid #9d6985;border-radius:17px;background:linear-gradient(150deg,#241a27,#16121e 70%);box-shadow:0 16px 45px #09060d62}
+.operating-heading{display:flex;justify-content:space-between;align-items:start;gap:20px;margin-bottom:18px}
+.operating-heading h3{font:600 clamp(23px,2.7vw,32px)/1.18 'Space Grotesk';letter-spacing:-.05em;margin:7px 0;color:#f5ddea}
+.operating-heading p{max-width:750px;font-size:12px;color:#c9b9c9;margin:0;line-height:1.7}
+.operating-heading strong{color:#e7bad0}
+.operating-heading a{flex-shrink:0;border:1px solid #815b73;border-radius:9px;font:700 9px 'Space Grotesk';letter-spacing:.08em;padding:10px;color:#ebc8da}
+.operating-surfaces{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,1fr);gap:15px;align-items:start}
+.operating-surface{min-width:0;background:#14121b;border:1px solid #62445b;border-radius:12px;padding:14px}
+.surface-heading{margin-bottom:13px;padding:2px 1px 12px;border-bottom:1px solid #443143}
+.surface-kicker{font:700 9px 'Space Grotesk';letter-spacing:.12em;color:#bd8eaa}
+.surface-heading h4{font:600 21px/1.2 'Space Grotesk';margin:5px 0 7px;color:#f4d7e4}
+.surface-heading p{font-size:11px;color:#aea0b1;margin:0;line-height:1.6}
+.access-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.access-group-label{grid-column:1/-1;background:#231925;border-left:2px solid #a77392;border-radius:4px;padding:6px 10px;margin-top:5px;color:#d9b0c5;font:700 9px 'Space Grotesk';letter-spacing:.1em}
+.access-point{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:5px;min-height:85px;background:#211a26;border:1px solid #50364b;border-radius:9px;padding:10px 11px;color:#f4e5ed;transition:background .13s,border-color .13s,transform .13s}
+.access-point:hover,.access-point:focus-visible{background:#35233a;border-color:#d0a1bb;transform:translateY(-1px)}
+.access-point-header{display:flex;align-items:center;gap:8px}
+.access-point-header strong{font:700 11px/1.25 'Space Grotesk';letter-spacing:.005em}
+.access-point small{font-size:10px;color:#c7b7c5;line-height:1.35}
+.access-point em{margin-top:auto;font-style:normal;color:#977f94;font:400 9px 'DM Sans';line-height:1.3}
+.operating-note{margin:14px 2px 0;font-size:11px;line-height:1.6;color:#bdb0be}
+.operating-note strong{color:#efc7d9}
+@media(max-width:1280px){.operating-surfaces{grid-template-columns:1fr}.operating-surface{width:100%}.access-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.access-jump{right:10px;top:49px;padding:8px 10px;font-size:9px}.operating-overview{padding:11px;margin:13px 0}.operating-heading{display:block}.operating-heading h3{font-size:22px}.operating-heading p{font-size:11px}.operating-heading a{display:inline-block;margin-top:10px}.operating-surface{padding:10px}.access-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.access-point{padding:8px;min-height:85px}.access-point-header strong{font-size:10px}.access-point small{font-size:9px}.surface-heading h4{font-size:19px}}
+@media(max-width:390px){.access-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.access-point{min-height:92px}}
