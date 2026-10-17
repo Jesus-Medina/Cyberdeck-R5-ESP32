@@ -175,7 +175,7 @@ test('catálogo expandido representa módulos de RF, redes, electrónica, panel 
  }
  assert.equal(idSet.size,a.items.length,'IDs duplicados');
  for(const floor of ['panel','electronics','power']){
-  const parts=a.items.filter(x=>x.floor===floor&&!["sw0","sw1"].includes(x.id));
+  const parts=a.items.filter(x=>x.floor===floor&&!["sw0","sw1"].includes(x.id)&&x.box?.length===4&&x.box[2]>0&&x.box[3]>0);
   assert.ok(parts.length>=15,'Pocos módulos para '+floor);
   for(const p of parts){
    assert.ok(p.box[0]>=-5&&p.box[1]>=-3.35&&p.box[0]+p.box[2]<=5&&p.box[1]+p.box[3]<=3.35,'Componente fuera del piso: '+p.id);
@@ -194,4 +194,25 @@ test('desde el inventario se abre el piso exacto del módulo seleccionado',()=>{
  btn.listeners.click();a.flush();
  assert.equal(a.camera.floor,'electronics');
  assert.equal(a.camera.selected,'lora');
+});
+
+test('Dell es placa desnuda, panel reserva 216x78 mm para doce interruptores y tapa incluye LCD',()=>{
+ const a=boot(980,720),map=Object.fromEntries(a.items.map(x=>[x.id,x]));
+ assert.equal(map.dell.kind,'motherboard','Dell no debe dibujarse como notebook con teclado');
+ assert.ok(a.items.some(x=>x.id==='dellcooler'&&x.floor==='base'));
+ assert.equal(map.lcd.floor,'lid');
+ const sw=map.switches.box,physicalWidth=sw[2]*371/10,physicalHeight=sw[3]*258/6.7;
+ assert.ok(Math.abs(physicalWidth-216)<0.01);
+ assert.ok(Math.abs(physicalHeight-78)<0.01);
+ const prev=a.painted.polygons;
+ a.click('floorNav',{floor:'lid'});
+ assert.ok(a.painted.polygons>prev,'Dibujar la tapa debe producir geometría');
+});
+test('inventario distingue las zonas operativas del montaje interior',()=>{
+ const a=boot(),floors=new Set(a.items.map(x=>x.floor));
+ for(const f of ['lid','panel','electronics','power','base'])assert.ok(floors.has(f));
+ const lid=a.nodes.get('inventory').children.find(x=>x.children?.[1]?.children?.[0]?.textContent==='LCD Dell de 14 pulgadas');
+ assert.ok(lid,'La pantalla tiene ficha independiente');
+ lid.listeners.click();a.flush();
+ assert.equal(a.camera.floor,'lid');
 });
