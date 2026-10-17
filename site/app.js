@@ -142,7 +142,7 @@ function resetView(){S.yaw=-.55;S.pitch=.62;S.zoom=1;S.panX=0;S.panY=0;render();
 function endPointer(e){
   if(!activePointers.has(e.pointerId))return;
   const point=activePointers.get(e.pointerId);
-  const canSelect=activePointers.size===1&&!moved&&!hadMultiTouch;
+  const canSelect=activePointers.size===1&&!moved&&!hadMultiTouch&&point.mode==="orbit";
   activePointers.delete(e.pointerId);
   if(canSelect){const id=pick(at(e));if(id)select(id);}
   if(activePointers.size<2){pinchDistance=0;pinchCenter=null;}
@@ -200,7 +200,10 @@ canvas.addEventListener("pointercancel",e=>{
   if(!activePointers.size){moved=false;hadMultiTouch=false;canvas.classList.remove("dragging");}
 });
 canvas.addEventListener("lostpointercapture",e=>{
-  if(activePointers.has(e.pointerId))canvas.dispatchEvent(new PointerEvent("pointercancel",{pointerId:e.pointerId}));
+  if(!activePointers.has(e.pointerId))return;
+  activePointers.delete(e.pointerId);
+  if(activePointers.size<2){pinchDistance=0;pinchCenter=null;}
+  if(!activePointers.size){moved=false;hadMultiTouch=false;canvas.classList.remove("dragging");}
 });
 canvas.addEventListener("contextmenu",e=>e.preventDefault());
 canvas.addEventListener("wheel",e=>{
