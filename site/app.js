@@ -191,7 +191,7 @@ hit.push({id:m.id,poly:area});let q=proj(x+w/2,y+d/2,base+.22);lab.push({id:m.id
 }
 function floor(f,z){block(-5,-3.35,z,10,6.7,.15,"#332b3d99");for(let i=-4;i<=4;i++)path([[i,-3.3,z+.16],[i,3.3,z+.16]],"#d9a8bc16",.5);let a=proj(-4.4,-3.5,z+.23);lab.push({id:"floor",x:a.x,y:a.y,t:f[1],c:"#ab8fa2",selected:false});}
 function drawingModel(){for(const f of levels){if(S.floor!=="all"&&S.floor!==f[0])continue;const idx=levels.indexOf(f),z=S.floor==="all"?.11+idx*(S.exploded?.98:.18):.60;floor(f,z);
- const group=items.filter(m=>m.floor===f[0]&&!["sw0","sw1"].includes(m.id));
+ const group=items.filter(m=>m.floor===f[0]&&!["sw0","sw1"].includes(m.id)&&(S.status==="all"||m.status===S.status)&&(!S.q||(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q)));
  group.sort((a,b)=>(a.box[0]+a.box[2]/2)*Math.sin(S.yaw)+(a.box[1]+a.box[3]/2)*Math.cos(S.yaw)-(b.box[0]+b.box[2]/2)*Math.sin(S.yaw)-(b.box[1]+b.box[3]/2)*Math.cos(S.yaw));
  group.forEach(m=>paintBoard(m,m.box,z+.19));
  if(f[0]==="panel"){let p=index.switches.box;for(let i=0;i<2;i++){let x=p[0]+p[2]*(.05+i*.15),y=p[1]+p[3]*.15,z1=z+.40;hit.push({id:i?"sw1":"sw0",poly:[[x,y,z1],[x+.35,y,z1],[x+.35,y+.36,z1],[x,y+.36,z1]].map(q=>proj(...q))});}}
@@ -209,10 +209,36 @@ function render(){if(!scheduled){scheduled=true;requestAnimationFrame(draw);}}
 function resize(){let r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;W=r.width;H=r.height;dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);render();}
 function inside(v,a){let ok=false;for(let i=0,j=a.length-1;i<a.length;j=i++){let p=a[i],q=a[j];if((p.y>v.y)!==(q.y>v.y)&&v.x<(q.x-p.x)*(v.y-p.y)/(q.y-p.y)+p.x)ok=!ok;}return ok;}
 function pick(v){for(let i=hit.length-1;i>=0;i--)if(inside(v,hit[i].poly))return hit[i].id;for(let i=hit.length-1;i>=0;i--){let a=hit[i].poly,p={x:a.reduce((s,v)=>s+v.x,0)/4,y:a.reduce((s,v)=>s+v.y,0)/4};if(Math.hypot(v.x-p.x,v.y-p.y)<(W<600?21:13))return hit[i].id;}return null;}
-function statusText(s){return s==="tested"?"PROBADO EN BANCO":s==="owned"?"COMPRADO / POR VERIFICAR":"PLANIFICADO / SIN PROBAR";}
+function statusText(s){return s==="tested"?"PROBADO EN BANCO":s==="owned"?"REGISTRADO / COMPRADO, RECEPCIÓN POR VERIFICAR":"PLANIFICADO / SIN PROBAR";}
 function select(id){if(!index[id])return;S.selected=id;if(id==="meanwell")S.mode="circuit";if(["r1","r2","r3"].includes(id))S.mode="bench";if(S.mode==="model"&&S.floor!=="all"&&index[id].floor!=="external")S.floor=index[id].floor;update();}
-function inventory(){let el=$("inventory");el.replaceChildren();let all=items.filter(m=>(S.status==="all"||m.status===S.status)&&(!S.q||(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q))&&(!["r1","r2","r3"].includes(m.id)||S.mode==="bench"));$("resultCount").textContent=all.length;
- all.forEach(m=>{let b=document.createElement("button"),dot=document.createElement("i"),wrap=document.createElement("span"),n=document.createElement("b"),sub=document.createElement("small");b.className="inv-item"+(S.selected===m.id?" active":"");dot.className="state-dot "+m.status;n.textContent=m.name;sub.textContent=m.floor.toUpperCase();wrap.append(n,sub);b.append(dot,wrap);b.addEventListener("click",()=>{if(["panel","electronics","power","base"].includes(m.floor)){S.mode="model";S.floor=m.floor;}else if(m.floor==="bench"){S.mode="bench";}else if(m.floor==="external"){S.mode="circuit";}select(m.id);});el.append(b);});}
+function inventory(){
+ const el=$("inventory");el.replaceChildren();
+ const order=["panel","electronics","power","base","external","bench"];
+ const title={panel:"01 · PANEL / INSTRUMENTOS",electronics:"02 · ELECTRÓNICA / RF / REDES",power:"03 · ENERGÍA / PROTECCIONES",base:"04 · EQUIPO DELL",external:"EXTERIOR / BANCO",bench:"CARGAS DE PRUEBA"};
+ const visible=items.filter(m=>(S.status==="all"||m.status===S.status)&&(!S.q||(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q))&&(!["r1","r2","r3"].includes(m.id)||S.mode==="bench"));
+ visible.sort((a,b)=>order.indexOf(a.floor)-order.indexOf(b.floor)||a.name.localeCompare(b.name,"es"));
+ $("resultCount").textContent=visible.length;
+ let current="";
+ visible.forEach(m=>{
+  if(m.floor!==current){
+   current=m.floor;
+   const header=document.createElement("div");header.className="inventory-group";
+   header.textContent=title[current]||current.toUpperCase();el.append(header);
+  }
+  const b=document.createElement("button"),dot=document.createElement("i"),wrap=document.createElement("span"),n=document.createElement("b"),sub=document.createElement("small");
+  b.className="inv-item"+(S.selected===m.id?" active":"");
+  dot.className="state-dot "+m.status;n.textContent=m.name;
+  sub.textContent=m.status==="tested"?"PROBADO":m.status==="owned"?"REGISTRADO / VERIFICAR":"PLANIFICADO";
+  wrap.append(n,sub);b.append(dot,wrap);
+  b.addEventListener("click",()=>{
+   if(["panel","electronics","power","base"].includes(m.floor)){S.mode="model";S.floor=m.floor;}
+   else if(m.floor==="bench")S.mode="bench";
+   else if(m.floor==="external")S.mode="circuit";
+   select(m.id);
+  });
+  el.append(b);
+ });
+}
 function inspector(){let m=index[S.selected];if(!m)return;let el=$("inspectorBody");el.replaceChildren();let top=document.createElement("div");top.className="inspector-topblock";let p=document.createElement("div");p.className="inspect-code";p.textContent="LILITH / "+m.floor.toUpperCase()+" / "+m.id.toUpperCase();top.append(p);
  let fig=document.createElement("div");fig.className="inspect-picture";let tile=document.createElement("div");tile.style.cssText="width:78%;height:60%;border:2px solid #b7a2b1;border-radius:9px;background:"+({ina:"#633583",xl:"#285f8a",esp32:"#235043",tps:"#2a6c56",oled:"#182c44"}[m.kind]||"#344b59")+";box-shadow:10px 12px 12px #0007;transform:rotate(-7deg);display:grid;place-items:center;text-align:center;font:700 15px 'Space Grotesk';padding:9px";tile.textContent=({ina:"INA3221 · R100 ×3",xl:"XL4015 · CC/CV",esp32:"ESP32-S3 · USB-C",tps:"TPS2553 · SOT-23-6",oled:"OLED · SH1106"}[m.kind]||m.name);fig.append(tile);top.append(fig);
  let title=document.createElement("h3");title.className="inspect-title";title.textContent=m.name;top.append(title);
@@ -231,7 +257,7 @@ function update(){
  $("sceneInfoText").textContent=S.mode==="model"?"ARRASTRAR: GIRAR · 2 DEDOS: ZOOM/MOVER":S.mode==="bench"?"I²C 0x40 / 0x3C · GPIO8/9":"RUTAS FUTURAS Y DATOS PROBADOS";
  $("netFilter").hidden=S.mode==="model";$("explodeControls").style.display=S.mode==="model"&&S.floor==="all"?"flex":"none";
  $("modeNav").querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===S.mode));
- $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";});
+ $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";const c=b.querySelector("small");if(c)c.textContent=(b.dataset.floor==="all"?items.filter(m=>["panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length:items.filter(m=>m.floor===b.dataset.floor&&!["sw0","sw1"].includes(m.id)).length);});
  $("statusFilters").querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("active",b.dataset.status===S.status));
  $("netFilter").querySelectorAll("[data-net]").forEach(b=>b.classList.toggle("active",b.dataset.net===S.net));
  $("assembledBtn").classList.toggle("active",!S.exploded);$("explodedBtn").classList.toggle("active",S.exploded);
@@ -340,7 +366,7 @@ $("modeNav").addEventListener("click",e=>{let b=e.target.closest("[data-mode]");
 $("floorNav").addEventListener("click",e=>{let b=e.target.closest("[data-floor]");if(!b||S.mode!=="model")return;S.floor=b.dataset.floor;update();});
 $("statusFilters").addEventListener("click",e=>{let b=e.target.closest("[data-status]");if(!b)return;S.status=b.dataset.status;update();});
 $("netFilter").addEventListener("click",e=>{let b=e.target.closest("[data-net]");if(!b)return;S.net=b.dataset.net;update();});
-$("searchInput").addEventListener("input",e=>{S.q=e.target.value.trim().toLowerCase();inventory();});
+$("searchInput").addEventListener("input",e=>{S.q=e.target.value.trim().toLowerCase();inventory();render();});
 $("assembledBtn").addEventListener("click",()=>{S.exploded=false;update();});$("explodedBtn").addEventListener("click",()=>{S.exploded=true;update();});
 $("zoomIn").addEventListener("click",()=>{S.zoom=lim(S.zoom+.13,.55,2.4);render();});$("zoomOut").addEventListener("click",()=>{S.zoom=lim(S.zoom-.13,.55,2.4);render();});
 $("resetCamera").addEventListener("click",resetView);
