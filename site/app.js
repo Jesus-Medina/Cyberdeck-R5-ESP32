@@ -482,7 +482,7 @@ function setupCapabilityExplorer(){
  let category="all",expanded=false;
  const names=capabilityData.categories;
  function show(){
-  const query=search.value.trim().toLocaleLowerCase("es");
+  const query=String(search.value||"").trim().toLocaleLowerCase("es");
   const found=items.filter(m=>{
    const p=capabilityProfiles[m.id];if(!p)return false;
    return (category==="all"||p.category===category)&&(!query||[m.name,p.role,p.use,names[p.category]].join(" ").toLocaleLowerCase("es").includes(query));
