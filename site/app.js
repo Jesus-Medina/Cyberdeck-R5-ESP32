@@ -373,6 +373,6 @@ $("resetCamera").addEventListener("click",resetView);
 $("openBench").addEventListener("click",()=>{S.mode="bench";S.selected="ina";update();$("viewer").scrollIntoView({behavior:"smooth",block:"center"});});
 $("mobileInventoryToggle").addEventListener("click",()=>{let yes=$("inventorySection").classList.toggle("open");$("mobileInventoryToggle").setAttribute("aria-expanded",String(yes));});
 $("openInspector").addEventListener("click",()=>$("inspector").scrollIntoView({behavior:"smooth",block:"start"}));
-$("moduleTotal").textContent=items.length-3;
+$("moduleTotal").textContent=items.filter(m=>["panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length;
 if(typeof ResizeObserver==="function"){new ResizeObserver(resize).observe(canvas);}else{window.addEventListener("resize",resize);}update();resize();
 })();
