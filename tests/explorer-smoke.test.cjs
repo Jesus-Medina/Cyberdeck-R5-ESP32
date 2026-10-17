@@ -276,7 +276,7 @@ test('la especificación RF no convierte la propuesta en cableado oficial V0.1',
    assert.ok(engineering.includes(id),'Sin justificación técnica para '+id);
  }
  assert.ok(engineering.includes('CAMBIO PROPUESTO'));
- assert.ok(engineering.includes('NO se cablea todavía'));
+ assert.ok(engineering.includes('no se cablea todavía'));
  assert.ok(engineering.includes('no se puede prometer este recorrido'));
  assert.ok(netlist.includes('GPIO4 -> EN1 -> U2 pin 3'),'La V0.1 sigue con GPIO→EN directo');
 });
