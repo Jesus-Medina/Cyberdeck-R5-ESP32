@@ -6,6 +6,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const script = fs.readFileSync(path.join(__dirname, '../site/app.js'), 'utf8');
+const capabilitiesScript = fs.readFileSync(path.join(__dirname, '../site/capabilities.js'), 'utf8');
 function boot(width = 900, height = 600) {
   const nodes = new Map(), frames = [];
   const painted = { polygons: 0, labels: 0, background: 0 };
@@ -53,6 +54,7 @@ function boot(width = 900, height = 600) {
     window: { addEventListener() {} },
     requestAnimationFrame(fn) { frames.push(fn); }
   };
+  vm.runInNewContext(capabilitiesScript, runtime, {filename:'site/capabilities.js',timeout:4000});
   vm.runInNewContext(script.replace("const S={", "const S=globalThis.__testCamera={").replace("const items=raw.map", "const items=globalThis.__testItems=raw.map"), runtime, { filename: 'site/app.js', timeout: 4000 });
   function flush() {
     let runs = 0;
@@ -279,4 +281,19 @@ test('la especificación RF no convierte la propuesta en cableado oficial V0.1',
  assert.ok(engineering.includes('no se cablea todavía'));
  assert.ok(engineering.includes('no se puede prometer este recorrido'));
  assert.ok(netlist.includes('GPIO4 -> EN1 -> U2 pin 3'),'La V0.1 sigue con GPIO→EN directo');
+});
+
+
+test('las setenta fichas funcionales se muestran y filtran por capacidad',()=>{
+ const app=boot(375,480);
+ const cards=app.nodes.get('capabilityCards');
+ assert.equal(cards.children.length,12,'Al iniciar se muestran doce tarjetas');
+ const search=app.nodes.get('capabilitySearch');
+ search.value='inyección';
+ search.listeners.input();
+ assert.ok(cards.children.some(c=>c.children.some(n=>String(n.textContent||'').includes('Wi-Fi'))),'Debe aparecer el adaptador Wi-Fi al buscar inyección');
+ search.value='';
+ search.listeners.input();
+ app.nodes.get('capabilityMore').listeners.click();
+ assert.equal(cards.children.length,70,'Las setenta fichas deben poder consultarse');
 });
