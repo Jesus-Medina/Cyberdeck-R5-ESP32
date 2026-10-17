@@ -1,5 +1,9 @@
 # 21 — Arquitectura de energía portátil y carga única
 
+> **LILITH — estado real 17-10-2026:** probados **ESP32-S3 + OLED SH1106 + INA3221 (0x40 tras soldar A0 a GND) + 3 cargas independientes 100 Ω**, alimentados por USB/3,3 V; multímetro ~3,17 V y ~32,4–32,8 mA por canal. **NO** están montados/probados el circuito 12 V→XL4015→5 V, SW0, SW1, TPS2553 ni la batería/respaldo Dell. Los chips SOT/SOP requieren soldadura en adaptadores. El firmware del repo sigue siendo demo anterior. Ver [bitácora de banco](22-lilith-build-status-2026-10-17.md), [pendientes de alimentación Pro](23-lilith-power-budget-and-pending-parts.md) y [soldadura SMD](24-lilith-smd-assembly.md).
+
+> **No implementado:** LiFePO4, BMS, cargador/power-path, convertidor Dell, selector seguro y respaldo USB Dell. La Mean Well es fuente de banco, no cargador de LiFePO4. USB Dell tiene capacidad de salida sin medir y NO garantiza alimentación de todas las cargas.
+
 Actualizado: **2026-10-08**.
 
 Este documento define la arquitectura energética objetivo del cyberdeck terminado. No reemplaza el montaje de banco de la V0.1: durante desarrollo, el **Mean Well GST60A12-P1J** sigue siendo una fuente segura y estable de 12 V para probar la electrónica. En el equipo portátil terminado, la fuente primaria será una **batería LiFePO4 4S**.

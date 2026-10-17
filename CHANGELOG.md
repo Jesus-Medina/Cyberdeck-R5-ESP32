@@ -1,3 +1,19 @@
+# Registro de cambios de Lilith
+
+## 2026-10-17 — Estado real del hardware y plan de avance
+
+- Documentado prototipo ESP32-S3 + OLED SH1106 + INA3221 estable en 0x40 (A0→GND soldado).
+- Tres resistencias independientes 100Ω medidas a ~3,17V y ~32,4–32,8mA por canal; registradas filas/pines reales de protoboard y el contraste con la netlist 5V aún pendiente.
+- Aclarados SW0/ SW1 no instalados, 6 palancas + 6 basculantes comprados, y 2 salidas TPS2553 previstas para la V0.1.
+- Detectada dificultad de soldadura SMD de chips SOT23-6 y SOP8: adaptadores sin integrar; añadido plan de herramientas, práctica y comprobación de puentes.
+- Separados inventario V0.1 y elementos **NO** adquiridos/validados para V1 Pro: LiFePO4, power-path, respaldo Dell, DC-DC y rails extra.
+- Registrada divergencia de firmware: `main.cpp` es una demo histórica, **no** la versión cargada y probada en Arduino.
+- Creados documentos `docs/22`, `23` y `24` y README del firmware; revisados documentos de planificación, BOM y cableado.
+
+> Las notas del 08-10 sobre rutas de emergencia Dell contienen etapas históricas contradictorias. La arquitectura vigente **sigue siendo un objetivo no instalado** y está en `docs/21-portable-power-architecture.md`.
+
+---
+
 ## 2026-10-08 — Arquitectura portátil y carga única
 
 - El respaldo Dell deja de ser un rail crítico limitado: pasa a ser una fuente alternativa del dominio AUX completo mediante selector interbloqueado, break-before-make y bloqueo de corriente inversa; los módulos siguen controlados por sus switches y la potencia queda limitada por la fuente Dell real.

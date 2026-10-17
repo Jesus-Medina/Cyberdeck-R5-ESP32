@@ -1,4 +1,6 @@
-# Cyberdeck R5 + ESP32
+# Lilith Cyberdeck — Cyberdeck R5 + ESP32
+
+> **Estado real (17-10-2026):** ESP32-S3, SH1106 e INA3221 ya funcionan a 3,3V con tres cargas de 100Ω. Aún falta montar y probar SW0, SW1, Mean Well→XL4015, TPS2553 y energía portátil. La fuente del firmware ensayado sigue pendiente de subir. [Bitácora](docs/22-lilith-build-status-2026-10-17.md) · [Faltantes V1 Pro](docs/23-lilith-power-budget-and-pending-parts.md) · [Soldadura SMD](docs/24-lilith-smd-assembly.md).
 
 Cyberdeck portátil modular basado en un **Dell Vostro 3405** con **AMD Ryzen 5 3450U, 12 GB RAM y SSD de 256 GB**, reutilizando pantalla, batería/BMS, teclado, touchpad, Wi‑Fi/Bluetooth, audio y refrigeración originales.
 
@@ -183,6 +185,11 @@ Incluye:
 - laboratorio sub-GHz opcional para dispositivos propios.
 
 ## Documentación
+
+- **[22 — Lilith: bitácora real de montaje y mediciones](docs/22-lilith-build-status-2026-10-17.md)**
+- **[23 — Presupuesto eléctrico y componentes pendientes V1 Pro](docs/23-lilith-power-budget-and-pending-parts.md)**
+- **[24 — Soldadura SMD y adaptadores](docs/24-lilith-smd-assembly.md)**
+- **[Firmware: estado y discrepancia con el programa probado](firmware/esp32-supervisor/README.md)**
 
 - `docs/01-vision.md`
 - `docs/02-architecture.md`

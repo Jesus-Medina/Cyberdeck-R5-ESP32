@@ -1,5 +1,43 @@
 # TODO — v3 Smart Modular
 
+## Situación real de Lilith a 17-10-2026
+
+**Pruebas realizadas sobre protoboard a 3,3 V (no V0.1 completa):**
+
+- [x] ESP32-S3 N16R8 arranca por USB; GPIO8 SDA / GPIO9 SCL.
+- [x] OLED SH1106 detectada 0x3C y funcional.
+- [x] INA3221 fijo 0x40 al soldar A0→GND; identificación TI y 3 shunts R100.
+- [x] Tres cargas independientes 100Ω: ~32,4–32,8mA por canal, ~3,17V con multímetro.
+- [x] Prueba breve sin reinicios, pantalla sin parpadeos y sin calentamiento percibido.
+
+**Prioridad antes de integrar dispositivos caros:**
+
+- [ ] Confirmar tramos de riel GND de protoboard y registrar fotografía de conexiones.
+- [ ] Identificar rating DC de 6 palancas SPST + 6 basculantes; asignar SW0 y SW1 sin duplicar compras.
+- [ ] Comprobar Mean Well 12V sola y polaridad centro positivo del jack 5,5x2,1; no abrir 230V.
+- [ ] Verificar fusible 2A, interruptor SW0 y pinout XL4015; montar etapa de potencia adecuadamente, no sobre contactos de protoboard a corriente alta.
+- [ ] Ajustar XL4015 **aislado del ESP32** a 5,00V y CC conservadora; ensayar 10Ω/10W y 5Ω/10W con control de temperatura.
+- [ ] Practicar soldadura SMD y conseguir/usar soporte PCB/lupa/flux/pinzas/malla; montar e inspeccionar 2 TPS2553 con adaptadores 2,54mm.
+- [ ] Probar TPS2553 uno por vez: ILIM, EN apagado por defecto, FAULT, sobrecorriente y recuperación.
+- [ ] Integrar INA CH1/CH2 para dos salidas protegidas a 5V y CH3 para el supervisor; instalar SW1.
+- [ ] Evitar alimentar el ESP32 por USB y rail 5V externo al mismo tiempo sin protección/selección.
+- [ ] Validar TCA9548A + dos EEPROM 24C02 y CP2102 + ADuM1201 sin unir masas aisladas Dell/AUX.
+- [ ] **Exportar .ino exacto probado** en Arduino IDE; `firmware/esp32-supervisor/src/main.cpp` no lo refleja.
+- [ ] Ensayar funcionamiento prolongado, térmica, fusibles, fallas y backfeed antes de módulos reales.
+
+**V1 Pro no construida:**
+
+- [ ] Inventariar voltaje, corriente normal/pico y potencia de cada módulo real.
+- [ ] Elegir batería LiFePO4 4S+BMS, fusible, cargador compatible y power-path.
+- [ ] Verificar cargador Dell (tensión, W, conector/ID) y seleccionar DC-DC propio.
+- [ ] Medir potencia USB Dell emergencia y diseñar selector break-before-make con bloqueo inverso.
+- [ ] Dimensionar rails 5V/12V/3V3/servo y 6–10 ramas protegidas objetivo, con medición suficiente.
+- [ ] Medir interior real maletín Easy 16, ventilación y organización de antenas sin perforar exterior.
+
+Documentos [22 — bitácora](docs/22-lilith-build-status-2026-10-17.md), [23 — presupuesto Pro](docs/23-lilith-power-budget-and-pending-parts.md), [24 — SMD](docs/24-lilith-smd-assembly.md).
+
+---
+
 ## Confirmado
 
 - [x] Dell Vostro 3405.

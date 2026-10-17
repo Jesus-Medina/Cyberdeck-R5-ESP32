@@ -1,3 +1,7 @@
+// HISTORICO: demo anterior de switches, NO firmware INA3221/OLED probado de Lilith.
+// NO cargar directamente sobre el banco actual ESP32-S3: revisa GPIO19 (USB nativo)
+// y el nuevo cableado GPIO8 SDA / GPIO9 SCL. Ver firmware/esp32-supervisor/README.md.
+
 #include <Arduino.h>
 
 // Pinout provisional. Cambiar tras elegir la placa ESP32 definitiva.
