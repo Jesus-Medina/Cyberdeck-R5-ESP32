@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'site/**'
+      - 'index.html'
       - '.github/workflows/lilith-pages.yml'
   workflow_dispatch:
 permissions:
