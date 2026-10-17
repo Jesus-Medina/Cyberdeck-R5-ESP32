@@ -1,5 +1,11 @@
 # Lilith Cyberdeck — Cyberdeck R5 + ESP32
 
+## Explorador visual pseudo-3D de Lilith
+
+- **[Abrir el código del visualizador interactivo](site/index.html)** — mapa pseudo-3D, giros, zoom, capas, módulos clickeables, fichas e interruptores simulados.
+- **[GitHub Pages (URL prevista)](https://jesus-medina.github.io/Cyberdeck-R5-ESP32/)** — necesita activarse/verificarse en Settings → Pages → Source: GitHub Actions, y disponibilidad para este repositorio privado.
+- El sitio estático está separado en `site/`. Se despliega únicamente esa carpeta con `.github/workflows/lilith-pages.yml`, sin publicar por esa vía el resto del repositorio. El simulador no controla hardware físico y los datos del INA son históricos.
+
 > **Estado real (17-10-2026):** ESP32-S3, SH1106 e INA3221 ya funcionan a 3,3V con tres cargas de 100Ω. Aún falta montar y probar SW0, SW1, Mean Well→XL4015, TPS2553 y energía portátil. La fuente del firmware ensayado sigue pendiente de subir. [Bitácora](docs/22-lilith-build-status-2026-10-17.md) · [Faltantes V1 Pro](docs/23-lilith-power-budget-and-pending-parts.md) · [Soldadura SMD](docs/24-lilith-smd-assembly.md).
 
 Cyberdeck portátil modular basado en un **Dell Vostro 3405** con **AMD Ryzen 5 3450U, 12 GB RAM y SSD de 256 GB**, reutilizando pantalla, batería/BMS, teclado, touchpad, Wi‑Fi/Bluetooth, audio y refrigeración originales.
