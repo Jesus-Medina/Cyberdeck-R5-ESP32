@@ -1,5 +1,8 @@
 # 05 — Diseño mecánico
 
+> **ACTUALIZACIÓN VIGENTE 2026-10-17:** Lilith funciona desde el **panel superior y la tapa alrededor del LCD**; ninguno de los pisos inferiores debe abrirse para utilizar funciones habituales. En la base va solo **placa madre Dell + disipador/ventilador**, nunca teclado, touchpad ni carcasa inferior del notebook. El teclado plegable Bluetooth es periférico independiente en el panel. Las antenas RF se posicionarán despejadas y accesibles al abrir el maletín; módulo interior + coaxial apropiado hacia tapa/panel, sin perforar la carcasa. Reservar **216×78 mm** en dos filas de seis interruptores como hipótesis (36 mm de paso); **no es medida aprobada**. Ver [documento 25](25-lilith-panel-lid-interface.md). Las representaciones antiguas de Dell completo o panel sin LCD quedan sustituidas por esta actualización.
+
+
 ## Caja
 
 Objetivo actual:
