@@ -46,11 +46,11 @@ const bench={esp32:[-3.7,-1.1,2.24,1.32],ina:[-.77,-1.1,2.1,1.35],oled:[2.38,-1.
 const circuit={meanwell:[-4.45,-2.1,1.5,.95],fuse:[-2.62,-2.1,1.07,.87],sw0:[-1.18,-2.1,.81,.87],xl:[.08,-2.05,1.58,1.18],tps1:[2.23,-2.14,1.06,.91],tps2:[3.65,-2.14,1.04,.91],sw1:[.14,.27,.80,.79],ina:[-1.05,.59,1.54,1.10],esp32:[-4.0,.70,1.89,1.05],oled:[2.32,.60,1.58,1.02]};
 const benchN=[["esp32","ina","power","3V3 fila 5",true],["esp32","oled","power","3V3",true],["esp32","ina","ground","GND fila 2",true],["esp32","ina","i2c","GPIO8 SDA fila 10",true],["esp32","ina","i2c","GPIO9 SCL fila 15",true],["esp32","oled","i2c","I²C GPIO8/9",true],["ina","r1","power","VIN1−",true],["ina","r2","power","VIN2−",true],["ina","r3","power","VIN3−",true]];
 const designN=[["meanwell","fuse","power","12 V",false],["fuse","sw0","power","12 V",false],["sw0","xl","power","12 V",false],["xl","tps1","power","5 V",false],["xl","tps2","power","5 V",false],["xl","sw1","power","5 V",false],["tps1","ina","power","CH1",false],["tps2","ina","power","CH2",false],["sw1","ina","power","CH3",false],["ina","esp32","power","SUP 5 V",false],["esp32","ina","i2c","GPIO8/9 probado",true],["esp32","oled","i2c","GPIO8/9 probado",true],["esp32","ina","ground","GND banco",true]];
-const S={mode:"model",floor:"all",exploded:true,status:"all",q:"",selected:"esp32",net:"all",yaw:-.55,pitch:.62,zoom:1};
+const S={mode:"model",floor:"all",exploded:true,status:"all",q:"",selected:"esp32",net:"all",yaw:-.55,pitch:.62,zoom:1,panX:0,panY:0};
 let W=0,H=0,dpr=1,scale=1,hit=[],lab=[],scheduled=false,drag=false,startDist=0;
 const ptr=new Map();
 const lim=(v,a,b)=>Math.max(a,Math.min(b,v));
-function proj(x,y,z){let co=Math.cos(S.yaw),si=Math.sin(S.yaw),p=Math.sin(S.pitch),q=Math.cos(S.pitch),u=x*co-y*si,v=x*si+y*co,depth=v*q+z*p,f=25/(25-depth);return{x:W*.5+u*scale*f,y:H*.54+(v*p-z*q)*scale*f};}
+function proj(x,y,z){let co=Math.cos(S.yaw),si=Math.sin(S.yaw),p=Math.sin(S.pitch),q=Math.cos(S.pitch),u=x*co-y*si,v=x*si+y*co,depth=v*q+z*p,f=25/(25-depth);return{x:W*.5+S.panX+u*scale*f,y:H*.54+S.panY+(v*p-z*q)*scale*f};}
 function poly(pts,fill,stroke,width=1){let a=pts.map(v=>proj(...v));g.beginPath();g.moveTo(a[0].x,a[0].y);a.slice(1).forEach(v=>g.lineTo(v.x,v.y));g.closePath();if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=width;g.stroke();}return a;}
 function path(pts,color="#cdb2be",w=1,dash=[]){let a=pts.map(v=>proj(...v));g.beginPath();g.moveTo(a[0].x,a[0].y);a.slice(1).forEach(v=>g.lineTo(v.x,v.y));g.strokeStyle=color;g.lineWidth=w;g.setLineDash(dash);g.stroke();g.setLineDash([]);}
 function block(x,y,z,w,d,h,col){poly([[x,y,z],[x+w,y,z],[x+w,y,z+h],[x,y,z+h]],"#14141b","#4a4251");poly([[x+w,y,z],[x+w,y+d,z],[x+w,y+d,z+h],[x+w,y,z+h]],"#14141b","#4a4251");poly([[x,y+d,z],[x+w,y+d,z],[x+w,y+d,z+h],[x,y+d,z+h]],"#14141b","#4a4251");return poly([[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]],col,"#8b7d8b");}
@@ -116,9 +116,9 @@ function inspector(){let m=index[S.selected];if(!m)return;let el=$("inspectorBod
 function update(){
  $("modeCrumb").textContent=S.mode==="model"?"MODELO 3D":S.mode==="bench"?"BANCO REAL":"CABLEADO";
  $("viewTitle").innerHTML=(S.mode==="model"?"El interior, pieza por pieza":S.mode==="bench"?"Lo que ya funciona":"Conexiones y seguridad")+"<span>.</span>";
- $("viewSubtitle").textContent=S.mode==="model"?"Gira con un dedo, pellizca para ampliar y toca los componentes.":S.mode==="bench"?"ESP32, OLED, INA3221 y tres resistencias independientes de 100 Ω.":"Las líneas discontinuas son rutas aún sin montar ni probar.";
+ $("viewSubtitle").textContent=S.mode==="model"?"Arrastra para girar · pellizca para ampliar y mover · toca los módulos.":S.mode==="bench"?"ESP32, OLED, INA3221 y tres resistencias independientes de 100 Ω.":"Las líneas discontinuas son rutas aún sin montar ni probar.";
  $("floorCaption").innerHTML=(S.mode==="model"?(S.floor==="all"?"CUATRO NIVELES":levels.find(x=>x[0]===S.floor)?.[1]||"PISO"):(S.mode==="bench"?"BANCO REAL 3,3 V":"V0.1 PENDIENTE"))+"<small>"+(S.mode==="model"?(S.exploded?"DESPIECE · MEDIDAS ILUSTRATIVAS":"ENSAMBLADO · MEDIDAS ILUSTRATIVAS"):S.mode==="bench"?"ENSAYO COMPROBADO":"12 V → 5 V NO CONECTADOS")+"</small>";
- $("sceneInfoText").textContent=S.mode==="model"?"GIRAR / AMPLIAR / INSPECCIONAR":S.mode==="bench"?"I²C 0x40 / 0x3C · GPIO8/9":"RUTAS FUTURAS Y DATOS PROBADOS";
+ $("sceneInfoText").textContent=S.mode==="model"?"ARRASTRAR: GIRAR · 2 DEDOS: ZOOM/MOVER":S.mode==="bench"?"I²C 0x40 / 0x3C · GPIO8/9":"RUTAS FUTURAS Y DATOS PROBADOS";
  $("netFilter").hidden=S.mode==="model";$("explodeControls").style.display=S.mode==="model"&&S.floor==="all"?"flex":"none";
  $("modeNav").querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===S.mode));
  $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";});
@@ -128,15 +128,101 @@ function update(){
  $("selectedMiniText").textContent=index[S.selected]?.name||"";$("selectedMini").hidden=!(W<760);
  inventory();inspector();render();
 }
-let dragMoved=false,lastPinch=0;
-const activeTouches=new Map(),at=e=>{let r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
-canvas.addEventListener("pointerdown",e=>{let p=at(e);canvas.setPointerCapture(e.pointerId);activeTouches.set(e.pointerId,{...p,start:p});dragMoved=false;lastPinch=0;canvas.classList.add("dragging");});
-canvas.addEventListener("pointermove",e=>{if(!activeTouches.has(e.pointerId))return;let a=activeTouches.get(e.pointerId),p=at(e),dx=p.x-a.x,dy=p.y-a.y;if(Math.hypot(p.x-a.start.x,p.y-a.start.y)>7)dragMoved=true;a.x=p.x;a.y=p.y;
- if(activeTouches.size===1){S.yaw+=dx*.008;S.pitch=lim(S.pitch-dy*.006,.20,1.28);}
- if(activeTouches.size===2){let s=[...activeTouches.values()],d=Math.hypot(s[0].x-s[1].x,s[0].y-s[1].y);if(lastPinch)S.zoom=lim(S.zoom*d/lastPinch,.55,2.4);lastPinch=d;}render();});
-canvas.addEventListener("pointerup",e=>{let a=activeTouches.get(e.pointerId);if(a&&!dragMoved&&activeTouches.size===1){let id=pick(at(e));if(id)select(id);}activeTouches.delete(e.pointerId);if(!activeTouches.size)canvas.classList.remove("dragging");});
-["pointercancel","lostpointercapture"].forEach(k=>canvas.addEventListener(k,e=>{activeTouches.delete(e.pointerId);if(!activeTouches.size)canvas.classList.remove("dragging");}));
-canvas.addEventListener("wheel",e=>{e.preventDefault();S.zoom=lim(S.zoom+(e.deltaY>0?-.09:.09),.55,2.4);render();},{passive:false});
+// Controles tipo visor CAD: arrastrar = orbitar en dirección natural;
+// Shift/ratón derecho = desplazar; dos dedos = pellizcar y desplazar.
+// Los gestos multitáctiles no deben activar selección accidental.
+const activePointers=new Map();
+let moved=false,hadMultiTouch=false,pinchDistance=0,pinchCenter=null;
+const at=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+const sensitivity=()=>2.9/Math.max(380,Math.min(W,900));
+const verticalSensitivity=()=>1.5/Math.max(400,Math.min(H,850));
+function resetView(){S.yaw=-.55;S.pitch=.62;S.zoom=1;S.panX=0;S.panY=0;render();}
+function endPointer(e){
+  if(!activePointers.has(e.pointerId))return;
+  const point=activePointers.get(e.pointerId);
+  const canSelect=activePointers.size===1&&!moved&&!hadMultiTouch;
+  activePointers.delete(e.pointerId);
+  if(canSelect){const id=pick(at(e));if(id)select(id);}
+  if(activePointers.size<2){pinchDistance=0;pinchCenter=null;}
+  if(activePointers.size===0){
+    moved=false;hadMultiTouch=false;
+    canvas.classList.remove("dragging");
+  }
+}
+canvas.addEventListener("pointerdown",e=>{
+  if(e.pointerType==="mouse"&&e.button!==0&&e.button!==2)return;
+  const p=at(e);
+  if(activePointers.size===0){moved=false;hadMultiTouch=false;}
+  activePointers.set(e.pointerId,{x:p.x,y:p.y,start:p,mode:e.button===2||e.shiftKey?"pan":"orbit"});
+  if(canvas.setPointerCapture)canvas.setPointerCapture(e.pointerId);
+  canvas.classList.add("dragging");
+  if(activePointers.size>=2){
+    hadMultiTouch=true;moved=true;
+    const two=[...activePointers.values()].slice(0,2);
+    pinchDistance=distance(two[0],two[1]);
+    pinchCenter=midpoint(two[0],two[1]);
+  }
+});
+canvas.addEventListener("pointermove",e=>{
+  const previous=activePointers.get(e.pointerId);
+  if(!previous)return;
+  const now=at(e),dx=now.x-previous.x,dy=now.y-previous.y;
+  previous.x=now.x;previous.y=now.y;
+  if(distance(now,previous.start)>6)moved=true;
+  if(activePointers.size>=2){
+    hadMultiTouch=true;moved=true;
+    const two=[...activePointers.values()].slice(0,2);
+    const center=midpoint(two[0],two[1]),d=distance(two[0],two[1]);
+    if(pinchCenter){
+      S.panX+=center.x-pinchCenter.x;
+      S.panY+=center.y-pinchCenter.y;
+    }
+    if(pinchDistance>10&&d>10)S.zoom=lim(S.zoom*d/pinchDistance,.55,2.5);
+    pinchCenter=center;pinchDistance=d;
+  }else if(!hadMultiTouch&&moved){
+    if(previous.mode==="pan"){
+      S.panX+=dx;S.panY+=dy;
+    }else{
+      // La implementación anterior sumaba dx y restaba dy: sensación invertida.
+      S.yaw-=dx*sensitivity();
+      S.pitch=lim(S.pitch+dy*verticalSensitivity(),.16,1.38);
+    }
+  }
+  render();
+});
+canvas.addEventListener("pointerup",endPointer);
+canvas.addEventListener("pointercancel",e=>{
+  if(!activePointers.has(e.pointerId))return;
+  activePointers.delete(e.pointerId);
+  if(activePointers.size<2){pinchDistance=0;pinchCenter=null;}
+  if(!activePointers.size){moved=false;hadMultiTouch=false;canvas.classList.remove("dragging");}
+});
+canvas.addEventListener("lostpointercapture",e=>{
+  if(activePointers.has(e.pointerId))canvas.dispatchEvent(new PointerEvent("pointercancel",{pointerId:e.pointerId}));
+});
+canvas.addEventListener("contextmenu",e=>e.preventDefault());
+canvas.addEventListener("wheel",e=>{
+  e.preventDefault();
+  const pixels=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?H:1);
+  S.zoom=lim(S.zoom*Math.exp(-pixels*.0011),.55,2.5);
+  render();
+},{passive:false});
+canvas.addEventListener("keydown",e=>{
+  let handled=true;
+  switch(e.key){
+    case "ArrowLeft":S.yaw+=.12;break;
+    case "ArrowRight":S.yaw-=.12;break;
+    case "ArrowUp":S.pitch=lim(S.pitch-.10,.16,1.38);break;
+    case "ArrowDown":S.pitch=lim(S.pitch+.10,.16,1.38);break;
+    case "+":case "=":S.zoom=lim(S.zoom*1.12,.55,2.5);break;
+    case "-":case "_":S.zoom=lim(S.zoom/1.12,.55,2.5);break;
+    case "Home":case "0":resetView();break;
+    default:handled=false;
+  }
+  if(handled){e.preventDefault();render();}
+});
 $("modeNav").addEventListener("click",e=>{let b=e.target.closest("[data-mode]");if(!b)return;S.mode=b.dataset.mode;S.selected=S.mode==="bench"?"ina":S.mode==="circuit"?"xl":"esp32";update();});
 $("floorNav").addEventListener("click",e=>{let b=e.target.closest("[data-floor]");if(!b||S.mode!=="model")return;S.floor=b.dataset.floor;update();});
 $("statusFilters").addEventListener("click",e=>{let b=e.target.closest("[data-status]");if(!b)return;S.status=b.dataset.status;update();});
@@ -144,7 +230,7 @@ $("netFilter").addEventListener("click",e=>{let b=e.target.closest("[data-net]")
 $("searchInput").addEventListener("input",e=>{S.q=e.target.value.trim().toLowerCase();inventory();});
 $("assembledBtn").addEventListener("click",()=>{S.exploded=false;update();});$("explodedBtn").addEventListener("click",()=>{S.exploded=true;update();});
 $("zoomIn").addEventListener("click",()=>{S.zoom=lim(S.zoom+.13,.55,2.4);render();});$("zoomOut").addEventListener("click",()=>{S.zoom=lim(S.zoom-.13,.55,2.4);render();});
-$("resetCamera").addEventListener("click",()=>{S.yaw=-.55;S.pitch=.62;S.zoom=1;render();});
+$("resetCamera").addEventListener("click",resetView);
 $("openBench").addEventListener("click",()=>{S.mode="bench";S.selected="ina";update();$("viewer").scrollIntoView({behavior:"smooth",block:"center"});});
 $("mobileInventoryToggle").addEventListener("click",()=>{let yes=$("inventorySection").classList.toggle("open");$("mobileInventoryToggle").setAttribute("aria-expanded",String(yes));});
 $("openInspector").addEventListener("click",()=>$("inspector").scrollIntoView({behavior:"smooth",block:"start"}));
