@@ -53,3 +53,13 @@ Archivos: `site/index.html`, `site/styles.css` y `site/app.js`.
 - Cabecera móvil fija, navegación de modos accesible, selector horizontal de zonas, inventario expandible en columnas, estados de prueba visibles y visor de alto adaptativo.
 - Mapa de 30 accesos, matriz de interruptores y tablas de auditoría adaptados a pantallas pequeñas; tablas extensas con desplazamiento horizontal local para evitar desbordar toda la página.
 - Se mantienen fichas, circuitos, visualizador Canvas, estados técnicos y enlaces canónicos; no se introduce falsa telemetría ni se declara montada la alimentación AUX.
+
+
+## Lilith 4.2: catálogo de funciones y nueva identidad (17-10-2026)
+
+- Marca: monograma geométrico L de estilo técnico/industrial en `site/assets/lilith-mark.svg`; sustituye el antiguo logo de luna y estrella.
+- `site/capabilities.js` mapea las **70 fichas** de componentes, reservas y cargas de banco a una finalidad concreta y un caso de uso, sin duplicar equipos físicos.
+- El explorador funcional permite filtrar por **redes y seguridad, radio, NFC/IR, automatización, instrumentación, energía, interfaces y host**, buscar capacidades concretas y abrir la ficha del inspector correspondiente.
+- **Límites:** el adaptador Wi-Fi y su capacidad de inyección no están validados; requiere chipset/driver específicos y uso autorizado. RTL-SDR solo recibe, LoRa no es SDR genérico y PN532 no clona credenciales cifradas de forma universal. Bluetooth LE del ESP32-S3 no equivale a Bluetooth Classic.
+- Los únicos elementos de banco efectivamente probados siguen siendo ESP32-S3, OLED SH1106, INA3221 y tres resistencias de 100 Ω a 3,3 V. Los sistemas de auditoría y automatización integral no se declaran operativos.
+- La interfaz responsiva utiliza un máximo inicial de 12 tarjetas y expansión voluntaria. `tests/explorer-smoke.test.cjs` comprueba que las 70 fichas y la búsqueda estén disponibles en móvil.
