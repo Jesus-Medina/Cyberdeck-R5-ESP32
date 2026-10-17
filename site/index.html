@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1116"><meta name="description" content="Lilith Cyberdeck — gemelo visual interactivo por pisos, circuito probado y cableado previsto.">
-<title>LILITH — Gemelo visual del Cyberdeck</title>
-<link rel="stylesheet" href="./styles.css?v=4.0-mobile-20261017">
-<script defer src="./app.js?v=4.0-mobile-20261017"></script>
+<title>LILITH — Redes, radio y automatización</title>
+<link rel="stylesheet" href="./styles.css?v=4.2-capabilities-20261017">
+<script defer src="./capabilities.js?v=4.2-capabilities-20261017"></script>
+<script defer src="./app.js?v=4.2-capabilities-20261017"></script>
 </head>
 <body>
 <header class="mobile-shell-header" aria-label="Cabecera de Lilith">
@@ -14,7 +15,7 @@
 </header>
 <div class="app" id="app">
 <aside class="sidebar">
-  <div class="brand"><div class="emblem"><img src="./assets/lilith-mark.svg" width="40" height="40" alt="Símbolo de Lilith, luna creciente y estrella"></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK / HARDWARE EXPLORER</small></div><span class="brand-trailing">V0.1</span></div>
+  <div class="brand"><div class="emblem"><img src="./assets/lilith-mark.svg" width="40" height="40" alt="Monograma técnico de Lilith"></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK / HARDWARE EXPLORER</small></div><span class="brand-trailing">V0.1</span></div>
   <div class="sidebar-content">
     <div class="intro"><span class="eyebrow">ESTACIÓN DE INGENIERÍA / 17.10.2026</span><h1>Ingeniería<br><em>en desarrollo.</em></h1><p>Arquitectura, componentes y pruebas del prototipo Lilith. Documentación técnica y estado de integración, sin simular hardware instalado.</p>
     <div class="stat-pair"><div><strong>03</strong><small>bloques probados</small></div><div><strong id="moduleTotal">—</strong><small>elementos del modelo</small></div></div></div>
@@ -54,7 +55,7 @@
 <div id="viewer" class="viewer">
   <canvas id="scene" tabindex="0" role="img" aria-label="Modelo tridimensional interactivo de Lilith Cyberdeck. Arrastra para girar en la dirección del movimiento. Mayús o botón derecho más arrastre para desplazar. Pellizca para ampliar. Usa flechas para girar y Home para restablecer."></canvas>
   <div class="viewer-shade" aria-hidden="true"></div>
-  <div class="scene-meta meta-left">LILITH / EXPLORER 4.0 <span>— ESTRUCTURA POR CAPAS</span></div>
+  <div class="scene-meta meta-left">LILITH / EXPLORER 4.2 <span>— ESTRUCTURA POR CAPAS</span></div>
   <div class="scene-meta meta-right">MÓDULOS REALES + PREVISTOS</div>
   <div class="scene-info"><span class="dot-pink"></span><span id="sceneInfoText">VISUALIZACIÓN ISOMÉTRICA · ARRASTRA PARA GIRAR</span></div>
   <button id="accessJump" class="access-jump" type="button">30 accesos operativos ↓</button>
@@ -67,6 +68,16 @@
 </div>
 <div id="viewLegend" class="viewer-legend"><span><i class="legend-dot tested"></i> Probado</span><span><i class="legend-dot owned"></i> Comprado o registrado (verificar)</span><span><i class="legend-dot planned"></i> Planificado</span><span class="legend-side">Arrastra: girar · Mayús + arrastrar: mover · pellizca: zoom</span></div>
 <div id="netFilter" class="net-filter" hidden><span>RESALTAR</span><button class="net active" data-net="all">Todas</button><button class="net" data-net="power">Energía</button><button class="net" data-net="i2c">I²C / señales</button><button class="net" data-net="ground">GND</button></div>
+<section id="capabilities" class="capabilities" aria-labelledby="capabilitiesTitle">
+<div class="capabilities-heading"><div><span class="eyebrow">FUNCIÓN DE CADA COMPONENTE · V0.1 / V1</span><h3 id="capabilitiesTitle">Herramientas, funciones y límites.</h3><p>Detección de redes, análisis RF, NFC, infrarrojo y automatización. Cada elemento explica <strong>para qué sirve</strong>, un <strong>uso práctico</strong> y su <strong>estado de integración</strong>.</p></div><div class="capabilities-counter"><strong id="capabilitiesTotal">70</strong><span>FICHAS</span></div></div>
+<div class="capabilities-warning"><strong>Inventario ≠ capacidades activas.</strong> El banco ESP32 + INA3221 + OLED está probado a 3,3 V. La auditoría Wi-Fi, emisión/recepción RF, NFC y automatización avanzada requieren hardware, software, pruebas y autorización. No son capacidades verificadas en Lilith.</div>
+<div class="capabilities-keytopics"><span>Auditoría Wi-Fi</span><span>Detección</span><span>NFC / IR</span><span>Recepción SDR</span><span>Automatización</span></div>
+<nav id="capabilityFilters" class="capability-filters" aria-label="Filtrar funciones por especialidad"></nav>
+<label class="capability-search"><span aria-hidden="true">⌕</span><input id="capabilitySearch" type="search" autocomplete="off" placeholder="Buscar inyección, detección, clonación, ESP32..." aria-label="Buscar módulo o función"></label>
+<div id="capabilityResults" class="capability-results" aria-live="polite"></div><div id="capabilityCards" class="capability-cards"></div>
+<button id="capabilityMore" class="capability-more" type="button" hidden>Mostrar más componentes ↓</button>
+<p class="capabilities-footnote">Las pruebas de ciberseguridad son solo para redes y equipos propios o autorizados. La lectura NFC no equivale a clonar credenciales seguras. Un RTL-SDR convencional es únicamente receptor; la inyección Wi-Fi depende de chipset y controlador compatibles.</p>
+</section>
 <section id="operatingOverview" class="operating-overview" aria-labelledby="operatingTitle">
  <div class="operating-heading"><div><span class="eyebrow">EL MAPA COMPLETO · FUNCIONES DE LILITH</span><h3 id="operatingTitle"><span id="operatingCount">30</span> accesos operativos previstos</h3>
  <p>Esto es lo que faltaba en el panel: cada <strong>pantalla, instrumento, puerto, salida, interfaz de radio y control</strong> se muestra por separado. Un módulo puede estar físicamente abajo y tener su acceso arriba. <strong>Son funciones y accesos, no 30 placas instaladas ni 30 huecos que ya caben.</strong></p></div>
