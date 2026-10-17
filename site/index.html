@@ -2,22 +2,26 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0c0b11"><meta name="description" content="Lilith Cyberdeck — gemelo visual interactivo por pisos, circuito probado y cableado previsto.">
+<meta name="theme-color" content="#0e1116"><meta name="description" content="Lilith Cyberdeck — gemelo visual interactivo por pisos, circuito probado y cableado previsto.">
 <title>LILITH — Gemelo visual del Cyberdeck</title>
-<link rel="stylesheet" href="./styles.css?v=3.6-engineering-20261017">
-<script defer src="./app.js?v=3.6-engineering-20261017"></script>
+<link rel="stylesheet" href="./styles.css?v=4.0-mobile-20261017">
+<script defer src="./app.js?v=4.0-mobile-20261017"></script>
 </head>
 <body>
+<header class="mobile-shell-header" aria-label="Cabecera de Lilith">
+ <a class="mobile-shell-brand" href="#app" aria-label="Lilith Cyberdeck, inicio"><img src="./assets/lilith-mark.svg" width="36" height="36" alt=""><span><strong>LILITH</strong><small>CYBERDECK / EXPLORER</small></span></a>
+ <a class="mobile-shell-repo" href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32" target="_blank" rel="noopener noreferrer">GITHUB <span aria-hidden="true">↗</span></a>
+</header>
 <div class="app" id="app">
 <aside class="sidebar">
-  <div class="brand"><div class="emblem" aria-hidden="true">☾<span>✦</span></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK · EXPLORER 3.6</small></div><span class="brand-trailing">V0.1</span></div>
+  <div class="brand"><div class="emblem"><img src="./assets/lilith-mark.svg" width="40" height="40" alt="Símbolo de Lilith, luna creciente y estrella"></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK / HARDWARE EXPLORER</small></div><span class="brand-trailing">V0.1</span></div>
   <div class="sidebar-content">
-    <div class="intro"><span class="eyebrow">ESTACIÓN DE INGENIERÍA / 17.10.2026</span><h1>Explora lo que<br><em>estamos construyendo.</em></h1><p>La operación se realiza desde el panel y la tapa alrededor del LCD. Los pisos inferiores son infraestructura y solo se abren para mantenimiento.</p>
+    <div class="intro"><span class="eyebrow">ESTACIÓN DE INGENIERÍA / 17.10.2026</span><h1>Ingeniería<br><em>en desarrollo.</em></h1><p>Arquitectura, componentes y pruebas del prototipo Lilith. Documentación técnica y estado de integración, sin simular hardware instalado.</p>
     <div class="stat-pair"><div><strong>03</strong><small>bloques probados</small></div><div><strong id="moduleTotal">—</strong><small>elementos del modelo</small></div></div></div>
     <div class="control-section mode-section"><div class="section-heading">MODO DE EXPLORACIÓN</div><nav class="mode-nav" id="modeNav" aria-label="Modos">
-      <button class="mode active" data-mode="model"><span class="mode-icon">◈</span><span class="mode-name">Modelo 3D<small>Pisos y placas físicas</small></span></button>
-      <button class="mode" data-mode="bench"><span class="mode-icon">▦</span><span class="mode-name">Banco real<small>Ensayo a 3,3 V</small></span></button>
-      <button class="mode" data-mode="circuit"><span class="mode-icon">⌁</span><span class="mode-name">Cableado<small>Rutas y seguridad</small></span></button>
+      <button class="mode active" data-mode="model"><span class="mode-icon">01</span><span class="mode-name">Modelo 3D<small>Pisos y placas físicas</small></span></button>
+      <button class="mode" data-mode="bench"><span class="mode-icon">02</span><span class="mode-name">Banco real<small>Ensayo a 3,3 V</small></span></button>
+      <button class="mode" data-mode="circuit"><span class="mode-icon">03</span><span class="mode-name">Cableado<small>Rutas y seguridad</small></span></button>
     </nav></div>
     <div class="control-section level-section"><div class="section-heading">ZONAS · DOS OPERATIVAS + TRES INTERNAS</div><nav id="floorNav" class="floor-nav" aria-label="Niveles">
       <button class="floor-choice active" data-floor="all"><span>◈</span><b>Todos</b><small>—</small></button>
@@ -45,11 +49,12 @@
 <main class="main">
 <header class="topbar"><span>CYBERDECK <i>/</i> <b>LILITH</b> <i>/</i> <span id="modeCrumb">MODELO 3D</span></span><a href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32" target="_blank" rel="noopener">VER REPOSITORIO ↗</a></header>
 <section class="workspace">
-<div class="section-intro"><div><span class="eyebrow">LILITH / HARDWARE EXPLORER</span><h2 id="viewTitle">Panel, pantalla e interior<span>.</span></h2><p id="viewSubtitle">El panel y la tapa son accesibles. Selecciona los niveles internos para conocer sus módulos.</p></div><span class="reality-tag">MAQUETA REFERENCIAL <small>NO ES PLANO DE FABRICACIÓN</small></span></div>
+<div class="section-intro"><div><span class="eyebrow">LILITH / ARQUITECTURA DEL PROTOTIPO</span><h2 id="viewTitle">Panel, pantalla e interior<span>.</span></h2><p id="viewSubtitle">El panel y la tapa son accesibles. Selecciona los niveles internos para conocer sus módulos.</p></div><span class="reality-tag">MAQUETA REFERENCIAL <small>NO ES PLANO DE FABRICACIÓN</small></span></div>
+<div class="mobile-view-status"><span><i class="legend-dot tested"></i> Banco 3,3 V comprobado</span><span>V0.1 / integración pendiente</span></div>
 <div id="viewer" class="viewer">
   <canvas id="scene" tabindex="0" role="img" aria-label="Modelo tridimensional interactivo de Lilith Cyberdeck. Arrastra para girar en la dirección del movimiento. Mayús o botón derecho más arrastre para desplazar. Pellizca para ampliar. Usa flechas para girar y Home para restablecer."></canvas>
   <div class="viewer-shade" aria-hidden="true"></div>
-  <div class="scene-meta meta-left">LILITH // EXPLORER 3.6 <span>— ESTRUCTURA POR CAPAS</span></div>
+  <div class="scene-meta meta-left">LILITH / EXPLORER 4.0 <span>— ESTRUCTURA POR CAPAS</span></div>
   <div class="scene-meta meta-right">MÓDULOS REALES + PREVISTOS</div>
   <div class="scene-info"><span class="dot-pink"></span><span id="sceneInfoText">VISUALIZACIÓN ISOMÉTRICA · ARRASTRA PARA GIRAR</span></div>
   <button id="accessJump" class="access-jump" type="button">30 accesos operativos ↓</button>
@@ -75,7 +80,7 @@
  <p class="operating-note">Los puntos se colorean según <strong>probado en banco</strong>, <strong>registrado por verificar</strong> o <strong>planificado</strong>. Selecciona cualquier ficha para ver el módulo relacionado y su acceso superior. Si buscas medidas de corte, consulta el <strong>plano de reservas</strong> de abajo: no debe confundirse con este mapa funcional.</p>
 </section>
 <section class="engineering-audit" id="switchAndRf" aria-labelledby="auditTitle">
-<div class="engineering-head"><div><span class="eyebrow">CONTROL ELÉCTRICO / RF · AUDITORÍA TÉCNICA</span><h3 id="auditTitle">Nada de interruptores decorativos ni antenas mágicas</h3><p>La imagen del cyberdeck es una referencia estética. Este esquema distingue <b>funciones reales</b> de propuestas y especifica cómo se conectarán los módulos con la tapa. No cambies cables siguiendo esta tabla: la V0.1 aprobada sigue en la netlist original.</p></div><a href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/26-lilith-switch-matrix-and-antenna-routing.md" target="_blank" rel="noopener">ESQUEMA COMPLETO ↗</a></div>
+<div class="engineering-head"><div><span class="eyebrow">CONTROL ELÉCTRICO / RF · AUDITORÍA TÉCNICA</span><h3 id="auditTitle">Interruptores, protecciones y enlaces RF</h3><p>La imagen del cyberdeck es una referencia estética. Este esquema distingue <b>funciones reales</b> de propuestas y especifica cómo se conectarán los módulos con la tapa. No cambies cables siguiendo esta tabla: la V0.1 aprobada sigue en la netlist original.</p></div><a href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/26-lilith-switch-matrix-and-antenna-routing.md" target="_blank" rel="noopener">ESQUEMA COMPLETO ↗</a></div>
 <div class="audit-cols">
 <article class="audit-panel">
 <div class="audit-panel-title"><b>12 interruptores = 6 palancas + 6 basculantes</b><span>2 funciones V0.1 / 10 propuestas</span></div>

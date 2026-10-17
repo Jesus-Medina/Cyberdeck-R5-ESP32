@@ -1,4 +1,4 @@
-# Lilith Explorer 3.4 — catálogo de módulos por pisos
+# Lilith Explorer 4.0 — catálogo de módulos por pisos
 
 > **v3.6 / criterio eléctrico:** [matriz de 12 interruptores y arneses RF](../docs/26-lilith-switch-matrix-and-antenna-routing.md). Solo dos interruptores (SW0/SW1) están definidos en la netlist V0.1; diez funciones son propuestas sin cablear (dos requieren cambiar la netlist y ocho necesitan nuevo hardware). Antenas RF: módulo interior + coaxial 50 Ω + bulkhead sobre subpanel interno de la tapa, no pantalla ni carcasa perforada. El render estético anterior no es canónico; no garantiza pérdidas nulas ni 24 V/5 A/12 canales protegidos.
 
@@ -45,3 +45,11 @@ GitHub Actions `.github/workflows/lilith-pages.yml` publica únicamente `site/` 
 https://jesus-medina.github.io/Cyberdeck-R5-ESP32/
 
 Archivos: `site/index.html`, `site/styles.css` y `site/app.js`.
+
+## Rediseño 4.0: interfaz móvil e identidad (17-10-2026)
+
+- Presentación visual de ingeniería: grafito/metal, acentos cobre mate y jerarquía editorial contenida; se eliminaron superficies rosadas saturadas, brillos decorativos y estilos de tarjeta excesivos.
+- Nuevo símbolo SVG de luna creciente y estrella en las cabeceras. Es una **reconstrucción vectorial del motivo de Lilith**; si existe un archivo de marca maestro anterior, sustituir `site/assets/lilith-mark.svg` por él sin cambiar el código de la interfaz.
+- Cabecera móvil fija, navegación de modos accesible, selector horizontal de zonas, inventario expandible en columnas, estados de prueba visibles y visor de alto adaptativo.
+- Mapa de 30 accesos, matriz de interruptores y tablas de auditoría adaptados a pantallas pequeñas; tablas extensas con desplazamiento horizontal local para evitar desbordar toda la página.
+- Se mantienen fichas, circuitos, visualizador Canvas, estados técnicos y enlaces canónicos; no se introduce falsa telemetría ni se declara montada la alimentación AUX.
