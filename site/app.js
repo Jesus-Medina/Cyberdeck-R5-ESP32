@@ -137,7 +137,7 @@ function block(x,y,z,w,d,h,col){poly([[x,y,z],[x+w,y,z],[x+w,y,z+h],[x,y,z+h]],"
 function ring(x,y,z,r,col,fill){let p=[];for(let i=0;i<22;i++){let a=i*Math.PI*2/22;p.push([x+Math.cos(a)*r,y+Math.sin(a)*r,z]);}poly(p,fill,col,1.4);}
 function text(x,y,z,t,size=8,color="#e5dce7"){let p=proj(x,y,z);g.font="700 "+size+"px 'Space Grotesk',sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillStyle=color;g.fillText(t,p.x,p.y);g.textAlign="left";}
 function light(x,y,z,c){let p=proj(x,y,z);g.beginPath();g.arc(p.x,p.y,Math.max(2.0,scale*.05),0,Math.PI*2);g.fillStyle=c;g.fill();}
-function paintBoard(m,b,z){let [x,y,w,d]=b,k=m.kind,base=z+.08;let colorsBoard={esp32:"#173d3b",ina:"#653881",oled:"#1b2a3e",xl:"#1c5d92",tps:"#216a53",laptop:"#474752",keyboard:"#33323d",switches:"#33313e",battery:"#42514d",lora:"#235d47",fuse:"#4e4238",usb:"#333b45",resistor:"#725444",antenna:"#36303c",fan:"#343941",screen:"#263d62",ports:"#394053"};let area=block(x,y,z,w,d,.075,colorsBoard[k]||"#284d58");
+function paintBoard(m,b,z){let [x,y,w,d]=b,k=m.kind,base=z+.08;let colorsBoard={esp32:"#173d3b",ina:"#653881",oled:"#1b2a3e",xl:"#1c5d92",tps:"#216a53",laptop:"#474752",keyboard:"#33323d",switches:"#33313e",battery:"#42514d",lora:"#235d47",fuse:"#4e4238",usb:"#333b45",resistor:"#725444",antenna:"#36303c",fan:"#343941",screen:"#263d62",ports:"#394053",arduino:"#1c5360",ethernet:"#354b55",wifi:"#315a56",chip:"#385451",logic:"#273b61",rtc:"#395367",sensor:"#37545d",backplane:"#255a50",regulator:"#355c55",meter:"#243e56",encoder:"#4c4254",scope:"#2e3c63",tester:"#385969",ir:"#574148",leds:"#4c4356"};let area=block(x,y,z,w,d,.075,colorsBoard[k]||"#284d58");
 let add=(a,b,c,dd,h,color)=>block(x+a*w,y+b*d,base,c*w,dd*d,h,color),loc=(a,b,h=.1)=>[x+a*w,y+b*d,base+h];
 if(k==="laptop"||k==="keyboard"){add(.04,.06,.91,.84,.05,"#343a43");for(let i=0;i<5;i++)for(let j=0;j<13;j++)add(.08+j*.057,.12+i*.116,.044,.086,.018,i+j===15?"#4c3b4f":"#242a34");add(.34,.73,.28,.11,.01,"#929098");}
 else if(k==="switches"){for(let i=0;i<6;i++){let xx=x+w*(.08+i*.15),yy=y+d*.29;ring(xx,yy,base+.08,w*.031,"#c1c1c7","#494852");path([[xx,yy,base+.12],[xx+.06,yy-.06,base+.34]],"#e1dadf",3);}for(let j=0;j<6;j++)add(.045+j*.15,.61,.12,.20,.07,"#1a202b");}
@@ -152,10 +152,40 @@ else if(k==="antenna"){for(let i=0;i<3;i++){let p=loc(.20+i*.28,.25,.1);path([p,
 else if(k==="fan"){add(.06,.08,.88,.84,.07,"#1c2732");ring(...loc(.50,.49,.08),w*.35,"#b3b5bc","#394251");for(let i=0;i<6;i++){let a=i*Math.PI/3;path([loc(.50,.49,.12),loc(.50+.30*Math.cos(a),.49+.30*Math.sin(a),.12)],"#8494a1",3);}}
 else if(k==="resistor"){add(.27,.34,.47,.30,.08,"#dbc4a8");for(let i=0;i<3;i++)add(.33+i*.12,.35,.05,.29,.013,i===1?"#24232c":"#815537");}
 else if(k==="lora"){add(.13,.18,.60,.64,.12,"#c1c8c6");add(.22,.27,.42,.40,.09,"#38464b");ring(...loc(.82,.50,.11),w*.085,"#ddbc87","#20363a");}
+else if(k==="scope"||k==="tester"||k==="meter"||k==="screen"){
+add(.07,.09,.86,.82,.11,"#151d2b");add(.13,.16,.73,.59,.025,"#123643");
+text(...loc(.5,.45,.25),k==="scope"?"SCOPE":k==="tester"?"LCR":k==="screen"?"CYD":"V/A/W",8,"#b5dfd1");
+add(.15,.82,.20,.08,.05,"#d6b18c");add(.65,.82,.20,.08,.05,"#d6b18c");
+}
+else if(k==="arduino"||k==="backplane"||k==="logic"){
+for(let side=0;side<2;side++)for(let i=0;i<8;i++)add(.06+i*.115,side?.88:.04,.053,.06,.02,"#d6ac76");
+add(.15,.20,.31,.51,.10,"#243b4b");add(.54,.26,.24,.38,.08,"#151e2d");
+text(...loc(.50,.78,.22),k==="arduino"?"ARDUINO":k==="logic"?"LOGIC":"BACKPLANE",7);
+}
+else if(k==="wifi"||k==="ethernet"){
+add(.08,.16,.72,.61,.15,"#b5bbc4");add(.15,.25,.56,.42,.05,"#314050");
+if(k==="wifi"){for(let i=0;i<2;i++){let p=loc(.83,.28+i*.42,.12);path([p,[p[0],p[1],p[2]+.48]],"#e0b887",2.5);}}
+else add(.80,.32,.19,.36,.08,"#a8adae");
+text(...loc(.42,.76,.24),k==="wifi"?"WI-FI":"LAN",8,"#eee0ed");
+}
+else if(k==="chip"||k==="rtc"||k==="sensor"||k==="regulator"){
+add(.21,.20,.58,.53,.12,k==="regulator"?"#427b77":"#242d3b");
+for(let i=0;i<4;i++){add(.10+i*.235,.09,.09,.06,.025,"#d5b17c");add(.10+i*.235,.84,.09,.06,.025,"#d5b17c");}
+text(...loc(.5,.48,.24),k==="rtc"?"RTC":k==="sensor"?"SENSOR":k==="regulator"?"DC/DC":"IC",7);
+}
+else if(k==="encoder"){
+ring(...loc(.50,.47,.24),Math.min(w,d)*.27,"#d5c0be","#3d414c");ring(...loc(.50,.47,.26),Math.min(w,d)*.15,"#e9c8aa","#202631");
+for(let i=0;i<3;i++)add(.22+i*.23,.83,.11,.07,.04,"#d6b28a");
+}
+else if(k==="ir"||k==="leds"){
+for(let i=0;i<4;i++){let xx=.17+i*.21;ring(...loc(xx,.42,.15),Math.min(w,d)*.09,k==="ir"?"#d88b88":"#e2b989",k==="ir"?"#492838":i%2?"#383c47":"#6b4059");}
+add(.13,.77,.75,.10,.06,"#242b38");
+}
 else if(k==="usb"){add(.08,.19,.80,.60,.13,"#242b36");add(.82,.37,.17,.24,.11,"#d2d1d1");}
 else if(k==="ports"){for(let i=0;i<3;i++){add(.13,.10+i*.27,.57,.18,.12,"#141e2b");ring(...loc(.84,.20+i*.27,.09),w*.09,"#d5b38a","#1d202a");}}
 else{add(.10,.14,.81,.74,.045,"#203443");add(.29,.30,.41,.39,.12,"#141b25");for(let i=0;i<5;i++)add(.10+i*.17,.03,.06,.09,.015,"#dab27e");}
 light(x+w*.88,y+d*.13,base+.20,colors[m.status]);
+if((S.floor!=="all"||S.mode!=="model")&&W>580)text(...loc(.5,.90,.26),m.name.length>20?m.name.slice(0,18)+"…":m.name,7,"#f2e4eb");
 if(S.selected===m.id)poly([[x,y,base+.2],[x+w,y,base+.2],[x+w,y+d,base+.2],[x,y+d,base+.2]],null,"#f8cee2",2.4);
 hit.push({id:m.id,poly:area});let q=proj(x+w/2,y+d/2,base+.22);lab.push({id:m.id,x:q.x,y:q.y,t:m.name,c:colors[m.status],selected:S.selected===m.id});
 }
@@ -171,7 +201,7 @@ function wires(nets,placement,z){nets.forEach(([aa,bb,kind,label,ok],i)=>{if(S.n
  if(S.selected===aa||S.selected===bb||S.net!=="all"){let sp=proj(...mid);g.font="600 9px 'DM Sans'";g.fillStyle="#201828ee";g.fillRect(sp.x-56,sp.y-15,112,18);g.fillStyle="#f4e2ed";g.textAlign="center";g.fillText(label.slice(0,26),sp.x,sp.y-3);g.textAlign="left";}
 });}
 function diagram(which){let p=which==="bench"?bench:circuit,z=.19;floor(["bench",which==="bench"?"BANCO REAL 3,3 V":"ARQUITECTURA V0.1"],z);for(const [id,b] of Object.entries(p))paintBoard(index[id],b,z+.15);wires(which==="bench"?benchN:designN,p,z+.40);}
-function labels(){let used=[];const small=W<560;let arr=lab.slice().sort((a,b)=>Number(b.selected)-Number(a.selected));for(const t of arr){if(S.mode==="model"&&S.floor==="all"&&!t.selected&&!["esp32","ina","xl","oled","dell","battery","switches","tps1"].includes(t.id))continue;let w=Math.min(small?145:200,18+t.t.length*(small?5.4:6)),h=22,x=lim(t.x-w/2,4,W-w-4),y=lim(t.y-36,42,H-92);
+function labels(){let used=[];const small=W<560;let arr=lab.slice().sort((a,b)=>Number(b.selected)-Number(a.selected));for(const t of arr){if(S.mode==="model"&&S.floor==="all"&&!t.selected&&!["esp32","ina","xl","oled","dell","battery","switches","tps1","lora","arduino","fnirsi","wifilab"].includes(t.id))continue;let w=Math.min(small?145:200,18+t.t.length*(small?5.4:6)),h=22,x=lim(t.x-w/2,4,W-w-4),y=lim(t.y-36,42,H-92);
  if(!t.selected&&used.some(r=>x<r.x+r.w+4&&x+w>r.x-4&&y<r.y+r.h+4&&y+h>r.y-4))continue;used.push({x,y,w,h});g.fillStyle=t.selected?"#5d3950f2":"#201827e5";g.strokeStyle=t.selected?"#eec4d7":"#745569";g.beginPath();g.roundRect(x,y,w,h,6);g.fill();g.lineWidth=1;g.stroke();g.fillStyle=t.c;g.beginPath();g.arc(x+9,y+11,3,0,Math.PI*2);g.fill();g.fillStyle="#f6e9f0";g.font="600 "+(small?9:10)+"px 'DM Sans'";g.textAlign="left";g.textBaseline="middle";g.fillText(t.t.length>(small?22:30)?t.t.slice(0,small?20:28)+"…":t.t,x+17,y+11);}g.textBaseline="alphabetic";}
 function draw(){scheduled=false;g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);let bg=g.createRadialGradient(W*.52,H*.50,10,W*.5,H*.49,Math.max(W,H)*.8);bg.addColorStop(0,"#423044");bg.addColorStop(.6,"#17131f");bg.addColorStop(1,"#0e0c16");g.fillStyle=bg;g.fillRect(0,0,W,H);g.strokeStyle="#dcb8c51a";for(let x=0;x<W;x+=30){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
  scale=Math.min(W/14.8,H/11.5)*1.17*S.zoom;hit=[];lab=[];if(S.mode==="model")drawingModel();else diagram(S.mode);labels();}
@@ -182,7 +212,7 @@ function pick(v){for(let i=hit.length-1;i>=0;i--)if(inside(v,hit[i].poly))return
 function statusText(s){return s==="tested"?"PROBADO EN BANCO":s==="owned"?"COMPRADO / POR VERIFICAR":"PLANIFICADO / SIN PROBAR";}
 function select(id){if(!index[id])return;S.selected=id;if(id==="meanwell")S.mode="circuit";if(["r1","r2","r3"].includes(id))S.mode="bench";if(S.mode==="model"&&S.floor!=="all"&&index[id].floor!=="external")S.floor=index[id].floor;update();}
 function inventory(){let el=$("inventory");el.replaceChildren();let all=items.filter(m=>(S.status==="all"||m.status===S.status)&&(!S.q||(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q))&&(!["r1","r2","r3"].includes(m.id)||S.mode==="bench"));$("resultCount").textContent=all.length;
- all.forEach(m=>{let b=document.createElement("button"),dot=document.createElement("i"),wrap=document.createElement("span"),n=document.createElement("b"),sub=document.createElement("small");b.className="inv-item"+(S.selected===m.id?" active":"");dot.className="state-dot "+m.status;n.textContent=m.name;sub.textContent=m.floor.toUpperCase();wrap.append(n,sub);b.append(dot,wrap);b.addEventListener("click",()=>select(m.id));el.append(b);});}
+ all.forEach(m=>{let b=document.createElement("button"),dot=document.createElement("i"),wrap=document.createElement("span"),n=document.createElement("b"),sub=document.createElement("small");b.className="inv-item"+(S.selected===m.id?" active":"");dot.className="state-dot "+m.status;n.textContent=m.name;sub.textContent=m.floor.toUpperCase();wrap.append(n,sub);b.append(dot,wrap);b.addEventListener("click",()=>{if(["panel","electronics","power","base"].includes(m.floor)){S.mode="model";S.floor=m.floor;}else if(m.floor==="bench"){S.mode="bench";}else if(m.floor==="external"){S.mode="circuit";}select(m.id);});el.append(b);});}
 function inspector(){let m=index[S.selected];if(!m)return;let el=$("inspectorBody");el.replaceChildren();let top=document.createElement("div");top.className="inspector-topblock";let p=document.createElement("div");p.className="inspect-code";p.textContent="LILITH / "+m.floor.toUpperCase()+" / "+m.id.toUpperCase();top.append(p);
  let fig=document.createElement("div");fig.className="inspect-picture";let tile=document.createElement("div");tile.style.cssText="width:78%;height:60%;border:2px solid #b7a2b1;border-radius:9px;background:"+({ina:"#633583",xl:"#285f8a",esp32:"#235043",tps:"#2a6c56",oled:"#182c44"}[m.kind]||"#344b59")+";box-shadow:10px 12px 12px #0007;transform:rotate(-7deg);display:grid;place-items:center;text-align:center;font:700 15px 'Space Grotesk';padding:9px";tile.textContent=({ina:"INA3221 · R100 ×3",xl:"XL4015 · CC/CV",esp32:"ESP32-S3 · USB-C",tps:"TPS2553 · SOT-23-6",oled:"OLED · SH1106"}[m.kind]||m.name);fig.append(tile);top.append(fig);
  let title=document.createElement("h3");title.className="inspect-title";title.textContent=m.name;top.append(title);
@@ -196,7 +226,7 @@ function inspector(){let m=index[S.selected];if(!m)return;let el=$("inspectorBod
 function update(){
  $("modeCrumb").textContent=S.mode==="model"?"MODELO 3D":S.mode==="bench"?"BANCO REAL":"CABLEADO";
  $("viewTitle").innerHTML=(S.mode==="model"?"El interior, pieza por pieza":S.mode==="bench"?"Lo que ya funciona":"Conexiones y seguridad")+"<span>.</span>";
- $("viewSubtitle").textContent=S.mode==="model"?"Arrastra para girar · pellizca para ampliar y mover · toca los módulos.":S.mode==="bench"?"ESP32, OLED, INA3221 y tres resistencias independientes de 100 Ω.":"Las líneas discontinuas son rutas aún sin montar ni probar.";
+ $("viewSubtitle").textContent=S.mode==="model"?"Selecciona un piso para ver sus módulos. Arrastra para girar y toca cada pieza para inspeccionarla.":S.mode==="bench"?"ESP32, OLED, INA3221 y tres resistencias independientes de 100 Ω.":"Las líneas discontinuas son rutas aún sin montar ni probar.";
  $("floorCaption").innerHTML=(S.mode==="model"?(S.floor==="all"?"CUATRO NIVELES":levels.find(x=>x[0]===S.floor)?.[1]||"PISO"):(S.mode==="bench"?"BANCO REAL 3,3 V":"V0.1 PENDIENTE"))+"<small>"+(S.mode==="model"?(S.exploded?"DESPIECE · MEDIDAS ILUSTRATIVAS":"ENSAMBLADO · MEDIDAS ILUSTRATIVAS"):S.mode==="bench"?"ENSAYO COMPROBADO":"12 V → 5 V NO CONECTADOS")+"</small>";
  $("sceneInfoText").textContent=S.mode==="model"?"ARRASTRAR: GIRAR · 2 DEDOS: ZOOM/MOVER":S.mode==="bench"?"I²C 0x40 / 0x3C · GPIO8/9":"RUTAS FUTURAS Y DATOS PROBADOS";
  $("netFilter").hidden=S.mode==="model";$("explodeControls").style.display=S.mode==="model"&&S.floor==="all"?"flex":"none";
