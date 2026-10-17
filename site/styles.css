@@ -106,3 +106,47 @@
 @media(max-width:1280px){.operating-surfaces{grid-template-columns:1fr}.operating-surface{width:100%}.access-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:760px){.access-jump{right:10px;top:49px;padding:8px 10px;font-size:9px}.operating-overview{padding:11px;margin:13px 0}.operating-heading{display:block}.operating-heading h3{font-size:22px}.operating-heading p{font-size:11px}.operating-heading a{display:inline-block;margin-top:10px}.operating-surface{padding:10px}.access-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.access-point{padding:8px;min-height:85px}.access-point-header strong{font-size:10px}.access-point small{font-size:9px}.surface-heading h4{font-size:19px}}
 @media(max-width:390px){.access-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.access-point{min-height:92px}}
+
+/* v3.6 Ingeniería auditable: switch matrix 6 + 6 y arneses de RF. */
+.engineering-audit{margin:20px 0;padding:19px;border:1px solid #6d4e61;border-radius:15px;background:linear-gradient(150deg,#201821,#15121c);color:#e9dce7}
+.engineering-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+.engineering-head h3{font:600 clamp(18px,2.5vw,27px)/1.25 'Space Grotesk';letter-spacing:-.03em;margin:6px 0;color:#f5d9e8}
+.engineering-head p{max-width:750px;margin:0;color:#c4b3c1;line-height:1.6;font-size:11px}
+.engineering-head a{flex-shrink:0;color:#edc6dd;border:1px solid #79566e;border-radius:8px;padding:9px 10px;font:700 9px 'Space Grotesk'}
+.audit-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:14px;align-items:start}
+.audit-panel{min-width:0;border:1px solid #4f384d;background:#17131b;border-radius:11px;padding:12px}
+.audit-panel-title{display:flex;justify-content:space-between;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:11px}
+.audit-panel-title b{font:600 13px 'Space Grotesk';color:#ebc8db}
+.audit-panel-title span{font:500 9px 'DM Sans';color:#bea7b8}
+.audit-table-wrap{overflow:auto}
+.audit-table{border-collapse:collapse;width:100%;min-width:490px;text-align:left}
+.audit-table th,.audit-table td{border-bottom:1px solid #43313f;padding:9px 6px;font-size:10px;vertical-align:top;color:#d9c7d3}
+.audit-table thead th{font-size:9px;color:#c79eaf;letter-spacing:.04em}
+.audit-table td strong,.audit-table td small{display:block}
+.audit-table td strong{font:700 10px 'Space Grotesk';color:#f2d7e4}
+.audit-table td small{font-size:9px;line-height:1.5;color:#b29eb0;margin-top:4px}
+.audit-status{display:inline-block;font:700 9px 'Space Grotesk';padding:5px 6px;border:1px solid #7d667d;border-radius:5px;white-space:nowrap}
+.audit-canonical{color:#d7c8e7;border-color:#a77fbb}
+.audit-proposed{color:#f0d29c;border-color:#947a54}
+.audit-blocked{color:#b4adb9;border-color:#675667}
+.audit-panel p{font-size:10px;color:#bfaabc;line-height:1.6}
+.rf-path{display:grid;gap:2px}
+.rf-node{border:1px solid #76566c;background:#2d2334;border-radius:9px;padding:12px;text-align:center}
+.rf-node small,.rf-node b,.rf-node span{display:block}
+.rf-node small{color:#b6a0b4;font:700 8px 'Space Grotesk';letter-spacing:.08em}
+.rf-node b{color:#ebd5e5;margin:4px 0;font:700 12px 'Space Grotesk'}
+.rf-node span{color:#c4b4c6;font-size:10px}
+.rf-lid{background:#3f2a40}
+.rf-hinge{background:#272436}
+.rf-arrow{text-align:center;color:#c3a2b9;padding:4px}
+.rf-arrow span{display:block;font-size:9px}
+.rf-arrow i{display:block;font-size:16px;font-style:normal}
+.rf-split{display:grid;gap:4px;padding:9px;color:#d2bdc7;border:1px dashed #70526b;border-radius:7px;font-size:9px}
+.rf-caution{padding:11px;margin:12px 0;background:#342538;border-left:3px solid #ad88ad;border-radius:6px;font-size:10px;line-height:1.55}
+.rf-radio-rows>div{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #493544;align-items:baseline}
+.rf-radio-rows b{font:700 10px 'Space Grotesk';min-width:72px;color:#f1d1e2}
+.rf-radio-rows span{font-size:10px;color:#c2b0bc;line-height:1.45}
+.audit-footnote{color:#bbaaad;font-size:10px;line-height:1.65;margin:13px 3px 1px}
+.audit-footnote a{color:#ddbbcf;text-decoration:underline}
+@media(max-width:1100px){.audit-cols{grid-template-columns:1fr}}
+@media(max-width:760px){.engineering-audit{padding:10px}.engineering-head{display:block}.engineering-head p{font-size:10px}.engineering-head a{display:inline-block;margin-top:10px}.audit-panel{padding:9px}.audit-panel-title b{font-size:12px}}
