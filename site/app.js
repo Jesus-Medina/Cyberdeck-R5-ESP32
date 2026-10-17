@@ -495,7 +495,7 @@ function update(){
  }
  $("netFilter").hidden=S.mode==="model";$("explodeControls").style.display=S.mode==="model"&&S.floor==="all"?"flex":"none";
  $("modeNav").querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===S.mode));
- $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";const c=b.querySelector("small");if(c)c.textContent=b.dataset.floor==="panel"?operatingPoints.panel.length+" accesos":b.dataset.floor==="lid"?operatingPoints.lid.length+" accesos":b.dataset.floor==="all"?items.filter(m=>["lid","panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length:items.filter(m=>m.floor===b.dataset.floor&&!["sw0","sw1"].includes(m.id)).length);});
+ $("floorNav").querySelectorAll("[data-floor]").forEach(b=>{b.classList.toggle("active",b.dataset.floor===S.floor);b.disabled=S.mode!=="model";const c=b.querySelector("small");if(c)c.textContent=b.dataset.floor==="panel"?operatingPoints.panel.length+" accesos":b.dataset.floor==="lid"?operatingPoints.lid.length+" accesos":b.dataset.floor==="all"?items.filter(m=>["lid","panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length:items.filter(m=>m.floor===b.dataset.floor&&!["sw0","sw1"].includes(m.id)).length;});
  $("statusFilters").querySelectorAll("[data-status]").forEach(b=>b.classList.toggle("active",b.dataset.status===S.status));
  $("netFilter").querySelectorAll("[data-net]").forEach(b=>b.classList.toggle("active",b.dataset.net===S.net));
  $("assembledBtn").classList.toggle("active",!S.exploded);$("explodedBtn").classList.toggle("active",S.exploded);
