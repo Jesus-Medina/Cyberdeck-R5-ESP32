@@ -1,6 +1,8 @@
 # 25 — Lilith: interfaz operativa, tapa/pantalla y distribución física preliminar
 Fecha: 2026-10-17. Prevalece sobre esquemas anteriores donde el Dell aparecía como notebook completo o las antenas/puertos requerían abrir pisos.
 
+> **Cierre lógico complementario:** los 12 interruptores son seis SPST + seis basculantes, pero solo SW0/SW1 tienen cableado V0.1 definido. La matriz completa con bloqueantes está en [26 — interruptores y cableado RF de tapa](26-lilith-switch-matrix-and-antenna-routing.md). La ubicación RF no es una promesa de 100% de señal ni una instrucción para soldar al LCD. No cortar material según renders.
+
 ## Reglas NO negociables
 1. **Operación normal desde arriba:** al abrir el maletín, el panel principal y los marcos/espacios alrededor de la pantalla en la tapa son las dos superficies de operación. Toda conexión, interruptor, ajuste, entrada/salida, instrumento y acceso previsto de antena debe poder utilizarse sin levantar una bandeja interna.
 2. **Pisos inferiores = infraestructura de servicio:** placa madre Dell, disipación, electrónica AUX, convertidores, protección, cables, buses, módulos RF con antenas remotas. Levantar pisos sólo para instalación, mantenimiento y reparación. La necesidad ocasional de programar por USB también requiere puerto de servicio accesible arriba.
