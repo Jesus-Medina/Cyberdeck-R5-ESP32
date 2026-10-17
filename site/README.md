@@ -1,5 +1,8 @@
 # Lilith Explorer 3.4 — catálogo de módulos por pisos
 
+> **v3.6 / criterio eléctrico:** [matriz de 12 interruptores y arneses RF](../docs/26-lilith-switch-matrix-and-antenna-routing.md). Solo dos interruptores (SW0/SW1) están definidos en la netlist V0.1; diez funciones son propuestas sin cablear (dos requieren cambiar la netlist y ocho necesitan nuevo hardware). Antenas RF: módulo interior + coaxial 50 Ω + bulkhead sobre subpanel interno de la tapa, no pantalla ni carcasa perforada. El render estético anterior no es canónico; no garantiza pérdidas nulas ni 24 V/5 A/12 canales protegidos.
+
+
 > **Diseño operativo actual, 17-10-2026:** se añade una **quinta zona de visualización: tapa/pantalla**. Tapa y panel son las únicas superficies de operación; electrónica, energía y placa Dell desnuda con cooler son internas y no necesitan abrirse durante el uso normal. Los 12 interruptores tienen una zona reservada de 216×78 mm (6×2, paso orientativo 36 mm), sin validar espacio neto ni profundidad. Wi-Fi/LoRa/SDR se conectan a antenas despejadas en tapa/panel abierto con coax apropiado. Se incluye plano ilustrativo en mm para panel 371×258 y tapa con LCD activo aprox. 309×174; no es plan de corte. Véase [especificación actual](../docs/25-lilith-panel-lid-interface.md).
 
 
