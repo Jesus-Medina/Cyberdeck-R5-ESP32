@@ -9,7 +9,7 @@ Actualización de interfaz orientada primero al **celular**, 17-10-2026. Sitio e
 
 - Vista adaptativa real, sin lienzos HTML de 980×650 recortados. La geometría espacial se proyecta con cámara y perspectiva en un **Canvas responsivo**, en vez de apilar capas rotadas con CSS.
 - Giro con un dedo o ratón, zoom con gesto de pellizcar/dedos, rueda o botones; reinicio de cámara.
-- Cuatro estratos visibles en vista explotada o ensamblada: base Dell, energía, electrónica y panel superior; selección aislada por nivel.
+- **Cinco zonas de visualización**: tapa/pantalla, panel operativo y tres pisos internos (electrónica, energía, placa Dell). Las reservas del panel se ajustan a milímetros aproximados, no a un CAD de corte.
 - Placas ilustradas con volumen (PCB, cobre, chips, puertos, tapas, resistencias y bobina según tipo); selección clic/tap mediante áreas proyectadas y fichas de conexiones.
 - Modo banco 3,3 V con ESP32, INA3221, OLED y tres resistencias 100Ω + líneas **ya comprobadas**.
 - Modo cableado futuro V0.1 con 12V → fusible → SW0 → XL4015 → TPS2553/SW1/INA; **trazos discontinuos: no montados**. Filtros por energía/I²C/GND.
@@ -18,13 +18,14 @@ Actualización de interfaz orientada primero al **celular**, 17-10-2026. Sitio e
 
 ## Inventario visual ampliado (17-10-2026)
 
-El visor muestra **58 fichas distribuidas en cuatro niveles ilustrativos** (panel, electrónica/RF/redes, energía y base Dell), y accesos separados al adaptador externo y a las cargas de banco. SW0 y SW1 son funciones de dos de los doce interruptores, no dispositivos adicionales.
+El visor tiene **64 fichas en cinco zonas** (tapa/pantalla, panel, electrónica, energía y base Dell), y accesos separados al adaptador externo y a las cargas de banco. Algunas fichas describen funciones o reservas futuras y no son dispositivos físicos adicionales instalados. SW0 y SW1 son funciones de dos de los doce interruptores, no dispositivos adicionales.
 
-- Panel: FNIRSI, GM328A, CYD, OLED, interruptores, encoder, display V/A/W, antenas, IR, GPIO y puertos de servicio.
+- Panel operativo: doce interruptores, teclado Bluetooth externo al Dell, CYD, OLED, encoder, indicador V/A/W, GPIO y puertos. FNIRSI/GM328A figuran en el inventario pero su cabida simultánea no está comprobada.
 - Electrónica: ESP32-S3, INA3221, Arduino, LoRa, RTL-SDR, Wi-Fi LAB, UE306, GNSS, PN532, CP2102, ADuM1201, TCA9548A, EEPROM, analizador lógico, RTC y BME280.
-- Energía: XL4015, TPS2553, reserva, fusibles, backplane, Smart Module Ports, LiFePO4 futura, fuente LAB, selector AUX, rails y USB-C PD.
+- Energía interna: XL4015, TPS2553, reserva, fusibles, backplane, Smart Module Ports, LiFePO4 futura, fuente LAB, selector AUX, rails y USB-C PD.
+- Tapa operativa: pantalla Dell 14 pulgadas, antenas RF con soporte desplegable interno y espacio posible para LEDs/IR/GNSS; falta medir bisel y bisagra. La placa Dell desnuda con sistema de disipación está en base.
 
-Los módulos están distribuidos en una rejilla **para encontrarlos e inspeccionarlos**, no según su posición física definitiva. La palabra registrado/comprado no demuestra recepción física, montaje o prueba. El usuario puede buscar, filtrar y pulsar un componente para ir a su piso.
+La bandeja interna se ilustra como catálogo/rejilla **para encontrar módulos**, no según su posición física definitiva. En el panel solo se dibujan las reservas cuya geometría provisional está explícita; otras fichas de instrumentación siguen sin huella mecánica aprobada. La palabra registrado/comprado no demuestra recepción física, montaje o prueba. El usuario puede buscar, filtrar y pulsar un componente para ir a su piso.
 
 ## Límites de fidelidad
 
