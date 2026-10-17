@@ -6,9 +6,9 @@ const $=id=>document.getElementById(id),canvas=$("scene"),g=canvas.getContext("2
 if(!g){$("sceneInfoText").textContent="Este navegador no admite el visor Canvas 2D.";return;}
 const colors={tested:"#ebbbd0",owned:"#dcba92",planned:"#91899c",power:"#f2b381",i2c:"#d6a4e7",ground:"#9fb5d8"};
 const docs="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/";
-const levels=[["base","04 · BASE ESTRUCTURAL"],["power","03 · ENERGÍA"],["electronics","02 · ELECTRÓNICA"],["panel","01 · PANEL SUPERIOR"]];
+const levels=[["base","04 · PLACA DELL + DISIPACIÓN"],["power","03 · ENERGÍA INTERNA"],["electronics","02 · ELECTRÓNICA INTERNA"],["panel","01 · PANEL OPERATIVO"],["lid","TAPA · PANTALLA Y FRANJAS OPERATIVAS"]];
 const raw=[
-["dell","Dell Vostro 3405","base","owned","laptop",[-3.5,-2.3,6.9,4.4],"Batería/cargador originales","USB Dell; alimentación independiente","Equipo comprado Ryzen 5 3450U, 12 GB RAM y SSD de 256 GB. No conectado al sistema auxiliar.","Medir cargador Dell e interior del maletín.","hub,dcdell,keyboard"],
+["dell","Placa madre Dell Vostro 3405","base","owned","motherboard",[-3.5,-2.3,6.9,4.4],"Conector original y alimentación independiente","USB/HDMI/red por extensiones de panel","Solo placa madre Dell Ryzen 5 3450U, 12 GB RAM y SSD 256 GB más conjunto disipador/ventilador. No se conserva teclado, touchpad ni carcasa/palmrest del notebook; la placa desnuda debe medirse antes de mecanizar.","Medir contorno, anclajes, aireación y puertos de la placa sin inventar su tamaño.","dellcooler,lcd,keyboard"],
 ["hub","Hub USB","base","planned","usb",[3.5,-2.3,1.0,1.1],"USB 5 V (por medir)","USB Dell","Hub futuro con protección frente a retorno de corriente. No se ha probado.","Seleccionar hub y validar VBUS.","dell,sdr"],
 ["fan","Ventilación AUX","base","planned","fan",[3.5,.55,1.0,1.0],"5/12 V según equipo","Control térmico","No existe ventilación auxiliar validada. El ventilador del Dell se conserva.","Ensayar temperatura dentro del maletín sin perforarlo.","dell,esp32"],
 ["battery","LiFePO4 4S","power","planned","battery",[-4.1,-2.5,3.0,2.0],"12,8 V nominal","BMS / fusible / cargador","Pack futuro no comprado; tamaño, capacidad y ubicación aún por decidir.","Dimensionar Wh, BMS y cargador.","mux,dcdell"],
@@ -80,7 +80,7 @@ const expandedParts=[
 ];
 raw.push(...expandedParts);
 // Mover fichas existentes a la bandeja donde se consultarán (ubicación aún sin validar).
-for(const [id,floor] of [["cyd","panel"],["hub","electronics"]]){
+for(const [id,floor] of [["cyd","panel"],["hub","electronics"],["antenna","lid"]]){
  const row=raw.find(r=>r[0]===id);if(row)row[2]=floor;
 }
 for(const [id,name,details] of [
@@ -118,9 +118,39 @@ for(const [floor,rows] of Object.entries(floorRows)){
 raw.find(r=>r[0]==="keyboard")[5]=[-4.50,1.69,8.97,1.27];
 raw.find(r=>r[0]==="dell")[5]=[-4.75,-2.68,8.05,5.32];
 raw.find(r=>r[0]==="fan")[5]=[3.57,-2.44,1.18,1.12];
-// No duplicar el portátil Dell en electrónica: va en la base, con carcasa intacta.
+// El Dell no tiene chasis/teclado/touchpad en el montaje final: placa + refrigeración en base.
 
-const items=raw.map(r=>({id:r[0],name:r[1],floor:r[2],status:r[3],kind:r[4],box:r[5],v:r[6],io:r[7],desc:r[8],next:r[9],links:r[10].split(","),doc:r[2]==="power"?"21-portable-power-architecture.md":"22-lilith-build-status-2026-10-17.md"}));
+// Arquitectura operativa: tapa/pantalla + panel de mando (únicas superficies de uso normal).
+raw.push(
+ ["lcd","LCD Dell de 14 pulgadas","lid","owned","lcd",[],"Desde placa madre Dell","Cable LCD/eDP original por verificar","Se conserva la pantalla del Dell como módulo separado, a situar en la tapa. Ubicación y cable por validar; no se considera montada todavía.","Medir marco/panel LCD y comprobar cable y giro de bisagra.","dell,keyboard,lidstatus"],
+ ["lidstatus","Indicadores alrededor de la pantalla","lid","planned","leds",[],"Lógica 3,3 V protegida","LED de estado / advertencia","Franja disponible alrededor del LCD reservada para indicadores visibles al abrir la tapa; tamaños y profundidad reales por medir.","No tapar panel LCD ni anclajes de bisagra.","esp32,lcd,ledpanel"],
+ ["lidrf","Zona RF accesible junto a la pantalla","lid","planned","antenna",[],"RF pasiva, sin rail de potencia","SMA/RP-SMA independientes; coaxial corto","Bases plegables e interfaces RF orientadas hacia espacio despejado cuando el maletín esté ABIERTO. No perforar carcasa ni encerrar antenas detrás del LCD o masa metálica.","Medir espacio y verificar cable coax, pérdidas, polarización y separación RF.","antenna,lora,sdr,wifilab,gps"],
+ ["lid_ir","IR / antena GNSS / ampliación tapa","lid","planned","ir",[],"Según módulo","IR/ventana RF sin metal enfrente","Reserva estrecha en tapa para IR, GNSS u otro indicador pequeño si la profundidad/espesor de LCD lo permiten. NO caben automáticamente instrumentos grandes.","Confirmar holguras de tapa y compatibilidad de señal.","irpanel,gps,lcd"],
+ ["dellcooler","Disipador y ventilador Dell","base","owned","fan",[],"Alimentación original Dell","Heatpipe / fan y control térmico Dell","Conjunto de refrigeración original que acompaña la placa Dell desnuda. No añadir refrigeración imaginaria al modelo.","Medir volumen barrido por el ventilador y conductos sin obstruir aire.","dell,fan,temp"],
+ ["labreserve","Reserva de instrumentos de panel","panel","planned","zones",[],"Sin circuito asignado","FNIRSI / GM328A / otros por medir","Reserva física provisional para instrumentos. NO indica que FNIRSI y GM328A quepan juntos: aún no hay medidas suficientes.","Medir instrumentos, conectores, calados, espesor y reorganizar superficie real.","fnirsi,gm328,gpio"]
+);
+const PANEL_W=371,PANEL_D=258;
+const mmBox=(x,y,w,d)=>[-5+x*10/PANEL_W,-3.35+y*6.7/PANEL_D,w*10/PANEL_W,d*6.7/PANEL_D];
+const panelPlan=[
+ ["switches",[12,10,216,78]], // 6 x 36 mm; dos filas, 3 cm por unidad + 6 mm margen aproximado
+ ["oled",[235,12,40,38]],["cyd",[281,12,85,60]], // CYD PROVISIONAL, sin cota real
+ ["keyboard",[12,116,240,98]], // volumen reservado hasta medir teclado BT desplegado
+ ["gpio",[261,101,101,44]],["labmeter",[261,151,54,33]],
+ ["encoder",[321,151,41,38]],["usbpanel",[12,221,240,30]],
+ ["labreserve",[261,195,101,55]]
+];
+for(const [id,rect] of panelPlan){const item=raw.find(r=>r[0]===id);if(!item)throw Error("Plano sin elemento "+id);item[2]="panel";item[5]=mmBox(...rect);}
+const panelPlanIds=new Set(panelPlan.map(v=>v[0]));
+const visualLidIds=new Set(["lcd","lidrf","lidstatus","lid_ir","antenna"]);
+raw.find(r=>r[0]==="dell")[5]=[-4.52,-2.57,7.35,4.65]; // ENVOLVENTE CONCEPTUAL, NO MEDIDA REAL PCB
+raw.find(r=>r[0]==="dellcooler")[5]=[3.08,-1.80,1.42,1.70];
+raw.find(r=>r[0]==="antenna")[8]="Antenas físicas compradas. Se reservan soportes accesibles en la franja de tapa o borde superior, extendidas cuando el maletín está abierto. Los módulos RF pueden quedar dentro de la bandeja técnica con coax a las antenas, sin perforar el maletín.";
+raw.find(r=>r[0]==="keyboard")[8]="Teclado Bluetooth plegable con trackpad y Ñ, SEPARADO del Dell. Se usaría sobre el panel; la huella de 240 × 98 mm es solo una reserva, no medida real del teclado.";
+raw.find(r=>r[0]==="switches")[8]="6 palancas SPST + 6 basculantes. Reserva de 216 × 78 mm en dos filas de seis, paso orientativo 36 mm por interruptor (30 mm estimados + 6 mm). Verificar profundidad y acceso antes de cortar.";
+raw.find(r=>r[0]==="cyd")[8]="Pantalla táctil auxiliar futura en panel. El rectángulo de 85 × 60 mm es solo una reserva a validar con la variante física escogida.";
+raw.find(r=>r[0]==="ports")[8]="Conectores y puertos deben estar accesibles en panel o alrededor de pantalla. Por ahora representados mediante zonas reservadas, NO montados.";
+
+const items=raw.map(r=>({id:r[0],name:r[1],floor:r[2],status:r[3],kind:r[4],box:r[5],v:r[6],io:r[7],desc:r[8],next:r[9],links:r[10].split(","),doc:["panel","lid","base"].includes(r[2])?"25-lilith-panel-lid-interface.md":r[2]==="power"?"21-portable-power-architecture.md":"22-lilith-build-status-2026-10-17.md"}));
 const index=Object.fromEntries(items.map(i=>[i.id,i]));
 const bench={esp32:[-3.7,-1.1,2.24,1.32],ina:[-.77,-1.1,2.1,1.35],oled:[2.38,-1.0,1.45,1.1],r1:[-2.55,1.35,.87,.4],r2:[-.32,1.35,.87,.4],r3:[1.91,1.35,.87,.4]};
 const circuit={meanwell:[-4.45,-2.1,1.5,.95],fuse:[-2.62,-2.1,1.07,.87],sw0:[-1.18,-2.1,.81,.87],xl:[.08,-2.05,1.58,1.18],tps1:[2.23,-2.14,1.06,.91],tps2:[3.65,-2.14,1.04,.91],sw1:[.14,.27,.80,.79],ina:[-1.05,.59,1.54,1.10],esp32:[-4.0,.70,1.89,1.05],oled:[2.32,.60,1.58,1.02]};
