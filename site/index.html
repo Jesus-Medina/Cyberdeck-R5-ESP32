@@ -4,23 +4,24 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0b11"><meta name="description" content="Lilith Cyberdeck — gemelo visual interactivo por pisos, circuito probado y cableado previsto.">
 <title>LILITH — Gemelo visual del Cyberdeck</title>
-<link rel="stylesheet" href="./styles.css?v=3.3-modules-20261017">
-<script defer src="./app.js?v=3.3-modules-20261017"></script>
+<link rel="stylesheet" href="./styles.css?v=3.4-panel-lid-20261017">
+<script defer src="./app.js?v=3.4-panel-lid-20261017"></script>
 </head>
 <body>
 <div class="app" id="app">
 <aside class="sidebar">
-  <div class="brand"><div class="emblem" aria-hidden="true">☾<span>✦</span></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK · EXPLORER 3.0</small></div><span class="brand-trailing">V0.1</span></div>
+  <div class="brand"><div class="emblem" aria-hidden="true">☾<span>✦</span></div><div class="brandtext"><b>LILITH</b><small>CYBERDECK · EXPLORER 3.4</small></div><span class="brand-trailing">V0.1</span></div>
   <div class="sidebar-content">
-    <div class="intro"><span class="eyebrow">ESTACIÓN DE INGENIERÍA / 17.10.2026</span><h1>Explora lo que<br><em>estamos construyendo.</em></h1><p>Inventario ampliado por capas: módulos de radio, redes, energía, instrumentación y panel. Las posiciones aún son ilustrativas.</p>
+    <div class="intro"><span class="eyebrow">ESTACIÓN DE INGENIERÍA / 17.10.2026</span><h1>Explora lo que<br><em>estamos construyendo.</em></h1><p>La operación se realiza desde el panel y la tapa alrededor del LCD. Los pisos inferiores son infraestructura y solo se abren para mantenimiento.</p>
     <div class="stat-pair"><div><strong>03</strong><small>bloques probados</small></div><div><strong id="moduleTotal">—</strong><small>elementos del modelo</small></div></div></div>
     <div class="control-section mode-section"><div class="section-heading">MODO DE EXPLORACIÓN</div><nav class="mode-nav" id="modeNav" aria-label="Modos">
       <button class="mode active" data-mode="model"><span class="mode-icon">◈</span><span class="mode-name">Modelo 3D<small>Pisos y placas físicas</small></span></button>
       <button class="mode" data-mode="bench"><span class="mode-icon">▦</span><span class="mode-name">Banco real<small>Ensayo a 3,3 V</small></span></button>
       <button class="mode" data-mode="circuit"><span class="mode-icon">⌁</span><span class="mode-name">Cableado<small>Rutas y seguridad</small></span></button>
     </nav></div>
-    <div class="control-section level-section"><div class="section-heading">CAPAS DEL MALETÍN</div><nav id="floorNav" class="floor-nav" aria-label="Niveles">
+    <div class="control-section level-section"><div class="section-heading">ZONAS · DOS OPERATIVAS + TRES INTERNAS</div><nav id="floorNav" class="floor-nav" aria-label="Niveles">
       <button class="floor-choice active" data-floor="all"><span>◈</span><b>Todos</b><small>—</small></button>
+      <button class="floor-choice" data-floor="lid"><span>☾</span><b>Tapa / pantalla</b><small>—</small></button>
       <button class="floor-choice" data-floor="panel"><span>01</span><b>Panel</b><small>—</small></button>
       <button class="floor-choice" data-floor="electronics"><span>02</span><b>Electrónica</b><small>—</small></button>
       <button class="floor-choice" data-floor="power"><span>03</span><b>Energía</b><small>—</small></button>
@@ -44,11 +45,11 @@
 <main class="main">
 <header class="topbar"><span>CYBERDECK <i>/</i> <b>LILITH</b> <i>/</i> <span id="modeCrumb">MODELO 3D</span></span><a href="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32" target="_blank" rel="noopener">VER REPOSITORIO ↗</a></header>
 <section class="workspace">
-<div class="section-intro"><div><span class="eyebrow">LILITH / HARDWARE EXPLORER</span><h2 id="viewTitle">El interior, pieza por pieza<span>.</span></h2><p id="viewSubtitle">Elige un piso para descubrir sus módulos. Toca cada placa para ver su función y estado real.</p></div><span class="reality-tag">MAQUETA REFERENCIAL <small>NO ES PLANO DE FABRICACIÓN</small></span></div>
+<div class="section-intro"><div><span class="eyebrow">LILITH / HARDWARE EXPLORER</span><h2 id="viewTitle">Panel, pantalla e interior<span>.</span></h2><p id="viewSubtitle">El panel y la tapa son accesibles. Selecciona los niveles internos para conocer sus módulos.</p></div><span class="reality-tag">MAQUETA REFERENCIAL <small>NO ES PLANO DE FABRICACIÓN</small></span></div>
 <div id="viewer" class="viewer">
   <canvas id="scene" tabindex="0" role="img" aria-label="Modelo tridimensional interactivo de Lilith Cyberdeck. Arrastra para girar en la dirección del movimiento. Mayús o botón derecho más arrastre para desplazar. Pellizca para ampliar. Usa flechas para girar y Home para restablecer."></canvas>
   <div class="viewer-shade" aria-hidden="true"></div>
-  <div class="scene-meta meta-left">LILITH // EXPLORER 3.0 <span>— ESTRUCTURA POR CAPAS</span></div>
+  <div class="scene-meta meta-left">LILITH // EXPLORER 3.4 <span>— ESTRUCTURA POR CAPAS</span></div>
   <div class="scene-meta meta-right">MÓDULOS REALES + PREVISTOS</div>
   <div class="scene-info"><span class="dot-pink"></span><span id="sceneInfoText">VISUALIZACIÓN ISOMÉTRICA · ARRASTRA PARA GIRAR</span></div>
   <div id="floorCaption" class="floor-caption">TODOS LOS NIVELES <small>EXPLOTADO · POSICIÓN ILUSTRATIVA</small></div>
