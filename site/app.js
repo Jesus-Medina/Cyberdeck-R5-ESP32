@@ -3,6 +3,8 @@
 /* Lilith Explorer 3.0: 3D projected geometry on Canvas 2D. Board art is conceptual, not CAD.
    Verified bench relations are separated from not-yet-built AUX power connections. */
 const $=id=>document.getElementById(id),canvas=$("scene"),g=canvas.getContext("2d");
+const capabilityData=window.LILITH_CAPABILITIES||{categories:{all:"Todos"},profiles:{}};
+const capabilityProfiles=capabilityData.profiles;
 if(!g){$("sceneInfoText").textContent="Este navegador no admite el visor Canvas 2D.";return;}
 const colors={tested:"#ca9b7d",owned:"#c1a17b",planned:"#8998a2",power:"#d0a17b",i2c:"#b5a3a1",ground:"#91a8b3"};
 const docs="https://github.com/Jesus-Medina/Cyberdeck-R5-ESP32/blob/main/docs/";
@@ -298,7 +300,7 @@ function drawLid(z){
  for(const [id,x,y,w,h] of rects){
   const m=index[id];if(!m)continue;
   if(S.status!=="all"&&S.status!==m.status)continue;
-  if(S.q&&!(m.name+" "+m.desc+" "+m.io).toLowerCase().includes(S.q))continue;
+  if(S.q&&!(m.name+" "+m.desc+" "+m.io+" "+(capabilityProfiles[m.id]?.role||"")+" "+(capabilityProfiles[m.id]?.use||"")).toLowerCase().includes(S.q))continue;
   const isScreen=id==="lcd",isSelected=S.selected===id;
   const polygon=poly([[x,frontY-.02,z+y],[x+w,frontY-.02,z+y],[x+w,frontY-.02,z+y+h],[x,frontY-.02,z+y+h]],
     isScreen?"#122538":id==="antenna"?"#34414e":id==="lidrf"?"#333848":id==="lidstatus"?"#493044":"#4d3442",
@@ -473,11 +475,72 @@ const operatingAccess={
 };
 const accessFor=m=>operatingAccess[m.id]||"Operación/control/estado a través de interfaz superior o tapa; asignación exacta y calado pendiente de definir y medir. No hace falta abrir los pisos durante uso normal.";
 
+
+function setupCapabilityExplorer(){
+ const cards=$("capabilityCards"),tabs=$("capabilityFilters"),search=$("capabilitySearch"),more=$("capabilityMore");
+ if(!cards||!tabs||!search||!more)return;
+ let category="all",expanded=false;
+ const names=capabilityData.categories;
+ function show(){
+  const query=search.value.trim().toLocaleLowerCase("es");
+  const found=items.filter(m=>{
+   const p=capabilityProfiles[m.id];if(!p)return false;
+   return (category==="all"||p.category===category)&&(!query||[m.name,p.role,p.use,names[p.category]].join(" ").toLocaleLowerCase("es").includes(query));
+  });
+  const visible=expanded?found:found.slice(0,12);
+  $("capabilityResults").textContent=found.length+" de "+items.length+" elementos · estado según bitácora";
+  cards.replaceChildren();
+  for(const m of visible){
+   const p=capabilityProfiles[m.id],box=document.createElement("article");box.className="capability-card";
+   const meta=document.createElement("div");meta.className="capability-card-top";
+   const group=document.createElement("small");group.className="capability-domain";group.textContent=names[p.category];
+   const status=document.createElement("small");status.className="capability-status "+m.status;
+   status.textContent=m.status==="tested"?"Banco probado":m.status==="owned"?"Registrado / no integrado":"Planificado";
+   meta.append(group,status);
+   const title=document.createElement("h4");title.textContent=m.name;
+   const purpose=document.createElement("p");purpose.className="capability-role";purpose.textContent=p.role;
+   const application=document.createElement("p");application.className="capability-application";application.textContent=p.use;
+   const detail=document.createElement("button");detail.type="button";detail.className="capability-open";detail.textContent="Ver ficha técnica ↗";
+   detail.setAttribute("aria-label","Ver ficha técnica de "+m.name);
+   detail.addEventListener("click",()=>{
+    S.mode=m.floor==="bench"?"bench":m.floor==="external"?"circuit":"model";
+    if(S.mode==="model")S.floor=["lid","panel","electronics","power","base"].includes(m.floor)?m.floor:"all";
+    select(m.id);
+    $("inspector").scrollIntoView({behavior:"smooth",block:"start"});
+   });
+   box.append(meta,title,purpose,application,detail);cards.append(box);
+  }
+  more.hidden=found.length<=visible.length;
+  if(!more.hidden)more.textContent="Mostrar "+(found.length-visible.length)+" módulos restantes ↓";
+ }
+ tabs.replaceChildren();
+ for(const [key,name] of Object.entries(names)){
+  const button=document.createElement("button");button.type="button";button.className="capability-filter"+(key===category?" active":"");
+  button.textContent=name;button.dataset.category=key;button.setAttribute("aria-pressed",String(key===category));
+  button.addEventListener("click",()=>{
+   category=key;expanded=false;
+   tabs.querySelectorAll("button").forEach(b=>{const active=b.dataset.category===category;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});
+   show();
+  });
+  tabs.append(button);
+ }
+ search.addEventListener("input",()=>{expanded=false;show();});
+ more.addEventListener("click",()=>{expanded=true;show();});
+ $("capabilitiesTotal").textContent=Object.keys(capabilityProfiles).length;
+ show();
+}
 function inspector(){let m=index[S.selected];if(!m)return;let el=$("inspectorBody");el.replaceChildren();let top=document.createElement("div");top.className="inspector-topblock";let p=document.createElement("div");p.className="inspect-code";p.textContent="LILITH / "+m.floor.toUpperCase()+" / "+m.id.toUpperCase();top.append(p);
- let fig=document.createElement("div");fig.className="inspect-picture";let tile=document.createElement("div");tile.style.cssText="width:78%;height:60%;border:2px solid #b7a2b1;border-radius:9px;background:"+({ina:"#633583",xl:"#285f8a",esp32:"#235043",tps:"#2a6c56",oled:"#182c44"}[m.kind]||"#344b59")+";box-shadow:10px 12px 12px #0007;transform:rotate(-7deg);display:grid;place-items:center;text-align:center;font:700 15px 'Space Grotesk';padding:9px";tile.textContent=({ina:"INA3221 · R100 ×3",xl:"XL4015 · CC/CV",esp32:"ESP32-S3 · USB-C",tps:"TPS2553 · SOT-23-6",oled:"OLED · SH1106"}[m.kind]||m.name);fig.append(tile);top.append(fig);
+ let fig=document.createElement("div");fig.className="inspect-picture";let tile=document.createElement("div");tile.style.cssText="width:78%;height:60%;border:1px solid #617078;border-radius:3px;background:"+({ina:"#3b4d53",xl:"#364b57",esp32:"#36534a",tps:"#344e44",oled:"#2d4151"}[m.kind]||"#343f46")+";box-shadow:none;transform:none;display:grid;place-items:center;text-align:center;font:600 14px 'Space Grotesk';padding:9px";tile.textContent=({ina:"INA3221 · R100 ×3",xl:"XL4015 · CC/CV",esp32:"ESP32-S3 · USB-C",tps:"TPS2553 · SOT-23-6",oled:"OLED · SH1106"}[m.kind]||m.name);fig.append(tile);top.append(fig);
  let title=document.createElement("h3");title.className="inspect-title";title.textContent=m.name;top.append(title);
  let badge=document.createElement("div");badge.className="inspect-state "+m.status;badge.textContent=statusText(m.status);top.append(badge);
  let desc=document.createElement("p");desc.className="inspect-desc";desc.textContent=m.desc;top.append(desc);el.append(top);
+ const purpose=capabilityProfiles[m.id];
+ if(purpose){
+  let section=document.createElement("section");section.className="detail-section inspector-purpose";
+  let heading=document.createElement("h4");heading.textContent="FUNCIÓN Y APLICACIÓN";section.append(heading);
+  let sub=document.createElement("strong");sub.textContent=purpose.role;section.append(sub);
+  let explanation=document.createElement("p");explanation.textContent=purpose.use;section.append(explanation);el.append(section);
+ }
  let sect=document.createElement("section");sect.className="detail-section";let h=document.createElement("h4");h.textContent="ESPECIFICACIONES";sect.append(h);
  [["TENSIÓN",m.v],["CONECTORES / DATOS",m.io],["UBICACIÓN INTERNA",m.floor.toUpperCase()],["ACCESO OPERATIVO ARRIBA",accessFor(m)]].forEach(([k,v])=>{let row=document.createElement("div");row.className="spec";let a=document.createElement("span"),b=document.createElement("b");a.textContent=k;b.textContent=v;row.append(a,b);sect.append(row);});el.append(sect);
  sect=document.createElement("section");sect.className="detail-section";h=document.createElement("h4");h.textContent="SIGUIENTE PASO";sect.append(h);p=document.createElement("div");p.className="nextstep";p.textContent=m.next;sect.append(p);el.append(sect);
@@ -625,6 +688,7 @@ if(typeof document.querySelectorAll==="function"){
  });
 }
 renderOperatingPoints();
+setupCapabilityExplorer();
 const accessJump=$("accessJump");
 if(accessJump)accessJump.addEventListener("click",()=>{$("operatingOverview").scrollIntoView({behavior:"smooth",block:"start"});});
 $("moduleTotal").textContent=items.filter(m=>["lid","panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length;
