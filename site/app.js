@@ -532,6 +532,19 @@ $("resetCamera").addEventListener("click",resetView);
 $("openBench").addEventListener("click",()=>{S.mode="bench";S.selected="ina";update();$("viewer").scrollIntoView({behavior:"smooth",block:"center"});});
 $("mobileInventoryToggle").addEventListener("click",()=>{let yes=$("inventorySection").classList.toggle("open");$("mobileInventoryToggle").setAttribute("aria-expanded",String(yes));});
 $("openInspector").addEventListener("click",()=>$("inspector").scrollIntoView({behavior:"smooth",block:"start"}));
+// Los dos planos de reserva en milímetros son interactivos: abren la ficha del componente.
+// Su presencia en plano no equivale a compra, montaje, corte ni validación de espacio.
+if(typeof document.querySelectorAll==="function"){
+ document.querySelectorAll(".plan-hit[data-part]").forEach(node=>{
+  const open=()=>{
+   const m=index[node.getAttribute("data-part")];if(!m)return;
+   S.mode="model";S.floor=m.floor;S.selected=m.id;update();
+   $("inspector").scrollIntoView({behavior:"smooth",block:"start"});
+  };
+  node.addEventListener("click",open);
+  node.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
+ });
+}
 $("moduleTotal").textContent=items.filter(m=>["lid","panel","electronics","power","base"].includes(m.floor)&&!["sw0","sw1"].includes(m.id)).length;
 if(typeof ResizeObserver==="function"){new ResizeObserver(resize).observe(canvas);}else{window.addEventListener("resize",resize);}update();resize();
 })();
